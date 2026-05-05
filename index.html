@@ -3,26 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro de Clientes — PRUEBA</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Registro de Clientes — ElhyAi Consultores</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface2: #242424;
-    --border: rgba(255,255,255,0.08);
-    --border-focus: rgba(255,255,255,0.3);
-    --accent: #c8f06e;
-    --accent-dark: #9abf45;
-    --text: #f5f5f0;
-    --muted: rgba(245,245,240,0.45);
-    --muted2: rgba(245,245,240,0.2);
-    --success-bg: rgba(200,240,110,0.12);
-    --success-border: rgba(200,240,110,0.35);
-    --error-bg: rgba(255,90,90,0.12);
-    --error-border: rgba(255,90,90,0.35);
-    --error-text: #ff8080;
+    --bg: #f5f0e8;
+    --surface: #ffffff;
+    --surface2: #f0ebe0;
+    --border: rgba(0,0,0,0.1);
+    --border-focus: rgba(0,0,0,0.35);
+    --accent: #1a1a1a;
+    --accent-hover: #333;
+    --text: #1a1a1a;
+    --muted: rgba(0,0,0,0.5);
+    --muted2: rgba(0,0,0,0.3);
+    --success-bg: #edfbe8;
+    --success-border: #7bc67a;
+    --success-text: #2a6b29;
+    --error-bg: #fdecea;
+    --error-border: #e57373;
+    --error-text: #b71c1c;
+    --whatsapp: #25D366;
+    --whatsapp-hover: #1da851;
     --radius: 10px;
     --radius-lg: 16px;
   }
@@ -33,7 +36,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+    font-weight: 400;
     min-height: 100vh;
     display: flex;
     align-items: flex-start;
@@ -42,50 +45,47 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  .container {
-    width: 100%;
-    max-width: 620px;
-    animation: fadeUp 0.4s ease both;
-  }
-
+  .container { width: 100%; max-width: 620px; animation: fadeUp 0.4s ease both; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 
   /* HEADER */
   .header {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 0.5px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
   }
-  .brand { font-family: 'DM Serif Display', serif; font-size: clamp(1.5rem, 5vw, 2.2rem); letter-spacing: -0.02em; color: var(--text); line-height: 1; }
-  .brand span { color: var(--accent); }
-  .date-badge { font-size: clamp(10px, 2.5vw, 12px); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 5px 12px; border: 0.5px solid var(--border); border-radius: 100px; white-space: nowrap; }
+  .brand-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .brand { font-family: 'DM Serif Display', serif; font-size: clamp(1.4rem, 5vw, 2rem); letter-spacing: -0.02em; color: var(--text); line-height: 1; }
+  .brand span { color: #c8a84b; }
+  .brand-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .date-badge { font-size: clamp(10px, 2.5vw, 12px); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 5px 12px; border: 1px solid var(--border); border-radius: 100px; white-space: nowrap; background: var(--surface); }
 
   /* CARD */
-  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 4vw, 2rem); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 4vw, 2rem); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 
-  .section-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
-  .section-title::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
 
-  label { font-size: 11px; font-weight: 500; letter-spacing: 0.05em; color: var(--muted); text-transform: uppercase; }
+  label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--text); text-transform: uppercase; }
 
   input, textarea, select {
     background: var(--surface2);
-    border: 0.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     font-size: clamp(14px, 4vw, 16px);
-    font-weight: 300;
+    font-weight: 500;
     padding: 12px 14px;
     outline: none;
     transition: border-color 0.2s, background 0.2s;
@@ -93,73 +93,85 @@
     -webkit-appearance: none;
     touch-action: manipulation;
   }
-  input::placeholder, textarea::placeholder { color: var(--muted2); }
-  input:focus, textarea:focus { border-color: var(--border-focus); background: #2a2a2a; }
+  input::placeholder, textarea::placeholder { color: var(--muted2); font-weight: 400; }
+  input:focus, textarea:focus { border-color: var(--border-focus); background: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
   input[type="date"] { cursor: pointer; }
-  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; width: 20px; height: 20px; }
+  input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; width: 20px; height: 20px; opacity: 0.5; }
   input[type="number"] { -moz-appearance: textfield; }
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
   textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 
   .price-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
+    background: #1a1a1a;
     border-radius: var(--radius);
-    padding: 14px 16px;
+    padding: 14px 18px;
     margin: 1.25rem 0;
   }
-  .price-label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-  .price-value { font-family: 'DM Serif Display', serif; font-size: clamp(20px, 6vw, 28px); color: var(--accent); letter-spacing: -0.02em; }
+  .price-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+  .price-value { font-family: 'DM Serif Display', serif; font-size: clamp(22px, 6vw, 30px); color: #c8f06e; letter-spacing: -0.02em; }
 
-  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
   /* BUTTONS */
   .btn {
     width: 100%;
     padding: 15px;
     background: var(--accent);
-    color: #0f0f0f;
+    color: #fff;
     border: none;
     border-radius: var(--radius);
     font-family: 'DM Sans', sans-serif;
     font-size: clamp(14px, 4vw, 16px);
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background 0.2s, transform 0.1s, opacity 0.2s;
+    transition: background 0.2s, transform 0.1s;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    min-height: 50px;
+    min-height: 52px;
+    letter-spacing: 0.02em;
   }
-  .btn:hover { background: var(--accent-dark); }
+  .btn:hover { background: var(--accent-hover); }
   .btn:active { transform: scale(0.98); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-outline { background: transparent; color: var(--text); border: 0.5px solid var(--border); }
+
+  .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
   .btn-outline:hover { background: var(--surface2); }
 
-  /* STATUS */
-  .status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; display: none; align-items: center; gap: 10px; line-height: 1.4; }
-  .status.success { display: flex; background: var(--success-bg); border: 0.5px solid var(--success-border); color: var(--accent); }
-  .status.error { display: flex; background: var(--error-bg); border: 0.5px solid var(--error-border); color: var(--error-text); }
+  .btn-whatsapp {
+    background: var(--whatsapp);
+    color: #fff;
+    margin-top: 10px;
+    display: none;
+  }
+  .btn-whatsapp:hover { background: var(--whatsapp-hover); }
+  .btn-whatsapp.visible { display: flex; }
 
-  .footer { margin-top: 2rem; text-align: center; font-size: 12px; color: var(--muted); }
+  /* STATUS */
+  .status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; line-height: 1.4; }
+  .status.success { display: flex; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
+  .status.error { display: flex; background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
+
+  /* FOOTER */
+  .footer { margin-top: 1.5rem; text-align: center; }
+  .footer a { font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; letter-spacing: 0.03em; transition: color 0.2s; }
+  .footer a:hover { color: var(--text); }
 
   /* MODAL */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
   .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
   .modal {
     background: var(--surface);
-    border: 0.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     padding: 1.5rem;
     width: 100%;
@@ -169,26 +181,25 @@
     animation: slideUp 0.3s ease;
     -webkit-overflow-scrolling: touch;
   }
-
   @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
 
   .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 1.25rem; }
   .modal-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.2rem, 5vw, 1.5rem); margin-bottom: 0.3rem; color: var(--text); }
-  .modal-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; }
+  .modal-subtitle { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 1.25rem; }
 
   .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; }
-  .modal-table tr { border-bottom: 0.5px solid var(--border); }
+  .modal-table tr { border-bottom: 1px solid var(--border); }
   .modal-table tr:last-child { border-bottom: none; }
   .modal-table td { padding: 9px 0; font-size: clamp(12px, 3.5vw, 14px); }
-  .modal-table td:first-child { color: var(--muted); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; width: 38%; }
-  .modal-table td:last-child { color: var(--text); font-weight: 500; word-break: break-word; }
-  .modal-total-row td:last-child { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--accent); }
+  .modal-table td:first-child { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; width: 38%; }
+  .modal-table td:last-child { color: var(--text); font-weight: 600; word-break: break-word; }
+  .modal-total-row td:last-child { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #1a1a1a; }
 
   .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: env(safe-area-inset-bottom, 0px); }
 
   /* SPINNER */
   @keyframes spin { to { transform: rotate(360deg); } }
-  .spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.2); border-top-color: #0f0f0f; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 
   /* RESPONSIVE */
   @media (max-width: 480px) {
@@ -237,7 +248,10 @@
 
 <div class="container">
   <div class="header">
-    <div class="brand">PRUEBA<span>.</span></div>
+    <div class="brand-wrap">
+      <div class="brand">ElhyAi<span>.</span></div>
+      <div class="brand-sub">Consultores</div>
+    </div>
     <div class="date-badge" id="fechaHoy"></div>
   </div>
 
@@ -245,7 +259,7 @@
     <div class="section-title">Empleado responsable</div>
     <div class="field">
       <label>Nombre del empleado</label>
-      <input type="text" id="empleado" placeholder="Ej. Juan Perez" autocomplete="name" required>
+      <input type="text" id="empleado" placeholder="Ej. Zoila Perez" autocomplete="name" required>
     </div>
 
     <hr class="divider">
@@ -275,7 +289,7 @@
     <div class="section-title">Detalle del pedido</div>
     <div class="field">
       <label>Producto</label>
-      <input type="text" id="producto" placeholder="Ej. Televisor Samsung 50" autocomplete="off" required>
+      <input type="text" id="producto" placeholder="Ej. Botellones de agua" autocomplete="off" required>
     </div>
     <div class="grid-2">
       <div class="field">
@@ -305,15 +319,24 @@
       Guardar registro
     </button>
 
+    <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="enviarWhatsapp()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Enviar por WhatsApp a Zoila
+    </button>
+
     <div class="status" id="status"></div>
   </div>
 
-  <div class="footer">PRUEBA - Sistema de Registro de Clientes</div>
+  <div class="footer">
+    <a href="https://www.elhyai.com" target="_blank">www.elhyai.com</a>
+  </div>
 </div>
 
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrxz3R-GMW5TTXxLJquV-89c6iD2JkFxzEHdG7lKu74hlId3YgI-55sPx9VspH4DnJVA/exec";
+  const WHATSAPP_NUMBER = "593985886107";
   let dataPendiente = null;
+  let ultimoRegistro = null;
 
   (function() {
     const hoy = new Date();
@@ -376,6 +399,23 @@
     dataPendiente = null;
   }
 
+  function enviarWhatsapp() {
+    if (!ultimoRegistro) return;
+    const d = ultimoRegistro;
+    const msg = `Estimada Zoila, se envía pedido de cliente:%0A%0A` +
+      `👤 *Cliente:* ${d.nombre}%0A` +
+      `📞 *Teléfono:* ${d.telefono || '-'}%0A` +
+      `📍 *Dirección:* ${d.direccion || '-'}%0A` +
+      `📦 *Producto:* ${d.producto}%0A` +
+      `🔢 *Cantidad:* ${d.cantidad}%0A` +
+      `💵 *Precio unit.:* $${parseFloat(d.precio).toFixed(2)}%0A` +
+      `💰 *Total:* $${d.total}%0A` +
+      `📅 *Fecha:* ${d.fecha}%0A` +
+      `👷 *Empleado:* ${d.empleado}%0A` +
+      `📝 *Notas:* ${d.notas || '-'}`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
+  }
+
   async function confirmarEnvio() {
     if (!dataPendiente) return;
     const btn = document.getElementById("btnConfirmar");
@@ -389,8 +429,12 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataPendiente)
       });
+
+      ultimoRegistro = { ...dataPendiente };
       cerrarModal();
-      setStatus("success", "Registro guardado correctamente en Google Drive!");
+      setStatus("success", "✓ Registro guardado correctamente en Google Drive!");
+      document.getElementById("btnWhatsapp").classList.add("visible");
+
       ["empleado","nombre","telefono","direccion","producto","precio","notas"].forEach(id => {
         document.getElementById(id).value = "";
       });
@@ -401,6 +445,7 @@
       const mm = String(hoy.getMonth()+1).padStart(2,'0');
       const dd = String(hoy.getDate()).padStart(2,'0');
       document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
+
     } catch(err) {
       cerrarModal();
       setStatus("error", "Error de conexion. Intenta de nuevo.");
