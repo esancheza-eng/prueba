@@ -232,6 +232,35 @@
     .modal-handle { display: none; }
     @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
   }
+
+  /* LOGIN */
+  .login-overlay {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #dde8f2 0%, #e8f2f8 50%, #d8edf2 100%);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .login-box {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 380px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; justify-content: center; }
+  .login-title { font-family: 'DM Sans', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--navy); line-height: 1; }
+  .login-title span { color: #4ec9a0; }
+  .login-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 2px; }
+  .login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .login-field label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
+  .login-error { display: none; color: #b71c1c; font-size: 13px; font-weight: 600; background: #fdecea; border: 1px solid #e57373; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; }
+  .login-error.show { display: block; }
+
 </style>
 </head>
 <body>
@@ -269,6 +298,38 @@
   </div>
 </div>
 
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="22" fill="#0a4a5e"/>
+        <path d="M22 8C22 8 12 18 12 25C12 30.5 16.5 35 22 35C27.5 35 32 30.5 32 25C32 18 22 8 22 8Z" fill="#4ec9a0"/>
+        <path d="M22 8C22 8 17 20 19 25C20.2 28.2 22 29 22 29C22 29 24 28 24.5 25C25.5 20 22 8 22 8Z" fill="#a8edd8" opacity="0.6"/>
+        <text x="22" y="28" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="0.5">L</text>
+      </svg>
+      <div>
+        <div class="login-title">AQUA <span>LUAN</span></div>
+        <div class="login-sub">Sistema de Pedidos</div>
+      </div>
+    </div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="Ingresa tu usuario" autocomplete="username" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="Ingresa tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+    <button class="btn" onclick="doLogin()" style="margin-top:8px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Ingresar
+    </button>
+  </div>
+</div>
+
 <div class="container">
 
   <!-- HEADER CON LOGO -->
@@ -293,7 +354,7 @@
     <div class="section-title">Empleado responsable</div>
     <div class="field">
       <label>Nombre del empleado</label>
-      <input type="text" id="empleado" placeholder="Ej. Ruta 1" autocomplete="name" required>
+      <input type="text" id="empleado" placeholder="Ej. Zoila Perez" autocomplete="name" required>
     </div>
     <hr class="divider">
     <div class="section-title">Datos del cliente</div>
@@ -337,6 +398,8 @@
           <option value="PACA 400ML">PACA 400ML</option>
           <option value="GALONES 4LT">GALONES 4LT</option>
           <option value="POMA 5LTS">POMA 5LTS</option>
+          <option value="ENVASE CON LLAVE">ENVASE CON LLAVE</option>
+          <option value="ENVASE AZUL ADICIONAL">ENVASE AZUL ADICIONAL</option>
         </select>
       </div>
       <div class="field">
@@ -568,6 +631,20 @@
   });
 
   renderLista();
+
+  function doLogin() {
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if (user === 'admin' && pass === '1234') {
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('loginError').classList.remove('show');
+    } else {
+      document.getElementById('loginError').classList.add('show');
+      document.getElementById('loginPass').value = '';
+      document.getElementById('loginPass').focus();
+    }
+  }
+
 </script>
 </body>
 </html>
