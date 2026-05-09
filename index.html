@@ -3,211 +3,229 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro de Clientes — ElhyAi Consultores</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Registro de Pedidos — Aqua Luan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f5f0e8;
+    --bg: #e8f0f5;
+    --bg2: #dde8f0;
     --surface: #ffffff;
-    --surface2: #f0ebe0;
-    --border: rgba(0,0,0,0.1);
-    --border-focus: rgba(0,0,0,0.35);
-    --accent: #1a1a1a;
-    --accent-hover: #333;
-    --text: #1a1a1a;
-    --muted: rgba(0,0,0,0.5);
-    --muted2: rgba(0,0,0,0.3);
-    --success-bg: #edfbe8;
-    --success-border: #7bc67a;
-    --success-text: #2a6b29;
+    --surface2: #f0f5f8;
+    --border: rgba(0,80,120,0.12);
+    --border-focus: #0a7c6e;
+    --teal: #0a7c6e;
+    --teal-dark: #085f54;
+    --teal-light: #e6f4f2;
+    --navy: #1a3a5c;
+    --accent-green: #4ec9a0;
+    --text: #1a3a5c;
+    --muted: rgba(26,58,92,0.5);
+    --muted2: rgba(26,58,92,0.3);
+    --success-bg: #e6f4f2;
+    --success-border: #4ec9a0;
+    --success-text: #085f54;
     --error-bg: #fdecea;
     --error-border: #e57373;
     --error-text: #b71c1c;
     --whatsapp: #25D366;
     --whatsapp-hover: #1da851;
-    --radius: 10px;
-    --radius-lg: 16px;
+    --radius: 12px;
+    --radius-lg: 18px;
+    --shadow: 0 4px 20px rgba(26,58,92,0.1);
   }
-
   html { font-size: 16px; }
-
   body {
-    background: var(--bg);
+    background: linear-gradient(135deg, #dde8f2 0%, #e8f2f8 50%, #d8edf2 100%);
+    min-height: 100vh;
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
     font-weight: 400;
-    min-height: 100vh;
     display: flex;
     align-items: flex-start;
     justify-content: center;
     padding: 2rem 1rem 4rem;
     -webkit-text-size-adjust: 100%;
   }
-
-  .container { width: 100%; max-width: 620px; animation: fadeUp 0.4s ease both; }
-  @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+  .container { width: 100%; max-width: 640px; animation: fadeUp 0.4s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
   /* HEADER */
   .header {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1.5px solid var(--border);
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
+    box-shadow: var(--shadow);
   }
-  .brand-wrap { display: flex; flex-direction: column; gap: 2px; }
-  .brand { font-family: 'DM Serif Display', serif; font-size: clamp(1.4rem, 5vw, 2rem); letter-spacing: -0.02em; color: var(--text); line-height: 1; }
-  .brand span { color: #c8a84b; }
-  .brand-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-  .date-badge { font-size: clamp(10px, 2.5vw, 12px); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 5px 12px; border: 1px solid var(--border); border-radius: 100px; white-space: nowrap; background: var(--surface); }
+
+  .logo-wrap { display: flex; align-items: center; gap: 12px; }
+
+  /* SVG LOGO AQUA LUAN */
+  .logo-icon { flex-shrink: 0; }
+
+  .logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .logo-name { font-family: 'DM Sans', sans-serif; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 700; letter-spacing: 0.02em; color: #fff; line-height: 1; }
+  .logo-name span { color: #4ec9a0; }
+  .logo-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+
+  .date-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); padding: 5px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; white-space: nowrap; }
 
   /* CARD */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 4vw, 2rem); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 4vw, 1.75rem); box-shadow: var(--shadow); margin-bottom: 1rem; }
 
-  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+  .section-title::after { content: ''; flex: 1; height: 1.5px; background: var(--teal-light); }
 
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
   .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
-
-  label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--text); text-transform: uppercase; }
+  label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
 
   input, textarea, select {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(14px, 4vw, 16px);
-    font-weight: 500;
-    padding: 12px 14px;
-    outline: none;
-    transition: border-color 0.2s, background 0.2s;
-    width: 100%;
-    -webkit-appearance: none;
-    touch-action: manipulation;
+    background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: clamp(14px, 4vw, 15px);
+    font-weight: 500; padding: 11px 14px; outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    width: 100%; -webkit-appearance: none; touch-action: manipulation;
   }
   input::placeholder, textarea::placeholder { color: var(--muted2); font-weight: 400; }
-  input:focus, textarea:focus { border-color: var(--border-focus); background: #fff; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  input:focus, textarea:focus, select:focus { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3px rgba(10,124,110,0.1); }
   input[type="date"] { cursor: pointer; }
-  input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; width: 20px; height: 20px; opacity: 0.5; }
+  input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; }
   input[type="number"] { -moz-appearance: textfield; }
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
-
-  .price-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #1a1a1a;
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    margin: 1.25rem 0;
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230a7c6e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer;
   }
-  .price-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
-  .price-value { font-family: 'DM Serif Display', serif; font-size: clamp(22px, 6vw, 30px); color: #c8f06e; letter-spacing: -0.02em; }
+  .divider { border: none; border-top: 1.5px solid var(--teal-light); margin: 1.25rem 0; }
 
-  .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+  /* AGREGAR PRODUCTO */
+  .add-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: flex-end; }
+  .add-row .field { margin-bottom: 0; }
+
+  .btn-add {
+    height: 44px; padding: 0 16px; background: var(--teal); color: #fff;
+    border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.2s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  }
+  .btn-add:hover { background: var(--teal-dark); }
+  .btn-add:active { transform: scale(0.97); }
+
+  /* LISTA PRODUCTOS */
+  .productos-lista { margin-top: 1rem; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); }
+  .productos-lista.empty { display: none; }
+
+  .lista-header {
+    display: grid; grid-template-columns: 1fr 60px 80px 80px 32px;
+    gap: 8px; padding: 9px 12px;
+    background: var(--navy);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85);
+  }
+
+  .lista-item {
+    display: grid; grid-template-columns: 1fr 60px 80px 80px 32px;
+    gap: 8px; padding: 10px 12px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    align-items: center;
+  }
+  .lista-item:nth-child(even) { background: var(--surface2); }
+  .item-nombre { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .item-num { font-size: 13px; font-weight: 500; text-align: center; color: var(--muted); }
+  .item-precio { font-size: 13px; font-weight: 500; text-align: right; color: var(--muted); }
+  .item-subtotal { font-size: 13px; font-weight: 700; text-align: right; color: var(--teal); }
+
+  .btn-remove {
+    width: 28px; height: 28px; border-radius: 50%; border: none;
+    background: #fee2e2; color: #b71c1c; font-size: 16px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s; line-height: 1;
+  }
+  .btn-remove:hover { background: #fca5a5; }
+
+  /* TOTAL */
+  .total-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--navy); border-radius: var(--radius); padding: 16px 18px; margin-top: 1rem;
+  }
+  .total-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+  .total-value { font-family: 'DM Serif Display', serif; font-size: clamp(22px, 6vw, 32px); color: #4ec9a0; letter-spacing: -0.02em; }
+
+  .empty-msg { text-align: center; padding: 1.5rem; color: var(--muted); font-size: 14px; border: 1.5px dashed var(--border); border-radius: var(--radius); background: var(--surface2); margin-top: 1rem; }
 
   /* BUTTONS */
   .btn {
-    width: 100%;
-    padding: 15px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(14px, 4vw, 16px);
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    width: 100%; padding: 15px; background: var(--teal); color: #fff; border: none;
+    border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+    font-size: clamp(14px, 4vw, 16px); font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
     transition: background 0.2s, transform 0.1s;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    min-height: 52px;
-    letter-spacing: 0.02em;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation; min-height: 52px;
   }
-  .btn:hover { background: var(--accent-hover); }
+  .btn:hover { background: var(--teal-dark); }
   .btn:active { transform: scale(0.98); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+  .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
   .btn-outline:hover { background: var(--surface2); }
-
-  .btn-whatsapp {
-    background: var(--whatsapp);
-    color: #fff;
-    margin-top: 10px;
-    display: none;
-  }
+  .btn-whatsapp { background: var(--whatsapp); color: #fff; margin-top: 10px; display: none; }
   .btn-whatsapp:hover { background: var(--whatsapp-hover); }
   .btn-whatsapp.visible { display: flex; }
 
-  /* STATUS */
   .status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; line-height: 1.4; }
   .status.success { display: flex; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
   .status.error { display: flex; background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
 
-  /* FOOTER */
   .footer { margin-top: 1.5rem; text-align: center; }
-  .footer a { font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; letter-spacing: 0.03em; transition: color 0.2s; }
-  .footer a:hover { color: var(--text); }
+  .footer a { font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; letter-spacing: 0.03em; }
+  .footer a:hover { color: var(--teal); }
 
   /* MODAL */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,30,60,0.7); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
   .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding: 1.5rem;
-    width: 100%;
-    max-width: 620px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp 0.3s ease;
-    -webkit-overflow-scrolling: touch;
-  }
+  .modal { background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
   @keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
-
   .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 1.25rem; }
-  .modal-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.2rem, 5vw, 1.5rem); margin-bottom: 0.3rem; color: var(--text); }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.2rem, 5vw, 1.5rem); margin-bottom: 0.3rem; color: var(--navy); }
   .modal-subtitle { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 1.25rem; }
-
-  .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; }
+  .modal-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
   .modal-table tr { border-bottom: 1px solid var(--border); }
   .modal-table tr:last-child { border-bottom: none; }
-  .modal-table td { padding: 9px 0; font-size: clamp(12px, 3.5vw, 14px); }
+  .modal-table td { padding: 8px 0; font-size: 14px; }
   .modal-table td:first-child { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; width: 38%; }
-  .modal-table td:last-child { color: var(--text); font-weight: 600; word-break: break-word; }
-  .modal-total-row td:last-child { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #1a1a1a; }
-
+  .modal-table td:last-child { color: var(--navy); font-weight: 600; }
+  .modal-productos { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; border-radius: var(--radius); overflow: hidden; }
+  .modal-productos th { background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 10px; text-align: left; }
+  .modal-productos th:last-child { text-align: right; }
+  .modal-productos td { padding: 8px 10px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .modal-productos td:last-child { text-align: right; font-weight: 700; color: var(--teal); }
+  .modal-total-final { display: flex; justify-content: space-between; align-items: center; background: var(--navy); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 1.25rem; }
+  .modal-total-final span:first-child { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+  .modal-total-final span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: #4ec9a0; }
   .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-  /* SPINNER */
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 
-  /* RESPONSIVE */
   @media (max-width: 480px) {
-    body { padding: 1.25rem 0.75rem 3rem; }
+    body { padding: 1rem 0.75rem 3rem; }
     .grid-2 { grid-template-columns: 1fr; }
+    .add-row { grid-template-columns: 1fr 1fr; }
+    .add-row .btn-add { grid-column: 1 / -1; width: 100%; }
+    .lista-header, .lista-item { grid-template-columns: 1fr 48px 68px 68px 28px; font-size: 12px; }
     .modal-btns { grid-template-columns: 1fr; }
   }
-
   @media (min-width: 768px) {
     .modal-overlay { align-items: center; padding: 1rem; }
     .modal { border-radius: var(--radius-lg); max-height: 85vh; }
@@ -222,20 +240,25 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Confirmar registro</div>
-    <div class="modal-subtitle">Revisa los datos antes de enviar a Google Drive</div>
+    <div class="modal-title">Confirmar pedido</div>
+    <div class="modal-subtitle">Revisa todos los datos antes de enviar a Google Drive</div>
     <table class="modal-table">
       <tr><td>Empleado</td><td id="m-empleado">-</td></tr>
       <tr><td>Cliente</td><td id="m-nombre">-</td></tr>
       <tr><td>Telefono</td><td id="m-telefono">-</td></tr>
       <tr><td>Direccion</td><td id="m-direccion">-</td></tr>
       <tr><td>Fecha</td><td id="m-fecha">-</td></tr>
-      <tr><td>Producto</td><td id="m-producto">-</td></tr>
-      <tr><td>Cantidad</td><td id="m-cantidad">-</td></tr>
-      <tr><td>Precio unit.</td><td id="m-precio">-</td></tr>
       <tr><td>Notas</td><td id="m-notas">-</td></tr>
-      <tr class="modal-total-row"><td>Total</td><td id="m-total">-</td></tr>
     </table>
+    <div class="section-title" style="margin-bottom:0.75rem">Productos</div>
+    <table class="modal-productos">
+      <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
+      <tbody id="m-productos"></tbody>
+    </table>
+    <div class="modal-total-final">
+      <span>Total general</span>
+      <span id="m-total">$0.00</span>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
       <button class="btn" id="btnConfirmar" onclick="confirmarEnvio()">
@@ -247,23 +270,32 @@
 </div>
 
 <div class="container">
+
+  <!-- HEADER CON LOGO -->
   <div class="header">
-    <div class="brand-wrap">
-      <div class="brand">ElhyAi<span>.</span></div>
-      <div class="brand-sub">Consultores</div>
+    <div class="logo-wrap">
+      <svg class="logo-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="22" fill="#0a4a5e"/>
+        <path d="M22 8C22 8 12 18 12 25C12 30.5 16.5 35 22 35C27.5 35 32 30.5 32 25C32 18 22 8 22 8Z" fill="#4ec9a0"/>
+        <path d="M22 8C22 8 17 20 19 25C20.2 28.2 22 29 22 29C22 29 24 28 24.5 25C25.5 20 22 8 22 8Z" fill="#a8edd8" opacity="0.6"/>
+        <text x="22" y="28" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="0.5">L</text>
+      </svg>
+      <div class="logo-text">
+        <div class="logo-name">AQUA <span>LUAN</span></div>
+        <div class="logo-sub">Registro de Pedidos</div>
+      </div>
     </div>
     <div class="date-badge" id="fechaHoy"></div>
   </div>
 
+  <!-- DATOS CLIENTE -->
   <div class="card">
     <div class="section-title">Empleado responsable</div>
     <div class="field">
       <label>Nombre del empleado</label>
-      <input type="text" id="empleado" placeholder="Ej. Zoila Perez" autocomplete="name" required>
+      <input type="text" id="empleado" placeholder="Ej. Juan Quinto" autocomplete="name" required>
     </div>
-
     <hr class="divider">
-
     <div class="section-title">Datos del cliente</div>
     <div class="field">
       <label>Nombre completo</label>
@@ -283,37 +315,67 @@
       <label>Direccion</label>
       <input type="text" id="direccion" placeholder="Calle, numero, sector" autocomplete="off">
     </div>
-
-    <hr class="divider">
-
-    <div class="section-title">Detalle del pedido</div>
-    <div class="field">
-      <label>Producto</label>
-      <input type="text" id="producto" placeholder="Ej. Botellones de agua" autocomplete="off" required>
-    </div>
-    <div class="grid-2">
-      <div class="field">
-        <label>Cantidad</label>
-        <input type="number" id="cantidad" placeholder="1" min="1" value="1" inputmode="numeric" oninput="calcTotal()">
-      </div>
-      <div class="field">
-        <label>Precio unitario ($)</label>
-        <input type="number" id="precio" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="calcTotal()">
-      </div>
-    </div>
-
-    <div class="price-row">
-      <span class="price-label">Total calculado</span>
-      <span class="price-value" id="total">$0.00</span>
-    </div>
-
-    <div class="field">
+    <div class="field" style="margin-bottom:0">
       <label>Notas adicionales</label>
       <textarea id="notas" placeholder="Observaciones, condiciones de pago, entregas..."></textarea>
     </div>
+  </div>
 
-    <hr class="divider">
+  <!-- PRODUCTOS -->
+  <div class="card">
+    <div class="section-title">Productos del pedido</div>
+    <div class="add-row">
+      <div class="field">
+        <label>Producto</label>
+        <select id="sel-producto">
+          <option value="">-- Selecciona --</option>
+          <option value="BOTELLON 20LT">BOTELLON 20LT</option>
+          <option value="BOTELLON CON LLAVE">BOTELLON CON LLAVE</option>
+          <option value="PACA 625ML AZUL">PACA 625ML AZUL</option>
+          <option value="PACA 600ML VERDE">PACA 600ML VERDE</option>
+          <option value="PACA 1000ML">PACA 1000ML</option>
+          <option value="PACA 400ML">PACA 400ML</option>
+          <option value="GALONES 4LT">GALONES 4LT</option>
+          <option value="POMA 5LTS">POMA 5LTS</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Cantidad</label>
+        <input type="number" id="sel-cantidad" placeholder="1" min="1" value="1" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Precio ($)</label>
+        <input type="number" id="sel-precio" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+      </div>
+      <button class="btn-add" onclick="agregarProducto()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Agregar
+      </button>
+    </div>
 
+    <div class="productos-lista empty" id="productosLista">
+      <div class="lista-header">
+        <span>Producto</span>
+        <span style="text-align:center">Cant.</span>
+        <span style="text-align:right">Precio</span>
+        <span style="text-align:right">Subtotal</span>
+        <span></span>
+      </div>
+      <div id="productosItems"></div>
+    </div>
+
+    <div id="emptyMsg" class="empty-msg">
+      Aun no hay productos. Selecciona un producto y haz clic en <strong>Agregar</strong>.
+    </div>
+
+    <div class="total-row">
+      <span class="total-label">Total general</span>
+      <span class="total-value" id="totalGeneral">$0.00</span>
+    </div>
+  </div>
+
+  <!-- GUARDAR -->
+  <div class="card">
     <button class="btn" id="btnGuardar" onclick="abrirModal()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 10v2a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 12v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M8 2v7M5.5 6.5 8 9l2.5-2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Guardar registro
@@ -321,20 +383,19 @@
 
     <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="enviarWhatsapp()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      Enviar por WhatsApp a Zoila
+      Enviar por WhatsApp a Zoila Perez
     </button>
 
     <div class="status" id="status"></div>
   </div>
 
-  <div class="footer">
-    <a href="https://www.elhyai.com" target="_blank">www.elhyai.com</a>
-  </div>
+  <div class="footer"><a href="https://www.elhyai.com" target="_blank">www.elhyai.com &nbsp;|&nbsp; Aqua Luan</a></div>
 </div>
 
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrxz3R-GMW5TTXxLJquV-89c6iD2JkFxzEHdG7lKu74hlId3YgI-55sPx9VspH4DnJVA/exec";
   const WHATSAPP_NUMBER = "593985886107";
+  let productos = [];
   let dataPendiente = null;
   let ultimoRegistro = null;
 
@@ -347,11 +408,50 @@
     document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
   })();
 
-  function calcTotal() {
-    const qty = parseFloat(document.getElementById("cantidad").value) || 1;
-    const price = parseFloat(document.getElementById("precio").value) || 0;
-    document.getElementById("total").textContent = "$" + (qty * price).toFixed(2);
+  function calcTotal() { return productos.reduce((s,p) => s + p.subtotal, 0); }
+
+  function renderLista() {
+    const items = document.getElementById('productosItems');
+    const lista = document.getElementById('productosLista');
+    const emptyMsg = document.getElementById('emptyMsg');
+    if (productos.length === 0) {
+      lista.classList.add('empty');
+      emptyMsg.style.display = 'block';
+    } else {
+      lista.classList.remove('empty');
+      emptyMsg.style.display = 'none';
+    }
+    items.innerHTML = productos.map((p, i) => `
+      <div class="lista-item">
+        <span class="item-nombre">${p.nombre}</span>
+        <span class="item-num">${p.cantidad}</span>
+        <span class="item-precio">$${p.precio.toFixed(2)}</span>
+        <span class="item-subtotal">$${p.subtotal.toFixed(2)}</span>
+        <button class="btn-remove" onclick="eliminarProducto(${i})">&times;</button>
+      </div>`).join('');
+    document.getElementById('totalGeneral').textContent = '$' + calcTotal().toFixed(2);
   }
+
+  function agregarProducto() {
+    const nombre = document.getElementById('sel-producto').value;
+    const cantidad = parseFloat(document.getElementById('sel-cantidad').value) || 1;
+    const precio = parseFloat(document.getElementById('sel-precio').value);
+    if (!nombre) { alert('Selecciona un producto.'); return; }
+    if (!precio || precio <= 0) { alert('Ingresa el precio unitario.'); return; }
+    const existente = productos.findIndex(p => p.nombre === nombre);
+    if (existente >= 0) {
+      productos[existente].cantidad += cantidad;
+      productos[existente].subtotal = productos[existente].cantidad * productos[existente].precio;
+    } else {
+      productos.push({ nombre, cantidad, precio, subtotal: cantidad * precio });
+    }
+    document.getElementById('sel-producto').value = '';
+    document.getElementById('sel-cantidad').value = '1';
+    document.getElementById('sel-precio').value = '';
+    renderLista();
+  }
+
+  function eliminarProducto(i) { productos.splice(i, 1); renderLista(); }
 
   function setStatus(type, msg) {
     const el = document.getElementById("status");
@@ -365,30 +465,25 @@
     const telefono  = document.getElementById("telefono").value.trim();
     const fecha     = document.getElementById("fecha").value;
     const direccion = document.getElementById("direccion").value.trim();
-    const producto  = document.getElementById("producto").value.trim();
-    const cantidad  = document.getElementById("cantidad").value || "1";
-    const precio    = document.getElementById("precio").value;
     const notas     = document.getElementById("notas").value.trim();
-
-    if (!empleado || !nombre || !producto || !precio) {
-      setStatus("error", "Completa los campos obligatorios: empleado, nombre, producto y precio.");
-      return;
-    }
-
-    const total = (parseFloat(cantidad) * parseFloat(precio)).toFixed(2);
-    dataPendiente = { empleado, nombre, telefono, fecha, direccion, producto, cantidad, precio, total, notas };
-
+    if (!empleado || !nombre) { setStatus("error", "Completa el nombre del empleado y del cliente."); return; }
+    if (productos.length === 0) { setStatus("error", "Agrega al menos un producto al pedido."); return; }
+    const total = calcTotal();
+    dataPendiente = { empleado, nombre, telefono, fecha, direccion, notas, productos, total: total.toFixed(2) };
     document.getElementById("m-empleado").textContent  = empleado;
     document.getElementById("m-nombre").textContent    = nombre;
     document.getElementById("m-telefono").textContent  = telefono || "-";
     document.getElementById("m-direccion").textContent = direccion || "-";
     document.getElementById("m-fecha").textContent     = fecha || "-";
-    document.getElementById("m-producto").textContent  = producto;
-    document.getElementById("m-cantidad").textContent  = cantidad;
-    document.getElementById("m-precio").textContent    = "$" + parseFloat(precio).toFixed(2);
     document.getElementById("m-notas").textContent     = notas || "-";
-    document.getElementById("m-total").textContent     = "$" + total;
-
+    document.getElementById("m-total").textContent     = "$" + total.toFixed(2);
+    document.getElementById("m-productos").innerHTML = productos.map(p => `
+      <tr>
+        <td>${p.nombre}</td>
+        <td style="text-align:center">${p.cantidad}</td>
+        <td style="text-align:right">$${p.precio.toFixed(2)}</td>
+        <td>$${p.subtotal.toFixed(2)}</td>
+      </tr>`).join('');
     document.getElementById("modalOverlay").classList.add("open");
     document.body.style.overflow = "hidden";
   }
@@ -402,16 +497,15 @@
   function enviarWhatsapp() {
     if (!ultimoRegistro) return;
     const d = ultimoRegistro;
-    const msg = `Estimada Zoila, se envía pedido de cliente:%0A%0A` +
+    let lineas = d.productos.map(p => `  - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
+    const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
       `👤 *Cliente:* ${d.nombre}%0A` +
-      `📞 *Teléfono:* ${d.telefono || '-'}%0A` +
-      `📍 *Dirección:* ${d.direccion || '-'}%0A` +
-      `📦 *Producto:* ${d.producto}%0A` +
-      `🔢 *Cantidad:* ${d.cantidad}%0A` +
-      `💵 *Precio unit.:* $${parseFloat(d.precio).toFixed(2)}%0A` +
-      `💰 *Total:* $${d.total}%0A` +
+      `📞 *Telefono:* ${d.telefono || '-'}%0A` +
+      `📍 *Direccion:* ${d.direccion || '-'}%0A` +
       `📅 *Fecha:* ${d.fecha}%0A` +
-      `👷 *Empleado:* ${d.empleado}%0A` +
+      `👷 *Empleado:* ${d.empleado}%0A%0A` +
+      `📦 *Productos:*%0A${lineas}%0A%0A` +
+      `💰 *TOTAL: $${d.total}*%0A` +
       `📝 *Notas:* ${d.notas || '-'}`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
   }
@@ -422,35 +516,48 @@
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div> Enviando...';
 
+    const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
+    const dia = fechaObj.getDate();
+    const mes = fechaObj.getMonth() + 1;
+
+    const productosTexto = dataPendiente.productos.map(p =>
+      `${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
+
+    const payload = {
+      dia,
+      mes,
+      empleado: dataPendiente.empleado,
+      nombre: dataPendiente.nombre,
+      telefono: dataPendiente.telefono,
+      fecha: dataPendiente.fecha,
+      direccion: dataPendiente.direccion,
+      notas: dataPendiente.notas,
+      productos: productosTexto,
+      total: dataPendiente.total
+    };
+
     try {
       await fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
+        method: "POST", mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataPendiente)
+        body: JSON.stringify(payload)
       });
-
       ultimoRegistro = { ...dataPendiente };
       cerrarModal();
-      setStatus("success", "✓ Registro guardado correctamente en Google Drive!");
+      setStatus("success", "✓ Pedido guardado correctamente en Google Drive!");
       document.getElementById("btnWhatsapp").classList.add("visible");
-
-      ["empleado","nombre","telefono","direccion","producto","precio","notas"].forEach(id => {
-        document.getElementById(id).value = "";
-      });
-      document.getElementById("cantidad").value = "1";
-      document.getElementById("total").textContent = "$0.00";
+      ["empleado","nombre","telefono","direccion","notas"].forEach(id => document.getElementById(id).value = "");
+      productos = [];
+      renderLista();
       const hoy = new Date();
       const yyyy = hoy.getFullYear();
       const mm = String(hoy.getMonth()+1).padStart(2,'0');
       const dd = String(hoy.getDate()).padStart(2,'0');
       document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
-
     } catch(err) {
       cerrarModal();
       setStatus("error", "Error de conexion. Intenta de nuevo.");
     }
-
     btn.disabled = false;
     btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
     dataPendiente = null;
@@ -459,6 +566,8 @@
   document.getElementById("modalOverlay").addEventListener("click", function(e) {
     if (e.target === this) cerrarModal();
   });
+
+  renderLista();
 </script>
 </body>
 </html>
