@@ -28,6 +28,9 @@
     --error-bg: #fdecea;
     --error-border: #e57373;
     --error-text: #b71c1c;
+    --warning-bg: #fff8e1;
+    --warning-border: #ffc107;
+    --warning-text: #795c00;
     --whatsapp: #25D366;
     --whatsapp-hover: #1da851;
     --radius: 12px;
@@ -50,6 +53,73 @@
   .container { width: 100%; max-width: 640px; animation: fadeUp 0.4s ease both; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
+  /* ── BANNER OFFLINE ── */
+  .offline-banner {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: var(--warning-bg);
+    border: 1.5px solid var(--warning-border);
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--warning-text);
+    animation: fadeUp 0.3s ease;
+  }
+  .offline-banner.show { display: flex; }
+  .offline-banner svg { flex-shrink: 0; }
+  .offline-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #ffc107; flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(255,193,7,0.25);
+    animation: pulse-dot 1.5s ease infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { box-shadow: 0 0 0 3px rgba(255,193,7,0.25); }
+    50% { box-shadow: 0 0 0 6px rgba(255,193,7,0.1); }
+  }
+
+  /* ── BANNER PENDIENTES ── */
+  .pending-banner {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #e8f4fd;
+    border: 1.5px solid #90caf9;
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    margin-bottom: 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1565c0;
+    animation: fadeUp 0.3s ease;
+  }
+  .pending-banner.show { display: flex; }
+  .pending-left { display: flex; align-items: center; gap: 10px; }
+  .pending-count {
+    background: #1565c0; color: #fff;
+    font-size: 11px; font-weight: 800;
+    border-radius: 100px; padding: 2px 9px; min-width: 22px; text-align: center;
+  }
+  .btn-sync {
+    height: 32px; padding: 0 14px;
+    background: #1565c0; color: #fff;
+    border: none; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-sync:hover { background: #0d47a1; }
+  .btn-sync:active { transform: scale(0.97); }
+  .btn-sync:disabled { opacity: 0.6; cursor: not-allowed; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.7s linear infinite; }
+
   /* HEADER */
   .header {
     background: var(--navy);
@@ -63,27 +133,19 @@
     flex-wrap: wrap;
     box-shadow: var(--shadow);
   }
-
   .logo-wrap { display: flex; align-items: center; gap: 12px; }
-
-  /* SVG LOGO AQUA LUAN */
   .logo-icon { flex-shrink: 0; }
-
   .logo-text { display: flex; flex-direction: column; gap: 1px; }
   .logo-name { font-family: 'DM Sans', sans-serif; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 700; letter-spacing: 0.02em; color: #fff; line-height: 1; }
   .logo-name span { color: #4ec9a0; }
   .logo-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
-
   .date-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); padding: 5px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; white-space: nowrap; }
 
   /* CARD */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 4vw, 1.75rem); box-shadow: var(--shadow); margin-bottom: 1rem; }
-
   .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
   .section-title::after { content: ''; flex: 1; height: 1.5px; background: var(--teal-light); }
-
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
   .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
   label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
@@ -111,7 +173,6 @@
   /* AGREGAR PRODUCTO */
   .add-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: flex-end; }
   .add-row .field { margin-bottom: 0; }
-
   .btn-add {
     height: 44px; padding: 0 16px; background: var(--teal); color: #fff;
     border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
@@ -126,14 +187,12 @@
   /* LISTA PRODUCTOS */
   .productos-lista { margin-top: 1rem; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); }
   .productos-lista.empty { display: none; }
-
   .lista-header {
     display: grid; grid-template-columns: 1fr 60px 80px 80px 32px;
     gap: 8px; padding: 9px 12px;
     background: var(--navy);
     font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85);
   }
-
   .lista-item {
     display: grid; grid-template-columns: 1fr 60px 80px 80px 32px;
     gap: 8px; padding: 10px 12px;
@@ -145,7 +204,6 @@
   .item-num { font-size: 13px; font-weight: 500; text-align: center; color: var(--muted); }
   .item-precio { font-size: 13px; font-weight: 500; text-align: right; color: var(--muted); }
   .item-subtotal { font-size: 13px; font-weight: 700; text-align: right; color: var(--teal); }
-
   .btn-remove {
     width: 28px; height: 28px; border-radius: 50%; border: none;
     background: #fee2e2; color: #b71c1c; font-size: 16px; font-weight: 700;
@@ -161,7 +219,6 @@
   }
   .total-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
   .total-value { font-family: 'DM Serif Display', serif; font-size: clamp(22px, 6vw, 32px); color: #4ec9a0; letter-spacing: -0.02em; }
-
   .empty-msg { text-align: center; padding: 1.5rem; color: var(--muted); font-size: 14px; border: 1.5px dashed var(--border); border-radius: var(--radius); background: var(--surface2); margin-top: 1rem; }
 
   /* BUTTONS */
@@ -184,7 +241,8 @@
 
   .status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; line-height: 1.4; }
   .status.success { display: flex; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
-  .status.error { display: flex; background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
+  .status.error   { display: flex; background: var(--error-bg);   border: 1px solid var(--error-border);   color: var(--error-text); }
+  .status.warning { display: flex; background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text); }
 
   .footer { margin-top: 1.5rem; text-align: center; }
   .footer a { font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; letter-spacing: 0.03em; }
@@ -214,9 +272,10 @@
   .modal-total-final span:first-child { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
   .modal-total-final span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: #4ec9a0; }
   .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .modal-offline-note { display:none; font-size:12px; font-weight:600; color:var(--warning-text); background:var(--warning-bg); border:1px solid var(--warning-border); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; }
+  .modal-offline-note.show { display:block; }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  .spinner2 { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 
   @media (max-width: 480px) {
     body { padding: 1rem 0.75rem 3rem; }
@@ -237,21 +296,9 @@
   .login-overlay {
     position: fixed; inset: 0;
     background: linear-gradient(135deg, #dde8f2 0%, #e8f2f8 50%, #d8edf2 100%);
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+    z-index: 999; display: flex; align-items: center; justify-content: center; padding: 1rem;
   }
-  .login-box {
-    background: #fff;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    padding: 2.5rem 2rem;
-    width: 100%;
-    max-width: 380px;
-    animation: fadeUp 0.4s ease both;
-  }
+  .login-box { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 2.5rem 2rem; width: 100%; max-width: 380px; animation: fadeUp 0.4s ease both; }
   .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; justify-content: center; }
   .login-title { font-family: 'DM Sans', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--navy); line-height: 1; }
   .login-title span { color: #4ec9a0; }
@@ -260,17 +307,21 @@
   .login-field label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
   .login-error { display: none; color: #b71c1c; font-size: 13px; font-weight: 600; background: #fdecea; border: 1px solid #e57373; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; }
   .login-error.show { display: block; }
-
 </style>
 </head>
 <body>
 
-<!-- MODAL -->
+<!-- MODAL CONFIRMACIÓN -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Confirmar pedido</div>
-    <div class="modal-subtitle">Revisa todos los datos antes de enviar a Google Drive</div>
+    <div class="modal-subtitle" id="modal-subtitle-text">Revisa todos los datos antes de guardar</div>
+
+    <div class="modal-offline-note" id="modalOfflineNote">
+      ⚠️ Sin conexión a internet. El pedido se guardará localmente y se enviará a Google Drive automáticamente cuando haya conexión.
+    </div>
+
     <table class="modal-table">
       <tr><td>Empleado</td><td id="m-empleado">-</td></tr>
       <tr><td>Cliente</td><td id="m-nombre">-</td></tr>
@@ -297,7 +348,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- LOGIN OVERLAY -->
 <div class="login-overlay" id="loginOverlay">
@@ -331,6 +381,24 @@
 </div>
 
 <div class="container">
+
+  <!-- BANNER OFFLINE -->
+  <div class="offline-banner" id="offlineBanner">
+    <div class="offline-dot"></div>
+    <span>Sin internet — Los pedidos se guardarán localmente y se sincronizarán automáticamente cuando haya conexión.</span>
+  </div>
+
+  <!-- BANNER PEDIDOS PENDIENTES -->
+  <div class="pending-banner" id="pendingBanner">
+    <div class="pending-left">
+      <span class="pending-count" id="pendingCount">0</span>
+      <span>pedido(s) pendiente(s) por enviar a Google Drive</span>
+    </div>
+    <button class="btn-sync" id="btnSync" onclick="sincronizarManual()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" id="syncIcon"><path d="M14 8A6 6 0 1 1 8 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 2v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Sincronizar
+    </button>
+  </div>
 
   <!-- HEADER CON LOGO -->
   <div class="header">
@@ -426,11 +494,9 @@
       </div>
       <div id="productosItems"></div>
     </div>
-
     <div id="emptyMsg" class="empty-msg">
       Aun no hay productos. Selecciona un producto y haz clic en <strong>Agregar</strong>.
     </div>
-
     <div class="total-row">
       <span class="total-label">Total general</span>
       <span class="total-value" id="totalGeneral">$0.00</span>
@@ -456,195 +522,441 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo_NTtQrGMJ4DqVKq3qQT8nrq8YjP55vcgD0PKBde69qngR2boYU-fvXJPqw6kLdG0rw/exec";
-  const WHATSAPP_NUMBER = "593985886107";
-  let productos = [];
-  let dataPendiente = null;
-  let ultimoRegistro = null;
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbwo_NTtQrGMJ4DqVKq3qQT8nrq8YjP55vcgD0PKBde69qngR2boYU-fvXJPqw6kLdG0rw/exec";
+const WHATSAPP_NUMBER = "593985886107";
+const DB_NAME  = 'aqualuan-db';
+const STORE    = 'pedidos-pendientes';
 
-  (function() {
-    const hoy = new Date();
-    document.getElementById('fechaHoy').textContent = hoy.toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long' });
-    const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth()+1).padStart(2,'0');
-    const dd = String(hoy.getDate()).padStart(2,'0');
-    document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
-  })();
+let productos    = [];
+let dataPendiente = null;
+let ultimoRegistro = null;
+let dbInstance   = null;
 
-  function calcTotal() { return productos.reduce((s,p) => s + p.subtotal, 0); }
-
-  function renderLista() {
-    const items = document.getElementById('productosItems');
-    const lista = document.getElementById('productosLista');
-    const emptyMsg = document.getElementById('emptyMsg');
-    if (productos.length === 0) {
-      lista.classList.add('empty');
-      emptyMsg.style.display = 'block';
-    } else {
-      lista.classList.remove('empty');
-      emptyMsg.style.display = 'none';
-    }
-    items.innerHTML = productos.map((p, i) => `
-      <div class="lista-item">
-        <span class="item-nombre">${p.nombre}</span>
-        <span class="item-num">${p.cantidad}</span>
-        <span class="item-precio">$${p.precio.toFixed(2)}</span>
-        <span class="item-subtotal">$${p.subtotal.toFixed(2)}</span>
-        <button class="btn-remove" onclick="eliminarProducto(${i})">&times;</button>
-      </div>`).join('');
-    document.getElementById('totalGeneral').textContent = '$' + calcTotal().toFixed(2);
-  }
-
-  function agregarProducto() {
-    const nombre = document.getElementById('sel-producto').value;
-    const cantidad = parseFloat(document.getElementById('sel-cantidad').value) || 1;
-    const precio = parseFloat(document.getElementById('sel-precio').value);
-    if (!nombre) { alert('Selecciona un producto.'); return; }
-    if (!precio || precio <= 0) { alert('Ingresa el precio unitario.'); return; }
-    const existente = productos.findIndex(p => p.nombre === nombre);
-    if (existente >= 0) {
-      productos[existente].cantidad += cantidad;
-      productos[existente].subtotal = productos[existente].cantidad * productos[existente].precio;
-    } else {
-      productos.push({ nombre, cantidad, precio, subtotal: cantidad * precio });
-    }
-    document.getElementById('sel-producto').value = '';
-    document.getElementById('sel-cantidad').value = '1';
-    document.getElementById('sel-precio').value = '';
-    renderLista();
-  }
-
-  function eliminarProducto(i) { productos.splice(i, 1); renderLista(); }
-
-  function setStatus(type, msg) {
-    const el = document.getElementById("status");
-    el.className = "status " + type;
-    el.innerHTML = msg;
-  }
-
-  function abrirModal() {
-    const empleado  = document.getElementById("empleado").value.trim();
-    const nombre    = document.getElementById("nombre").value.trim();
-    const telefono  = document.getElementById("telefono").value.trim();
-    const fecha     = document.getElementById("fecha").value;
-    const direccion = document.getElementById("direccion").value.trim();
-    const notas     = document.getElementById("notas").value.trim();
-    if (!empleado || !nombre) { setStatus("error", "Completa el nombre del empleado y del cliente."); return; }
-    if (productos.length === 0) { setStatus("error", "Agrega al menos un producto al pedido."); return; }
-    const total = calcTotal();
-    dataPendiente = { empleado, nombre, telefono, fecha, direccion, notas, productos, total: total.toFixed(2) };
-    document.getElementById("m-empleado").textContent  = empleado;
-    document.getElementById("m-nombre").textContent    = nombre;
-    document.getElementById("m-telefono").textContent  = telefono || "-";
-    document.getElementById("m-direccion").textContent = direccion || "-";
-    document.getElementById("m-fecha").textContent     = fecha || "-";
-    document.getElementById("m-notas").textContent     = notas || "-";
-    document.getElementById("m-total").textContent     = "$" + total.toFixed(2);
-    document.getElementById("m-productos").innerHTML = productos.map(p => `
-      <tr>
-        <td>${p.nombre}</td>
-        <td style="text-align:center">${p.cantidad}</td>
-        <td style="text-align:right">$${p.precio.toFixed(2)}</td>
-        <td>$${p.subtotal.toFixed(2)}</td>
-      </tr>`).join('');
-    document.getElementById("modalOverlay").classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-
-  function cerrarModal() {
-    document.getElementById("modalOverlay").classList.remove("open");
-    document.body.style.overflow = "";
-    dataPendiente = null;
-  }
-
-  function enviarWhatsapp() {
-    if (!ultimoRegistro) return;
-    const d = ultimoRegistro;
-    let lineas = d.productos.map(p => `  - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
-    const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
-      `👤 *Cliente:* ${d.nombre}%0A` +
-      `📞 *Telefono:* ${d.telefono || '-'}%0A` +
-      `📍 *Direccion:* ${d.direccion || '-'}%0A` +
-      `📅 *Fecha:* ${d.fecha}%0A` +
-      `👷 *Empleado:* ${d.empleado}%0A%0A` +
-      `📦 *Productos:*%0A${lineas}%0A%0A` +
-      `💰 *TOTAL: $${d.total}*%0A` +
-      `📝 *Notas:* ${d.notas || '-'}`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
-  }
-
-  async function confirmarEnvio() {
-    if (!dataPendiente) return;
-    const btn = document.getElementById("btnConfirmar");
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div> Enviando...';
-
-    const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
-    const dia = fechaObj.getDate();
-    const mes = fechaObj.getMonth() + 1;
-
-    const productosTexto = dataPendiente.productos.map(p =>
-      `${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
-
-    const payload = {
-      dia,
-      mes,
-      empleado: dataPendiente.empleado,
-      nombre: dataPendiente.nombre,
-      telefono: dataPendiente.telefono,
-      fecha: dataPendiente.fecha,
-      direccion: dataPendiente.direccion,
-      notas: dataPendiente.notas,
-      productos: productosTexto,
-      total: dataPendiente.total
+/* ============================================================
+   INDEXEDDB
+   ============================================================ */
+function abrirDB() {
+  if (dbInstance) return Promise.resolve(dbInstance);
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+      }
     };
+    req.onsuccess = e => { dbInstance = e.target.result; res(dbInstance); };
+    req.onerror   = e => rej(e.target.error);
+  });
+}
 
+async function guardarLocal(payload) {
+  const db = await abrirDB();
+  return new Promise((res, rej) => {
+    const tx  = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).add({ payload, fecha: new Date().toISOString() });
+    req.onsuccess = () => res(req.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function obtenerPendientes() {
+  const db = await abrirDB();
+  return new Promise((res, rej) => {
+    const tx  = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function eliminarLocal(id) {
+  const db = await abrirDB();
+  return new Promise((res, rej) => {
+    const tx  = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).delete(id);
+    req.onsuccess = () => res();
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+/* ============================================================
+   UI — BANNER OFFLINE / PENDIENTES
+   ============================================================ */
+function actualizarBanners() {
+  const offline = !navigator.onLine;
+  document.getElementById('offlineBanner').classList.toggle('show', offline);
+
+  obtenerPendientes().then(items => {
+    const n = items.length;
+    const banner = document.getElementById('pendingBanner');
+    banner.classList.toggle('show', n > 0);
+    document.getElementById('pendingCount').textContent = n;
+  });
+}
+
+window.addEventListener('online',  () => {
+  actualizarBanners();
+  sincronizarAuto();
+});
+window.addEventListener('offline', () => actualizarBanners());
+
+/* ============================================================
+   SINCRONIZACIÓN
+   ============================================================ */
+async function sincronizarAuto() {
+  // Intenta via Background Sync API primero
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    const reg = await navigator.serviceWorker.ready;
+    try {
+      await reg.sync.register('sync-pedidos');
+      return; // El SW se encarga
+    } catch(e) { /* fallback manual */ }
+  }
+  // Fallback manual
+  await sincronizarManual(true);
+}
+
+async function sincronizarManual(silencioso = false) {
+  if (!navigator.onLine) {
+    if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.');
+    return;
+  }
+
+  const btn  = document.getElementById('btnSync');
+  const icon = document.getElementById('syncIcon');
+  btn.disabled = true;
+  icon.classList.add('spin');
+
+  const items = await obtenerPendientes();
+  if (!items.length) {
+    btn.disabled = false;
+    icon.classList.remove('spin');
+    actualizarBanners();
+    return;
+  }
+
+  let synced = 0, failed = 0;
+  for (const item of items) {
     try {
       await fetch(SCRIPT_URL, {
-        method: "POST", mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item.payload)
+      });
+      await eliminarLocal(item.id);
+      synced++;
+    } catch {
+      failed++;
+    }
+  }
+
+  btn.disabled = false;
+  icon.classList.remove('spin');
+  actualizarBanners();
+
+  if (!silencioso) {
+    if (synced > 0 && failed === 0) {
+      setStatus('success', `✓ ${synced} pedido(s) sincronizado(s) correctamente con Google Drive.`);
+    } else if (synced > 0 && failed > 0) {
+      setStatus('warning', `⚠ ${synced} pedido(s) enviado(s), ${failed} fallaron. Intenta de nuevo.`);
+    } else {
+      setStatus('error', 'No se pudo sincronizar. Verifica tu conexión.');
+    }
+  }
+}
+
+// Escuchar mensajes del Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && (e.data.type === 'SYNC_DONE' || e.data.type === 'SYNC_RESULT')) {
+      actualizarBanners();
+      if (e.data.synced > 0) {
+        setStatus('success', `✓ ${e.data.synced} pedido(s) sincronizado(s) automáticamente con Google Drive.`);
+      }
+    }
+  });
+}
+
+/* ============================================================
+   REGISTRO SERVICE WORKER
+   ============================================================ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('SW no registrado:', err);
+    });
+  });
+}
+
+/* ============================================================
+   INICIALIZACIÓN FECHA
+   ============================================================ */
+(function() {
+  const hoy = new Date();
+  document.getElementById('fechaHoy').textContent = hoy.toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long' });
+  const yyyy = hoy.getFullYear();
+  const mm   = String(hoy.getMonth()+1).padStart(2,'0');
+  const dd   = String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
+
+  // Banners iniciales
+  actualizarBanners();
+})();
+
+/* ============================================================
+   LÓGICA DE PRODUCTOS
+   ============================================================ */
+function calcTotal() { return productos.reduce((s,p) => s + p.subtotal, 0); }
+
+function renderLista() {
+  const items    = document.getElementById('productosItems');
+  const lista    = document.getElementById('productosLista');
+  const emptyMsg = document.getElementById('emptyMsg');
+  if (productos.length === 0) {
+    lista.classList.add('empty');
+    emptyMsg.style.display = 'block';
+  } else {
+    lista.classList.remove('empty');
+    emptyMsg.style.display = 'none';
+  }
+  items.innerHTML = productos.map((p, i) => `
+    <div class="lista-item">
+      <span class="item-nombre">${p.nombre}</span>
+      <span class="item-num">${p.cantidad}</span>
+      <span class="item-precio">$${p.precio.toFixed(2)}</span>
+      <span class="item-subtotal">$${p.subtotal.toFixed(2)}</span>
+      <button class="btn-remove" onclick="eliminarProducto(${i})">&times;</button>
+    </div>`).join('');
+  document.getElementById('totalGeneral').textContent = '$' + calcTotal().toFixed(2);
+}
+
+function agregarProducto() {
+  const nombre   = document.getElementById('sel-producto').value;
+  const cantidad = parseFloat(document.getElementById('sel-cantidad').value) || 1;
+  const precio   = parseFloat(document.getElementById('sel-precio').value);
+  if (!nombre)            { alert('Selecciona un producto.'); return; }
+  if (!precio || precio<=0) { alert('Ingresa el precio unitario.'); return; }
+  const existente = productos.findIndex(p => p.nombre === nombre);
+  if (existente >= 0) {
+    productos[existente].cantidad += cantidad;
+    productos[existente].subtotal  = productos[existente].cantidad * productos[existente].precio;
+  } else {
+    productos.push({ nombre, cantidad, precio, subtotal: cantidad * precio });
+  }
+  document.getElementById('sel-producto').value  = '';
+  document.getElementById('sel-cantidad').value  = '1';
+  document.getElementById('sel-precio').value    = '';
+  renderLista();
+}
+
+function eliminarProducto(i) { productos.splice(i, 1); renderLista(); }
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+function setStatus(type, msg) {
+  const el = document.getElementById('status');
+  el.className  = 'status ' + type;
+  el.innerHTML  = msg;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function abrirModal() {
+  const empleado  = document.getElementById('empleado').value.trim();
+  const nombre    = document.getElementById('nombre').value.trim();
+  const telefono  = document.getElementById('telefono').value.trim();
+  const fecha     = document.getElementById('fecha').value;
+  const direccion = document.getElementById('direccion').value.trim();
+  const notas     = document.getElementById('notas').value.trim();
+
+  if (!empleado || !nombre) { setStatus('error', 'Completa el nombre del empleado y del cliente.'); return; }
+  if (productos.length === 0) { setStatus('error', 'Agrega al menos un producto al pedido.'); return; }
+
+  const total = calcTotal();
+  dataPendiente = { empleado, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2) };
+
+  const offline = !navigator.onLine;
+  document.getElementById('modalOfflineNote').classList.toggle('show', offline);
+  document.getElementById('modal-subtitle-text').textContent = offline
+    ? 'Sin internet — se guardará localmente hasta recuperar conexión'
+    : 'Revisa todos los datos antes de enviar a Google Drive';
+
+  document.getElementById('m-empleado').textContent  = empleado;
+  document.getElementById('m-nombre').textContent    = nombre;
+  document.getElementById('m-telefono').textContent  = telefono  || '-';
+  document.getElementById('m-direccion').textContent = direccion || '-';
+  document.getElementById('m-fecha').textContent     = fecha     || '-';
+  document.getElementById('m-notas').textContent     = notas     || '-';
+  document.getElementById('m-total').textContent     = '$' + total.toFixed(2);
+  document.getElementById('m-productos').innerHTML = productos.map(p => `
+    <tr>
+      <td>${p.nombre}</td>
+      <td style="text-align:center">${p.cantidad}</td>
+      <td style="text-align:right">$${p.precio.toFixed(2)}</td>
+      <td>$${p.subtotal.toFixed(2)}</td>
+    </tr>`).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  dataPendiente = null;
+}
+
+/* ============================================================
+   CONFIRMAR ENVÍO — CON LÓGICA OFFLINE
+   ============================================================ */
+async function confirmarEnvio() {
+  if (!dataPendiente) return;
+
+  const btn = document.getElementById('btnConfirmar');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner2"></div> Guardando...';
+
+  const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
+  const dia = fechaObj.getDate();
+  const mes = fechaObj.getMonth() + 1;
+
+  const productosTexto = dataPendiente.productos.map(p =>
+    `${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
+
+  const payload = {
+    dia,
+    mes,
+    empleado:  dataPendiente.empleado,
+    nombre:    dataPendiente.nombre,
+    telefono:  dataPendiente.telefono,
+    fecha:     dataPendiente.fecha,
+    direccion: dataPendiente.direccion,
+    notas:     dataPendiente.notas,
+    productos: productosTexto,
+    total:     dataPendiente.total
+  };
+
+  const estaOnline = navigator.onLine;
+
+  if (estaOnline) {
+    // ── ENVÍO DIRECTO ─────────────────────────────────────
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       ultimoRegistro = { ...dataPendiente };
       cerrarModal();
-      setStatus("success", "✓ Pedido guardado correctamente en Google Drive!");
-      document.getElementById("btnWhatsapp").classList.add("visible");
-      ["empleado","nombre","telefono","direccion","notas"].forEach(id => document.getElementById(id).value = "");
-      productos = [];
-      renderLista();
-      const hoy = new Date();
-      const yyyy = hoy.getFullYear();
-      const mm = String(hoy.getMonth()+1).padStart(2,'0');
-      const dd = String(hoy.getDate()).padStart(2,'0');
-      document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
+      setStatus('success', '✓ Pedido guardado correctamente en Google Drive!');
+      document.getElementById('btnWhatsapp').classList.add('visible');
+      limpiarFormulario();
+    } catch(err) {
+      // Si falla aunque haya internet, guardar offline como respaldo
+      await guardarLocal(payload);
+      ultimoRegistro = { ...dataPendiente };
+      cerrarModal();
+      setStatus('warning', '⚠ Sin conexión estable. El pedido se guardó localmente y se enviará a Drive cuando haya internet.');
+      document.getElementById('btnWhatsapp').classList.add('visible');
+      limpiarFormulario();
+      actualizarBanners();
+    }
+  } else {
+    // ── GUARDAR LOCAL (OFFLINE) ───────────────────────────
+    try {
+      await guardarLocal(payload);
+      ultimoRegistro = { ...dataPendiente };
+      cerrarModal();
+      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Google Drive cuando haya conexión.');
+      document.getElementById('btnWhatsapp').classList.add('visible');
+      limpiarFormulario();
+      actualizarBanners();
+      // Intentar registrar Background Sync
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.sync.register('sync-pedidos').catch(() => {});
+      }
     } catch(err) {
       cerrarModal();
-      setStatus("error", "Error de conexion. Intenta de nuevo.");
+      setStatus('error', 'Error al guardar. Intenta de nuevo.');
     }
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
-    dataPendiente = null;
   }
 
-  document.getElementById("modalOverlay").addEventListener("click", function(e) {
-    if (e.target === this) cerrarModal();
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
+  dataPendiente = null;
+}
+
+/* ============================================================
+   LIMPIAR FORMULARIO
+   ============================================================ */
+function limpiarFormulario() {
+  ['empleado','nombre','telefono','direccion','notas'].forEach(id => {
+    document.getElementById(id).value = '';
   });
-
+  productos = [];
   renderLista();
+  const hoy  = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm   = String(hoy.getMonth()+1).padStart(2,'0');
+  const dd   = String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
+}
 
-  function doLogin() {
-    const user = document.getElementById('loginUser').value.trim();
-    const pass = document.getElementById('loginPass').value;
-    if (user === 'admin' && pass === '1234') {
-      document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('loginError').classList.remove('show');
-    } else {
-      document.getElementById('loginError').classList.add('show');
-      document.getElementById('loginPass').value = '';
-      document.getElementById('loginPass').focus();
-    }
+/* ============================================================
+   WHATSAPP
+   ============================================================ */
+function enviarWhatsapp() {
+  if (!ultimoRegistro) return;
+  const d = ultimoRegistro;
+  const lineas = d.productos.map(p =>
+    `  - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`
+  ).join('%0A');
+  const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
+    `👤 *Cliente:* ${d.nombre}%0A` +
+    `📞 *Telefono:* ${d.telefono || '-'}%0A` +
+    `📍 *Direccion:* ${d.direccion || '-'}%0A` +
+    `📅 *Fecha:* ${d.fecha}%0A` +
+    `👷 *Empleado:* ${d.empleado}%0A%0A` +
+    `📦 *Productos:*%0A${lineas}%0A%0A` +
+    `💰 *TOTAL: $${d.total}*%0A` +
+    `📝 *Notas:* ${d.notas || '-'}`;
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
+}
+
+/* ============================================================
+   CERRAR MODAL AL CLICK FUERA
+   ============================================================ */
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal();
+});
+
+/* ============================================================
+   RENDER INICIAL
+   ============================================================ */
+renderLista();
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (user === 'admin' && pass === '1234') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginError').classList.remove('show');
+  } else {
+    document.getElementById('loginError').classList.add('show');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
   }
-
+}
 </script>
 </body>
 </html>
