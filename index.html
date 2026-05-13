@@ -323,7 +323,8 @@
     </div>
 
     <table class="modal-table">
-      <tr><td>Empleado</td><td id="m-empleado">-</td></tr>
+      <tr><td>Asesor / Ruta</td><td id="m-empleado">-</td></tr>
+      <tr><td>Forma de pago</td><td id="m-formapago">-</td></tr>
       <tr><td>Cliente</td><td id="m-nombre">-</td></tr>
       <tr><td>Telefono</td><td id="m-telefono">-</td></tr>
       <tr><td>Direccion</td><td id="m-direccion">-</td></tr>
@@ -420,9 +421,27 @@
   <!-- DATOS CLIENTE -->
   <div class="card">
     <div class="section-title">Empleado responsable</div>
-    <div class="field">
-      <label>Nombre del empleado</label>
-      <input type="text" id="empleado" placeholder="Ej. Zoila Perez" autocomplete="name" required>
+    <div class="grid-2">
+      <div class="field">
+        <label>Ruta / Asesor</label>
+        <select id="empleado" required>
+          <option value="">-- Selecciona --</option>
+          <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+          <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+          <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+          <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+          <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Forma de pago</label>
+        <select id="formapago" required>
+          <option value="">-- Selecciona --</option>
+          <option value="Contado">Contado</option>
+          <option value="Crédito">Crédito</option>
+          <option value="Transferencia">Transferencia</option>
+        </select>
+      </div>
     </div>
     <hr class="divider">
     <div class="section-title">Datos del cliente</div>
@@ -598,11 +617,19 @@ function actualizarBanners() {
   });
 }
 
-window.addEventListener('online',  () => {
+window.addEventListener('online', () => {
   actualizarBanners();
   sincronizarAuto();
+  // Si había un registro guardado offline, mostrar el botón WhatsApp ahora
+  if (ultimoRegistro) {
+    document.getElementById('btnWhatsapp').classList.add('visible');
+  }
 });
-window.addEventListener('offline', () => actualizarBanners());
+window.addEventListener('offline', () => {
+  actualizarBanners();
+  // Ocultar WhatsApp porque no funcionará sin internet
+  document.getElementById('btnWhatsapp').classList.remove('visible');
+});
 
 /* ============================================================
    SINCRONIZACIÓN
@@ -768,18 +795,20 @@ function setStatus(type, msg) {
    MODAL
    ============================================================ */
 function abrirModal() {
-  const empleado  = document.getElementById('empleado').value.trim();
+  const empleado  = document.getElementById('empleado').value;
+  const formapago = document.getElementById('formapago').value;
   const nombre    = document.getElementById('nombre').value.trim();
   const telefono  = document.getElementById('telefono').value.trim();
   const fecha     = document.getElementById('fecha').value;
   const direccion = document.getElementById('direccion').value.trim();
   const notas     = document.getElementById('notas').value.trim();
 
-  if (!empleado || !nombre) { setStatus('error', 'Completa el nombre del empleado y del cliente.'); return; }
+  if (!empleado || !nombre) { setStatus('error', 'Selecciona el asesor y completa el nombre del cliente.'); return; }
+  if (!formapago) { setStatus('error', 'Selecciona una forma de pago.'); return; }
   if (productos.length === 0) { setStatus('error', 'Agrega al menos un producto al pedido.'); return; }
 
   const total = calcTotal();
-  dataPendiente = { empleado, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2) };
+  dataPendiente = { empleado, formapago, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2) };
 
   const offline = !navigator.onLine;
   document.getElementById('modalOfflineNote').classList.toggle('show', offline);
@@ -788,6 +817,7 @@ function abrirModal() {
     : 'Revisa todos los datos antes de enviar a Google Drive';
 
   document.getElementById('m-empleado').textContent  = empleado;
+  document.getElementById('m-formapago').textContent = formapago;
   document.getElementById('m-nombre').textContent    = nombre;
   document.getElementById('m-telefono').textContent  = telefono  || '-';
   document.getElementById('m-direccion').textContent = direccion || '-';
@@ -833,6 +863,7 @@ async function confirmarEnvio() {
     dia,
     mes,
     empleado:  dataPendiente.empleado,
+    formapago: dataPendiente.formapago,
     nombre:    dataPendiente.nombre,
     telefono:  dataPendiente.telefono,
     fecha:     dataPendiente.fecha,
@@ -873,8 +904,8 @@ async function confirmarEnvio() {
       await guardarLocal(payload);
       ultimoRegistro = { ...dataPendiente };
       cerrarModal();
-      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Google Drive cuando haya conexión.');
-      document.getElementById('btnWhatsapp').classList.add('visible');
+      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Drive y podrás enviar por WhatsApp cuando haya conexión.');
+      // NO mostrar WhatsApp offline — se mostrará automáticamente cuando regrese internet
       limpiarFormulario();
       actualizarBanners();
       // Intentar registrar Background Sync
@@ -897,7 +928,7 @@ async function confirmarEnvio() {
    LIMPIAR FORMULARIO
    ============================================================ */
 function limpiarFormulario() {
-  ['empleado','nombre','telefono','direccion','notas'].forEach(id => {
+  ['empleado','formapago','nombre','telefono','direccion','notas'].forEach(id => {
     document.getElementById(id).value = '';
   });
   productos = [];
@@ -923,7 +954,8 @@ function enviarWhatsapp() {
     `📞 *Telefono:* ${d.telefono || '-'}%0A` +
     `📍 *Direccion:* ${d.direccion || '-'}%0A` +
     `📅 *Fecha:* ${d.fecha}%0A` +
-    `👷 *Empleado:* ${d.empleado}%0A%0A` +
+    `👷 *Asesor:* ${d.empleado}%0A` +
+    `💳 *Pago:* ${d.formapago || '-'}%0A%0A` +
     `📦 *Productos:*%0A${lineas}%0A%0A` +
     `💰 *TOTAL: $${d.total}*%0A` +
     `📝 *Notas:* ${d.notas || '-'}`;
