@@ -230,12 +230,30 @@
   .btn-whatsapp { background: var(--whatsapp); color: #fff; margin-top: 10px; display: none; }
   .btn-whatsapp:hover { background: var(--whatsapp-hover); }
   .btn-whatsapp.visible { display: flex; }
-
-  /* PDF BUTTON */
-  .btn-pdf {
-    background: #c0392b; color: #fff; margin-top: 10px;
-  }
+  .btn-pdf { background: #c0392b; color: #fff; margin-top: 10px; }
   .btn-pdf:hover { background: #a93226; }
+
+  /* Botón Drive */
+  .btn-drive { background: #1967d2; color: #fff; margin-top: 10px; display: none; }
+  .btn-drive:hover { background: #1558b8; }
+  .btn-drive.visible { display: flex; }
+
+  /* Progress bar para subida */
+  .drive-progress {
+    display: none;
+    margin-top: 10px;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+  }
+  .drive-progress.show { display: block; }
+  .progress-label { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .progress-bar-wrap { background: #dde8f0; border-radius: 100px; height: 6px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: #1967d2; border-radius: 100px; width: 0%; transition: width 0.3s ease; }
+  .progress-link { font-size: 12px; font-weight: 600; color: #1967d2; margin-top: 8px; display: none; }
+  .progress-link a { color: #1967d2; text-decoration: underline; }
+  .progress-link.show { display: block; }
 
   .status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; line-height: 1.4; }
   .status.success { display: flex; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
@@ -274,7 +292,6 @@
 
   .spinner2 { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 
-  /* GPS */
   .gps-badge {
     display: flex; align-items: center; gap: 8px;
     background: #e8f4fd; border: 1.5px solid #90caf9;
@@ -560,6 +577,27 @@
       Descargar PDF del pedido
     </button>
 
+    <!-- ✅ NUEVO: BOTÓN SUBIR PDF A DRIVE -->
+    <button class="btn btn-drive" id="btnDrive" onclick="subirPDFaDrive()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002zm2 0h6.6L22.8 2H8.2l2.8 5z" opacity=".5"/>
+        <path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002z"/>
+      </svg>
+      Subir PDF a Google Drive
+    </button>
+
+    <!-- Barra de progreso de subida -->
+    <div class="drive-progress" id="driveProgress">
+      <div class="progress-label">
+        <span id="progressText">Subiendo PDF a Drive...</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-link" id="progressLink"></div>
+    </div>
+
     <div class="status" id="status"></div>
   </div>
 
@@ -571,7 +609,7 @@
 
 <script>
 /* ============================================================
-   CONFIG
+   CONFIG  —  ⚠️ Cambia esta URL por la de tu Apps Script
    ============================================================ */
 const SCRIPT_URL      = "https://script.google.com/macros/s/AKfycbxQW6T1cKkXRXX9pQhngDq8qg6X8d1CiaghirD1qvVUkCzxnHzqqpoUNaabzDBOD7U0bA/exec";
 const WHATSAPP_NUMBER = "593985886107";
@@ -581,7 +619,6 @@ const STORE    = 'pedidos-pendientes';
 let productos     = [];
 let dataPendiente = null;
 let ultimoRegistro = null;
-let contadorGuardados = 0;   // ← contador de guardados exitosos
 let dbInstance    = null;
 
 /* ============================================================
@@ -601,7 +638,6 @@ function abrirDB() {
     req.onerror   = e => rej(e.target.error);
   });
 }
-
 async function guardarLocal(payload) {
   const db = await abrirDB();
   return new Promise((res, rej) => {
@@ -611,7 +647,6 @@ async function guardarLocal(payload) {
     req.onerror   = e => rej(e.target.error);
   });
 }
-
 async function obtenerPendientes() {
   const db = await abrirDB();
   return new Promise((res, rej) => {
@@ -621,7 +656,6 @@ async function obtenerPendientes() {
     req.onerror   = e => rej(e.target.error);
   });
 }
-
 async function eliminarLocal(id) {
   const db = await abrirDB();
   return new Promise((res, rej) => {
@@ -633,7 +667,7 @@ async function eliminarLocal(id) {
 }
 
 /* ============================================================
-   UI — BANNERS
+   BANNERS
    ============================================================ */
 function actualizarBanners() {
   const offline = !navigator.onLine;
@@ -644,12 +678,11 @@ function actualizarBanners() {
     document.getElementById('pendingCount').textContent = n;
   });
 }
-
 window.addEventListener('online',  () => { actualizarBanners(); sincronizarAuto(); if (ultimoRegistro) document.getElementById('btnWhatsapp').classList.add('visible'); });
 window.addEventListener('offline', () => { actualizarBanners(); document.getElementById('btnWhatsapp').classList.remove('visible'); });
 
 /* ============================================================
-   SINCRONIZACIÓN
+   SINCRONIZACIÓN (pendientes offline)
    ============================================================ */
 async function sincronizarAuto() {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
@@ -658,7 +691,6 @@ async function sincronizarAuto() {
   }
   await sincronizarManual(true);
 }
-
 async function sincronizarManual(silencioso = false) {
   if (!navigator.onLine) {
     if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.');
@@ -673,9 +705,10 @@ async function sincronizarManual(silencioso = false) {
   let synced = 0, failed = 0;
   for (const item of items) {
     try {
-      await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.payload) });
-      await eliminarLocal(item.id);
-      synced++;
+      const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.payload) });
+      const json = await resp.json().catch(() => ({ result: 'ok' }));
+      if (json.result === 'ok' || resp.ok) { await eliminarLocal(item.id); synced++; }
+      else failed++;
     } catch { failed++; }
   }
   btn.disabled = false;
@@ -687,12 +720,11 @@ async function sincronizarManual(silencioso = false) {
     else setStatus('error', 'No se pudo sincronizar. Verifica tu conexión.');
   }
 }
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data && (e.data.type === 'SYNC_DONE' || e.data.type === 'SYNC_RESULT')) {
       actualizarBanners();
-      if (e.data.synced > 0) setStatus('success', `✓ ${e.data.synced} pedido(s) sincronizado(s) automáticamente con Google Drive.`);
+      if (e.data.synced > 0) setStatus('success', `✓ ${e.data.synced} pedido(s) sincronizado(s) automáticamente.`);
     }
   });
   window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
@@ -715,7 +747,6 @@ if ('serviceWorker' in navigator) {
    PRODUCTOS
    ============================================================ */
 function calcTotal() { return productos.reduce((s,p) => s + p.subtotal, 0); }
-
 function renderLista() {
   const items    = document.getElementById('productosItems');
   const lista    = document.getElementById('productosLista');
@@ -732,7 +763,6 @@ function renderLista() {
     </div>`).join('');
   document.getElementById('totalGeneral').textContent = '$' + calcTotal().toFixed(2);
 }
-
 function agregarProducto() {
   const nombre   = document.getElementById('sel-producto').value;
   const cantidad = parseFloat(document.getElementById('sel-cantidad').value) || 1;
@@ -751,7 +781,6 @@ function agregarProducto() {
   document.getElementById('sel-precio').value   = '';
   renderLista();
 }
-
 function eliminarProducto(i) { productos.splice(i, 1); renderLista(); }
 
 /* ============================================================
@@ -772,13 +801,9 @@ function resetGpsBadge() {
   document.getElementById('gpsBadgeText').textContent = 'Obteniendo ubicación GPS...';
   document.getElementById('m-gps').textContent = '-';
 }
-
 function capturarGPS() {
   return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      resolve(null);
-      return;
-    }
+    if (!navigator.geolocation) { resolve(null); return; }
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) }),
       ()    => resolve(null),
@@ -832,7 +857,6 @@ async function abrirModal() {
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  // Capturar GPS en paralelo mientras el usuario revisa el modal
   const badge     = document.getElementById('gpsBadge');
   const badgeText = document.getElementById('gpsBadgeText');
   const mGps      = document.getElementById('m-gps');
@@ -850,7 +874,6 @@ async function abrirModal() {
     mGps.textContent = 'No disponible';
   }
 }
-
 function cerrarModal() {
   document.getElementById('modalOverlay').classList.remove('open');
   document.body.style.overflow = '';
@@ -858,7 +881,7 @@ function cerrarModal() {
 }
 
 /* ============================================================
-   CONFIRMAR ENVÍO
+   CONFIRMAR ENVÍO  →  envía datos (fila) al Apps Script
    ============================================================ */
 async function confirmarEnvio() {
   if (!dataPendiente) return;
@@ -875,6 +898,7 @@ async function confirmarEnvio() {
     `${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
 
   const payload = {
+    accion:    'registrar_pedido',   // ← campo nuevo para el script
     dia, mes,
     empleado:  dataPendiente.empleado,
     formapago: dataPendiente.formapago,
@@ -895,39 +919,47 @@ async function confirmarEnvio() {
 
   const onExito = () => {
     ultimoRegistro = { ...dataPendiente };
-    contadorGuardados++;
     cerrarModal();
-    setStatus('success', '✓ Pedido guardado correctamente en Google Drive!');
+    setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.');
     document.getElementById('btnWhatsapp').classList.add('visible');
+    document.getElementById('btnDrive').classList.add('visible');
+    document.getElementById('btnPdf').style.display = 'flex';
     limpiarFormulario();
-    setTimeout(() => { document.getElementById('btnPdf').style.display = 'flex'; }, 100);
   };
 
   if (estaOnline) {
     try {
-      await fetch(SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      onExito();
+      const resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      // no-cors devuelve opaque, tipo '' — igual se considera ok
+      if (resp.type === 'opaque' || resp.ok) {
+        onExito();
+      } else {
+        throw new Error('Response not ok');
+      }
     } catch(err) {
+      // Fallback: guardar offline
       await guardarLocal(payload);
       ultimoRegistro = { ...dataPendiente };
-      contadorGuardados++;
       cerrarModal();
-      setStatus('warning', '⚠ Sin conexión estable. El pedido se guardó localmente y se enviará a Drive cuando haya internet.');
+      setStatus('warning', '⚠ Sin conexión estable. Pedido guardado localmente — se enviará a Drive con internet.');
       document.getElementById('btnWhatsapp').classList.add('visible');
+      document.getElementById('btnPdf').style.display = 'flex';
       limpiarFormulario();
       actualizarBanners();
-      setTimeout(() => { document.getElementById('btnPdf').style.display = 'flex'; }, 100);
     }
   } else {
     try {
       await guardarLocal(payload);
       ultimoRegistro = { ...dataPendiente };
-      contadorGuardados++;
       cerrarModal();
-      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Drive cuando haya conexión.');
+      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.');
+      document.getElementById('btnPdf').style.display = 'flex';
       limpiarFormulario();
       actualizarBanners();
-      setTimeout(() => { document.getElementById('btnPdf').style.display = 'flex'; }, 100);
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         const reg = await navigator.serviceWorker.ready;
         reg.sync.register('sync-pedidos').catch(() => {});
@@ -960,6 +992,406 @@ function limpiarFormulario() {
 }
 
 /* ============================================================
+   GENERAR PDF (en memoria como base64)
+   ============================================================ */
+function generarPDFBase64() {
+  if (!ultimoRegistro) return null;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const d   = ultimoRegistro;
+  const pageW = 210;
+  const margin = 18;
+  const col2 = 100;
+
+  doc.setFillColor(26, 58, 92);
+  doc.rect(0, 0, pageW, 38, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(255, 255, 255);
+  doc.text('AQUA LUAN', margin, 16);
+  doc.setFontSize(8);
+  doc.setTextColor(78, 201, 160);
+  doc.text('SISTEMA DE PEDIDOS', margin, 22);
+  doc.setFontSize(9);
+  doc.setTextColor(200, 220, 240);
+  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC', { day:'2-digit', month:'long', year:'numeric' })}`, margin, 30);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(200, 220, 240);
+  const fechaStr = d.fecha ? new Date(d.fecha + 'T00:00:00').toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '-';
+  doc.text(`Fecha pedido: ${fechaStr}`, pageW - margin, 30, { align: 'right' });
+
+  let y = 48;
+  doc.setFillColor(240, 245, 248);
+  doc.roundedRect(margin, y, pageW - margin*2, 22, 3, 3, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(10, 124, 110);
+  doc.text('ASESOR / RUTA', margin + 4, y + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(26, 58, 92);
+  doc.text(d.empleado || '-', margin + 4, y + 15);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(10, 124, 110);
+  doc.text('FORMA DE PAGO', col2, y + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(26, 58, 92);
+  doc.text(d.formapago || '-', col2, y + 15);
+
+  y += 30;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(10, 124, 110);
+  doc.text('DATOS DEL CLIENTE', margin, y);
+  doc.setDrawColor(78, 201, 160);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y + 2, pageW - margin, y + 2);
+  y += 8;
+  const campos = [
+    ['Cliente',   d.nombre    || '-'],
+    ['Teléfono',  d.telefono  || '-'],
+    ['Dirección', d.direccion || '-'],
+    ['Notas',     d.notas     || '-'],
+  ];
+  campos.forEach(([lbl, val]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 130, 160);
+    doc.text(lbl.toUpperCase(), margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(26, 58, 92);
+    const lines = doc.splitTextToSize(val, pageW - margin - col2 + 20);
+    doc.text(lines, col2, y);
+    y += Math.max(7, lines.length * 5);
+  });
+
+  y += 4;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(10, 124, 110);
+  doc.text('PRODUCTOS DEL PEDIDO', margin, y);
+  doc.line(margin, y + 2, pageW - margin, y + 2);
+  y += 7;
+  doc.setFillColor(26, 58, 92);
+  doc.rect(margin, y, pageW - margin*2, 8, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('PRODUCTO',              margin + 3, y + 5.5);
+  doc.text('CANT.',                 138,        y + 5.5, { align: 'center' });
+  doc.text('PRECIO',                158,        y + 5.5, { align: 'right' });
+  doc.text('SUBTOTAL',              pageW - margin - 2, y + 5.5, { align: 'right' });
+  y += 8;
+  d.productos.forEach((p, idx) => {
+    if (idx % 2 === 0) { doc.setFillColor(240, 245, 248); doc.rect(margin, y, pageW - margin*2, 7, 'F'); }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(26, 58, 92);
+    doc.text(p.nombre,                   margin + 3, y + 5);
+    doc.text(String(p.cantidad),          138,        y + 5, { align: 'center' });
+    doc.text(`$${p.precio.toFixed(2)}`,   158,        y + 5, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(10, 124, 110);
+    doc.text(`$${p.subtotal.toFixed(2)}`, pageW - margin - 2, y + 5, { align: 'right' });
+    y += 7;
+  });
+
+  y += 4;
+  doc.setFillColor(26, 58, 92);
+  doc.roundedRect(margin, y, pageW - margin*2, 12, 3, 3, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(200, 220, 240);
+  doc.text('TOTAL GENERAL', margin + 4, y + 8);
+  doc.setFontSize(13);
+  doc.setTextColor(78, 201, 160);
+  doc.text(`$${d.total}`, pageW - margin - 4, y + 8.5, { align: 'right' });
+
+  if (d.gps) {
+    y += 18;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(10, 124, 110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO', margin, y);
+    doc.setDrawColor(78, 201, 160);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y + 2, pageW - margin, y + 2);
+    y += 9;
+    doc.setFillColor(230, 244, 242);
+    doc.setDrawColor(78, 201, 160);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, y, pageW - margin*2, 22, 3, 3, 'FD');
+    doc.setFillColor(10, 124, 110);
+    doc.circle(margin + 7, y + 7, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('GPS', margin + 7, y + 7.8, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 130, 160);
+    doc.text('COORDENADAS', margin + 14, y + 6);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(26, 58, 92);
+    doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`, margin + 14, y + 12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 130, 160);
+    doc.text('PRECISIÓN', margin + 14, y + 18);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(26, 58, 92);
+    doc.text(`±${d.gps.acc} metros`, margin + 38, y + 18);
+    const linkCorto = `maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 130, 160);
+    doc.text('LINK PARA ABRIR EN MAPS', pageW - margin - 4, y + 6, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(10, 124, 110);
+    doc.textWithLink(linkCorto, pageW - margin - 4, y + 13, { url: d.gps.url, align: 'right' });
+    y += 26;
+  }
+
+  y += 16;
+  doc.setDrawColor(180, 200, 220);
+  doc.setLineWidth(0.4);
+  doc.line(margin, y, margin + 60, y);
+  doc.line(pageW - margin - 60, y, pageW - margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(140, 160, 180);
+  doc.text('Firma del asesor', margin + 30, y + 5, { align: 'center' });
+  doc.text('Firma del cliente', pageW - margin - 30, y + 5, { align: 'center' });
+
+  doc.setFontSize(7);
+  doc.setTextColor(160, 180, 200);
+  doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos', pageW / 2, 287, { align: 'center' });
+
+  // Devolver como base64 (sin el prefijo data:application/pdf;base64,)
+  return doc.output('datauristring').split(',')[1];
+}
+
+/* ============================================================
+   DESCARGAR PDF (descarga local)
+   ============================================================ */
+function descargarPDF() {
+  if (!ultimoRegistro) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const d   = ultimoRegistro;
+  const pageW = 210, margin = 18, col2 = 100;
+
+  doc.setFillColor(26, 58, 92);
+  doc.rect(0, 0, pageW, 38, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+  doc.text('AQUA LUAN', margin, 16);
+  doc.setFontSize(8); doc.setTextColor(78,201,160);
+  doc.text('SISTEMA DE PEDIDOS', margin, 22);
+  doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`, margin, 30);
+  const fechaStr = d.fecha ? new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
+  doc.setFont('helvetica','normal'); doc.text(`Fecha pedido: ${fechaStr}`, pageW-margin, 30, {align:'right'});
+
+  let y = 48;
+  doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
+  doc.text('ASESOR / RUTA',margin+4,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+  doc.text(d.empleado||'-',margin+4,y+15);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
+  doc.text('FORMA DE PAGO',col2,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+  doc.text(d.formapago||'-',col2,y+15);
+
+  y+=30;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('DATOS DEL CLIENTE',margin,y);
+  doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2);
+  y+=8;
+  [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
+    doc.text(lbl.toUpperCase(),margin,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+    const lines=doc.splitTextToSize(val,pageW-margin-col2+20);
+    doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
+  });
+
+  y+=4;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
+  doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  doc.text('PRODUCTO',margin+3,y+5.5);
+  doc.text('CANT.',138,y+5.5,{align:'center'});
+  doc.text('PRECIO',158,y+5.5,{align:'right'});
+  doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'});
+  y+=8;
+  d.productos.forEach((p,idx)=>{
+    if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+    doc.text(p.nombre,margin+3,y+5);
+    doc.text(String(p.cantidad),138,y+5,{align:'center'});
+    doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
+    doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
+    doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'});
+    y+=7;
+  });
+
+  y+=4;
+  doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text('TOTAL GENERAL',margin+4,y+8);
+  doc.setFontSize(13); doc.setTextColor(78,201,160);
+  doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
+
+  if(d.gps){
+    y+=18;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y);
+    doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2);
+    y+=9;
+    doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4);
+    doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
+    doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('GPS',margin+7,y+7.8,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
+    doc.text('COORDENADAS',margin+14,y+6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+    doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
+    doc.text('PRECISIÓN',margin+14,y+18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+    doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
+    const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
+    doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110);
+    doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'});
+    y+=26;
+  }
+
+  y+=16;
+  doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
+  doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
+  doc.text('Firma del asesor',margin+30,y+5,{align:'center'});
+  doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
+  doc.setFontSize(7); doc.setTextColor(160,180,200);
+  doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
+
+  const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`;
+  doc.save(nombreArchivo);
+}
+
+/* ============================================================
+   ✅ SUBIR PDF A GOOGLE DRIVE (vía Apps Script)
+   ============================================================ */
+async function subirPDFaDrive() {
+  if (!ultimoRegistro) { setStatus('error', 'No hay pedido activo. Guarda primero el registro.'); return; }
+  if (!navigator.onLine) { setStatus('error', '⚠ Sin conexión. Conéctate a internet para subir el PDF.'); return; }
+
+  const d = ultimoRegistro;
+  const btn = document.getElementById('btnDrive');
+  const progWrap = document.getElementById('driveProgress');
+  const progFill = document.getElementById('progressFill');
+  const progText = document.getElementById('progressText');
+  const progPct  = document.getElementById('progressPct');
+  const progLink = document.getElementById('progressLink');
+
+  btn.disabled = true;
+  progWrap.classList.add('show');
+  progLink.classList.remove('show');
+  progFill.style.width = '0%';
+  progText.textContent = 'Generando PDF...';
+  progPct.textContent  = '0%';
+
+  // Simular progreso mientras genera
+  let pct = 0;
+  const tick = setInterval(() => {
+    pct = Math.min(pct + 8, 40);
+    progFill.style.width = pct + '%';
+    progPct.textContent  = pct + '%';
+  }, 120);
+
+  let pdfBase64;
+  try {
+    pdfBase64 = generarPDFBase64();
+  } catch(e) {
+    clearInterval(tick);
+    btn.disabled = false;
+    progWrap.classList.remove('show');
+    setStatus('error', 'Error al generar el PDF. Intenta de nuevo.');
+    return;
+  }
+
+  clearInterval(tick);
+  progFill.style.width = '45%';
+  progPct.textContent  = '45%';
+  progText.textContent = 'Subiendo a Google Drive...';
+
+  // Simular progreso de subida
+  const tick2 = setInterval(() => {
+    pct = Math.min(pct + 5, 85);
+    progFill.style.width = pct + '%';
+    progPct.textContent  = pct + '%';
+  }, 200);
+
+  const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`;
+
+  const payload = {
+    accion:        'subir_pdf',
+    pdfBase64:     pdfBase64,
+    nombreArchivo: nombreArchivo,
+    empleado:      d.empleado,
+    nombre:        d.nombre,
+    fecha:         d.fecha
+  };
+
+  try {
+    const resp = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    clearInterval(tick2);
+
+    // Intentar leer JSON de respuesta
+    let json = {};
+    try { json = await resp.json(); } catch(e) { json = { result: 'ok' }; }
+
+    if (json.result === 'ok' || resp.ok) {
+      progFill.style.width = '100%';
+      progPct.textContent  = '100%';
+      progText.textContent = '✓ PDF subido a Google Drive';
+
+      if (json.fileUrl) {
+        progLink.innerHTML = `📄 <a href="${json.fileUrl}" target="_blank">Ver PDF en Google Drive</a>`;
+        progLink.classList.add('show');
+      }
+
+      setStatus('success', '✓ PDF del pedido subido correctamente a Google Drive.');
+    } else {
+      throw new Error(json.error || 'Error del servidor');
+    }
+  } catch(err) {
+    clearInterval(tick2);
+    progWrap.classList.remove('show');
+    setStatus('error', `Error al subir el PDF: ${err.message || 'verifica tu conexión y vuelve a intentar.'}`);
+  }
+
+  btn.disabled = false;
+}
+
+/* ============================================================
    WHATSAPP
    ============================================================ */
 function enviarWhatsapp() {
@@ -968,9 +1400,7 @@ function enviarWhatsapp() {
   const lineas = d.productos.map(p =>
     `  - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`
   ).join('%0A');
-  const gpsLinea = d.gps
-    ? `%0A📌 *Ubicación GPS:* ${d.gps.url}`
-    : '';
+  const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${d.gps.url}` : '';
   const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
     `👤 *Cliente:* ${d.nombre}%0A` +
     `📞 *Telefono:* ${d.telefono || '-'}%0A` +
@@ -986,227 +1416,7 @@ function enviarWhatsapp() {
 }
 
 /* ============================================================
-   DESCARGAR PDF
-   ============================================================ */
-function descargarPDF() {
-  if (!ultimoRegistro) return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const d   = ultimoRegistro;
-  const pageW = 210;
-  const margin = 18;
-  const col2 = 100;
-
-  // — Fondo encabezado
-  doc.setFillColor(26, 58, 92);
-  doc.rect(0, 0, pageW, 38, 'F');
-
-  // — Logo texto
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.setTextColor(255, 255, 255);
-  doc.text('AQUA LUAN', margin, 16);
-
-  doc.setFontSize(8);
-  doc.setTextColor(78, 201, 160);
-  doc.text('SISTEMA DE PEDIDOS', margin, 22);
-
-  doc.setFontSize(9);
-  doc.setTextColor(200, 220, 240);
-  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC', { day:'2-digit', month:'long', year:'numeric' })}`, margin, 30);
-
-  // — Fecha del pedido (derecha)
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(200, 220, 240);
-  const fechaStr = d.fecha ? new Date(d.fecha + 'T00:00:00').toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '-';
-  doc.text(`Fecha pedido: ${fechaStr}`, pageW - margin, 30, { align: 'right' });
-
-  // — Sección asesor / pago
-  let y = 48;
-  doc.setFillColor(240, 245, 248);
-  doc.roundedRect(margin, y, pageW - margin*2, 22, 3, 3, 'F');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(10, 124, 110);
-  doc.text('ASESOR / RUTA', margin + 4, y + 7);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(26, 58, 92);
-  doc.text(d.empleado || '-', margin + 4, y + 15);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(10, 124, 110);
-  doc.text('FORMA DE PAGO', col2, y + 7);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(26, 58, 92);
-  doc.text(d.formapago || '-', col2, y + 15);
-
-  // — Datos del cliente
-  y += 30;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(10, 124, 110);
-  doc.text('DATOS DEL CLIENTE', margin, y);
-  doc.setDrawColor(78, 201, 160);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y + 2, pageW - margin, y + 2);
-
-  y += 8;
-  const campos = [
-    ['Cliente',    d.nombre    || '-'],
-    ['Teléfono',   d.telefono  || '-'],
-    ['Dirección',  d.direccion || '-'],
-    ['Notas',      d.notas     || '-'],
-  ];
-  campos.forEach(([lbl, val]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text(lbl.toUpperCase(), margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(26, 58, 92);
-    const lines = doc.splitTextToSize(val, pageW - margin - col2 + 20);
-    doc.text(lines, col2, y);
-    y += Math.max(7, lines.length * 5);
-  });
-
-  // — Tabla de productos
-  y += 4;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(10, 124, 110);
-  doc.text('PRODUCTOS DEL PEDIDO', margin, y);
-  doc.line(margin, y + 2, pageW - margin, y + 2);
-  y += 7;
-
-  // Cabecera tabla
-  doc.setFillColor(26, 58, 92);
-  doc.rect(margin, y, pageW - margin*2, 8, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(255, 255, 255);
-  doc.text('PRODUCTO',   margin + 3, y + 5.5);
-  doc.text('CANT.',      138,        y + 5.5, { align: 'center' });
-  doc.text('PRECIO',     158,        y + 5.5, { align: 'right' });
-  doc.text('SUBTOTAL',   pageW - margin - 2, y + 5.5, { align: 'right' });
-  y += 8;
-
-  d.productos.forEach((p, idx) => {
-    if (idx % 2 === 0) { doc.setFillColor(240, 245, 248); doc.rect(margin, y, pageW - margin*2, 7, 'F'); }
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 58, 92);
-    doc.text(p.nombre,                   margin + 3, y + 5);
-    doc.text(String(p.cantidad),          138,        y + 5, { align: 'center' });
-    doc.text(`$${p.precio.toFixed(2)}`,   158,        y + 5, { align: 'right' });
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(10, 124, 110);
-    doc.text(`$${p.subtotal.toFixed(2)}`, pageW - margin - 2, y + 5, { align: 'right' });
-    y += 7;
-  });
-
-  // — Total
-  y += 4;
-  doc.setFillColor(26, 58, 92);
-  doc.roundedRect(margin, y, pageW - margin*2, 12, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(200, 220, 240);
-  doc.text('TOTAL GENERAL', margin + 4, y + 8);
-  doc.setFontSize(13);
-  doc.setTextColor(78, 201, 160);
-  doc.text(`$${d.total}`, pageW - margin - 4, y + 8.5, { align: 'right' });
-
-  // — GPS
-  if (d.gps) {
-    y += 18;
-    // Título sección
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(10, 124, 110);
-    doc.text('UBICACIÓN GPS DEL PEDIDO', margin, y);
-    doc.setDrawColor(78, 201, 160);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y + 2, pageW - margin, y + 2);
-    y += 9;
-
-    // Caja de fondo
-    doc.setFillColor(230, 244, 242);
-    doc.setDrawColor(78, 201, 160);
-    doc.setLineWidth(0.4);
-    doc.roundedRect(margin, y, pageW - margin*2, 22, 3, 3, 'FD');
-
-    // Pin icono (círculo pequeño)
-    doc.setFillColor(10, 124, 110);
-    doc.circle(margin + 7, y + 7, 3, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(255, 255, 255);
-    doc.text('GPS', margin + 7, y + 7.8, { align: 'center' });
-
-    // Coordenadas
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text('COORDENADAS', margin + 14, y + 6);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 58, 92);
-    doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`, margin + 14, y + 12);
-
-    // Precisión
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text('PRECISIÓN', margin + 14, y + 18);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 58, 92);
-    doc.text(`±${d.gps.acc} metros`, margin + 38, y + 18);
-
-    // Link corto legible (derecha de la caja)
-    const linkCorto = `maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text('LINK PARA ABRIR EN MAPS', pageW - margin - 4, y + 6, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(10, 124, 110);
-    doc.textWithLink(linkCorto, pageW - margin - 4, y + 13, { url: d.gps.url, align: 'right' });
-
-    y += 26;
-  }
-
-  // — Firma
-  y += 16;
-  doc.setDrawColor(180, 200, 220);
-  doc.setLineWidth(0.4);
-  doc.line(margin, y, margin + 60, y);
-  doc.line(pageW - margin - 60, y, pageW - margin, y);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(140, 160, 180);
-  doc.text('Firma del asesor', margin + 30, y + 5, { align: 'center' });
-  doc.text('Firma del cliente', pageW - margin - 30, y + 5, { align: 'center' });
-
-  // — Footer
-  doc.setFontSize(7);
-  doc.setTextColor(160, 180, 200);
-  doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos', pageW / 2, 287, { align: 'center' });
-
-  // — Guardar
-  const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha || 'sin-fecha'}.pdf`;
-  doc.save(nombreArchivo);
-}
-
-/* ============================================================
-   CERRAR MODAL CLICK FUERA
+   MODAL CLICK FUERA
    ============================================================ */
 document.getElementById('modalOverlay').addEventListener('click', function(e) {
   if (e.target === this) cerrarModal();
