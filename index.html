@@ -233,10 +233,9 @@
 
   /* PDF BUTTON */
   .btn-pdf {
-    background: #c0392b; color: #fff; margin-top: 10px; display: none;
+    background: #c0392b; color: #fff; margin-top: 10px;
   }
   .btn-pdf:hover { background: #a93226; }
-  .btn-pdf.visible { display: flex; }
 
   .status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; line-height: 1.4; }
   .status.success { display: flex; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
@@ -274,6 +273,22 @@
   .modal-offline-note.show { display:block; }
 
   .spinner2 { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+
+  /* GPS */
+  .gps-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: #e8f4fd; border: 1.5px solid #90caf9;
+    border-radius: var(--radius); padding: 9px 13px;
+    margin-bottom: 1rem; font-size: 13px; font-weight: 600; color: #1565c0;
+  }
+  .gps-badge.ok   { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+  .gps-badge.err  { background: var(--error-bg);   border-color: var(--error-border);   color: var(--error-text); }
+  .gps-badge.wait { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+  .gps-badge a { color: inherit; font-weight: 700; text-decoration: underline; word-break: break-all; }
+  .gps-dot { width: 8px; height: 8px; border-radius: 50%; background: #1565c0; flex-shrink: 0; }
+  .gps-badge.ok  .gps-dot { background: var(--teal); }
+  .gps-badge.err .gps-dot { background: #e57373; }
+  .gps-badge.wait .gps-dot { background: #ffc107; animation: pulse-dot 1.2s ease infinite; }
 
   @media (max-width: 480px) {
     body { padding: 1rem 0.75rem 3rem; }
@@ -327,7 +342,12 @@
       <tr><td>Direccion</td><td id="m-direccion">-</td></tr>
       <tr><td>Fecha</td><td id="m-fecha">-</td></tr>
       <tr><td>Notas</td><td id="m-notas">-</td></tr>
+      <tr><td>Ubicación GPS</td><td id="m-gps">-</td></tr>
     </table>
+    <div class="gps-badge wait" id="gpsBadge">
+      <div class="gps-dot"></div>
+      <span id="gpsBadgeText">Obteniendo ubicación GPS...</span>
+    </div>
     <div class="section-title" style="margin-bottom:0.75rem">Productos</div>
     <table class="modal-productos">
       <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
@@ -530,7 +550,7 @@
     </button>
 
     <!-- BOTÓN DESCARGAR PDF -->
-    <button class="btn btn-pdf" id="btnPdf" onclick="descargarPDF()">
+    <button class="btn btn-pdf" id="btnPdf" onclick="descargarPDF()" style="display:none">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
@@ -744,9 +764,33 @@ function setStatus(type, msg) {
 }
 
 /* ============================================================
+   GPS
+   ============================================================ */
+function resetGpsBadge() {
+  const badge = document.getElementById('gpsBadge');
+  badge.className = 'gps-badge wait';
+  document.getElementById('gpsBadgeText').textContent = 'Obteniendo ubicación GPS...';
+  document.getElementById('m-gps').textContent = '-';
+}
+
+function capturarGPS() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) }),
+      ()    => resolve(null),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
+
+/* ============================================================
    MODAL
    ============================================================ */
-function abrirModal() {
+async function abrirModal() {
   const empleado  = document.getElementById('empleado').value;
   const formapago = document.getElementById('formapago').value;
   const nombre    = document.getElementById('nombre').value.trim();
@@ -760,7 +804,7 @@ function abrirModal() {
   if (productos.length===0) { setStatus('error', 'Agrega al menos un producto al pedido.'); return; }
 
   const total = calcTotal();
-  dataPendiente = { empleado, formapago, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2) };
+  dataPendiente = { empleado, formapago, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2), gps: null };
 
   const offline = !navigator.onLine;
   document.getElementById('modalOfflineNote').classList.toggle('show', offline);
@@ -784,8 +828,27 @@ function abrirModal() {
       <td>$${p.subtotal.toFixed(2)}</td>
     </tr>`).join('');
 
+  resetGpsBadge();
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Capturar GPS en paralelo mientras el usuario revisa el modal
+  const badge     = document.getElementById('gpsBadge');
+  const badgeText = document.getElementById('gpsBadgeText');
+  const mGps      = document.getElementById('m-gps');
+
+  const coords = await capturarGPS();
+  if (coords) {
+    const mapsUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
+    dataPendiente.gps = { lat: coords.lat, lng: coords.lng, acc: coords.acc, url: mapsUrl };
+    badge.className = 'gps-badge ok';
+    badgeText.innerHTML = `📍 Ubicación capturada — precisión ±${coords.acc}m`;
+    mGps.innerHTML = `<a href="${mapsUrl}" target="_blank">${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}</a>`;
+  } else {
+    badge.className = 'gps-badge err';
+    badgeText.textContent = '⚠ No se pudo obtener la ubicación GPS. Se guardará sin coordenadas.';
+    mGps.textContent = 'No disponible';
+  }
 }
 
 function cerrarModal() {
@@ -821,7 +884,11 @@ async function confirmarEnvio() {
     direccion: dataPendiente.direccion,
     notas:     dataPendiente.notas,
     productos: productosTexto,
-    total:     dataPendiente.total
+    total:     dataPendiente.total,
+    latitud:   dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
+    longitud:  dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
+    gps_link:  dataPendiente.gps ? dataPendiente.gps.url : '',
+    gps_prec:  dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : ''
   };
 
   const estaOnline = navigator.onLine;
@@ -832,11 +899,11 @@ async function confirmarEnvio() {
     cerrarModal();
     setStatus('success', '✓ Pedido guardado correctamente en Google Drive!');
     document.getElementById('btnWhatsapp').classList.add('visible');
-    // Mostrar PDF desde el 2do registro
-    if (contadorGuardados >= 2) {
-      document.getElementById('btnPdf').classList.add('visible');
-    }
     limpiarFormulario();
+    // Mostrar PDF desde el 2do registro (DESPUÉS del incremento)
+    if (contadorGuardados >= 2) {
+      document.getElementById('btnPdf').style.display = 'flex';
+    }
   };
 
   if (estaOnline) {
@@ -850,9 +917,11 @@ async function confirmarEnvio() {
       cerrarModal();
       setStatus('warning', '⚠ Sin conexión estable. El pedido se guardó localmente y se enviará a Drive cuando haya internet.');
       document.getElementById('btnWhatsapp').classList.add('visible');
-      if (contadorGuardados >= 2) document.getElementById('btnPdf').classList.add('visible');
       limpiarFormulario();
       actualizarBanners();
+      if (contadorGuardados >= 2) {
+        document.getElementById('btnPdf').style.display = 'flex';
+      }
     }
   } else {
     try {
@@ -861,9 +930,11 @@ async function confirmarEnvio() {
       contadorGuardados++;
       cerrarModal();
       setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Drive cuando haya conexión.');
-      if (contadorGuardados >= 2) document.getElementById('btnPdf').classList.add('visible');
       limpiarFormulario();
       actualizarBanners();
+      if (contadorGuardados >= 2) {
+        document.getElementById('btnPdf').style.display = 'flex';
+      }
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         const reg = await navigator.serviceWorker.ready;
         reg.sync.register('sync-pedidos').catch(() => {});
@@ -904,6 +975,9 @@ function enviarWhatsapp() {
   const lineas = d.productos.map(p =>
     `  - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`
   ).join('%0A');
+  const gpsLinea = d.gps
+    ? `%0A📌 *Ubicación GPS:* ${d.gps.url}`
+    : '';
   const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
     `👤 *Cliente:* ${d.nombre}%0A` +
     `📞 *Telefono:* ${d.telefono || '-'}%0A` +
@@ -913,7 +987,8 @@ function enviarWhatsapp() {
     `💳 *Pago:* ${d.formapago || '-'}%0A%0A` +
     `📦 *Productos:*%0A${lineas}%0A%0A` +
     `💰 *TOTAL: $${d.total}*%0A` +
-    `📝 *Notas:* ${d.notas || '-'}`;
+    `📝 *Notas:* ${d.notas || '-'}` +
+    gpsLinea;
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
 }
 
@@ -1054,8 +1129,69 @@ function descargarPDF() {
   doc.setTextColor(78, 201, 160);
   doc.text(`$${d.total}`, pageW - margin - 4, y + 8.5, { align: 'right' });
 
+  // — GPS
+  if (d.gps) {
+    y += 8;
+    // Título sección
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(10, 124, 110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO', margin, y);
+    doc.setDrawColor(78, 201, 160);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y + 2, pageW - margin, y + 2);
+    y += 9;
+
+    // Caja de fondo
+    doc.setFillColor(230, 244, 242);
+    doc.setDrawColor(78, 201, 160);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, y, pageW - margin*2, 22, 3, 3, 'FD');
+
+    // Pin icono (círculo pequeño)
+    doc.setFillColor(10, 124, 110);
+    doc.circle(margin + 7, y + 7, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text('GPS', margin + 7, y + 7.8, { align: 'center' });
+
+    // Coordenadas
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 130, 160);
+    doc.text('COORDENADAS', margin + 14, y + 6);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(26, 58, 92);
+    doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`, margin + 14, y + 12);
+
+    // Precisión
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 130, 160);
+    doc.text('PRECISIÓN', margin + 14, y + 18);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(26, 58, 92);
+    doc.text(`±${d.gps.acc} metros`, margin + 38, y + 18);
+
+    // Link corto legible (derecha de la caja)
+    const linkCorto = `maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 130, 160);
+    doc.text('LINK PARA ABRIR EN MAPS', pageW - margin - 4, y + 6, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(10, 124, 110);
+    doc.textWithLink(linkCorto, pageW - margin - 4, y + 13, { url: d.gps.url, align: 'right' });
+
+    y += 26;
+  }
+
   // — Firma
-  y += 24;
+  y += 16;
   doc.setDrawColor(180, 200, 220);
   doc.setLineWidth(0.4);
   doc.line(margin, y, margin + 60, y);
