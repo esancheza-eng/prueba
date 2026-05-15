@@ -900,10 +900,7 @@ async function confirmarEnvio() {
     setStatus('success', '✓ Pedido guardado correctamente en Google Drive!');
     document.getElementById('btnWhatsapp').classList.add('visible');
     limpiarFormulario();
-    // Mostrar PDF desde el 2do registro (DESPUÉS del incremento)
-    if (contadorGuardados >= 2) {
-      document.getElementById('btnPdf').style.display = 'flex';
-    }
+    setTimeout(() => { document.getElementById('btnPdf').style.display = 'flex'; }, 100);
   };
 
   if (estaOnline) {
@@ -919,9 +916,7 @@ async function confirmarEnvio() {
       document.getElementById('btnWhatsapp').classList.add('visible');
       limpiarFormulario();
       actualizarBanners();
-      if (contadorGuardados >= 2) {
-        document.getElementById('btnPdf').style.display = 'flex';
-      }
+      setTimeout(() => { document.getElementById('btnPdf').style.display = 'flex'; }, 100);
     }
   } else {
     try {
@@ -932,9 +927,7 @@ async function confirmarEnvio() {
       setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Drive cuando haya conexión.');
       limpiarFormulario();
       actualizarBanners();
-      if (contadorGuardados >= 2) {
-        document.getElementById('btnPdf').style.display = 'flex';
-      }
+      setTimeout(() => { document.getElementById('btnPdf').style.display = 'flex'; }, 100);
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         const reg = await navigator.serviceWorker.ready;
         reg.sync.register('sync-pedidos').catch(() => {});
@@ -1131,7 +1124,7 @@ function descargarPDF() {
 
   // — GPS
   if (d.gps) {
-    y += 8;
+    y += 18;
     // Título sección
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
