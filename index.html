@@ -577,7 +577,7 @@
       Descargar PDF del pedido
     </button>
 
-    <!-- ✅ NUEVO: BOTÓN SUBIR PDF A DRIVE -->
+    <!-- BOTÓN SUBIR PDF A DRIVE -->
     <button class="btn btn-drive" id="btnDrive" onclick="subirPDFaDrive()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
         <path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002zm2 0h6.6L22.8 2H8.2l2.8 5z" opacity=".5"/>
@@ -609,7 +609,7 @@
 
 <script>
 /* ============================================================
-   CONFIG  —  ⚠️ Cambia esta URL por la de tu Apps Script
+   CONFIG
    ============================================================ */
 const SCRIPT_URL      = "https://script.google.com/macros/s/AKfycbxQW6T1cKkXRXX9pQhngDq8qg6X8d1CiaghirD1qvVUkCzxnHzqqpoUNaabzDBOD7U0bA/exec";
 const WHATSAPP_NUMBER = "593985886107";
@@ -682,7 +682,7 @@ window.addEventListener('online',  () => { actualizarBanners(); sincronizarAuto(
 window.addEventListener('offline', () => { actualizarBanners(); document.getElementById('btnWhatsapp').classList.remove('visible'); });
 
 /* ============================================================
-   SINCRONIZACIÓN (pendientes offline)
+   SINCRONIZACIÓN
    ============================================================ */
 async function sincronizarAuto() {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
@@ -816,6 +816,12 @@ function capturarGPS() {
    MODAL
    ============================================================ */
 async function abrirModal() {
+  // ── Si ya existe un pedido guardado, enviar directo a WhatsApp sin validar el formulario vacío ──
+  if (ultimoRegistro) {
+    enviarWhatsapp();
+    return;
+  }
+
   const empleado  = document.getElementById('empleado').value;
   const formapago = document.getElementById('formapago').value;
   const nombre    = document.getElementById('nombre').value.trim();
@@ -881,7 +887,7 @@ function cerrarModal() {
 }
 
 /* ============================================================
-   CONFIRMAR ENVÍO  →  envía datos (fila) al Apps Script
+   CONFIRMAR ENVÍO
    ============================================================ */
 async function confirmarEnvio() {
   if (!dataPendiente) return;
@@ -898,21 +904,22 @@ async function confirmarEnvio() {
     `${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
 
   const payload = {
-    accion:    'registrar_pedido',   // ← campo nuevo para el script
+    accion:         'registrar_pedido',
     dia, mes,
-    empleado:  dataPendiente.empleado,
-    formapago: dataPendiente.formapago,
-    nombre:    dataPendiente.nombre,
-    telefono:  dataPendiente.telefono,
-    fecha:     dataPendiente.fecha,
-    direccion: dataPendiente.direccion,
-    notas:     dataPendiente.notas,
-    productos: productosTexto,
-    total:     dataPendiente.total,
-    latitud:   dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
-    longitud:  dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
-    gps_link:  dataPendiente.gps ? dataPendiente.gps.url : '',
-    gps_prec:  dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : ''
+    empleado:       dataPendiente.empleado,
+    formapago:      dataPendiente.formapago,
+    nombre:         dataPendiente.nombre,
+    telefono:       dataPendiente.telefono,
+    fecha:          dataPendiente.fecha,
+    direccion:      dataPendiente.direccion,
+    notas:          dataPendiente.notas,
+    productos:      productosTexto,
+    productos_json: JSON.stringify(dataPendiente.productos),
+    total:          dataPendiente.total,
+    latitud:        dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
+    longitud:       dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
+    gps_link:       dataPendiente.gps ? dataPendiente.gps.url : '',
+    gps_prec:       dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : ''
   };
 
   const estaOnline = navigator.onLine;
@@ -934,14 +941,12 @@ async function confirmarEnvio() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      // no-cors devuelve opaque, tipo '' — igual se considera ok
       if (resp.type === 'opaque' || resp.ok) {
         onExito();
       } else {
         throw new Error('Response not ok');
       }
     } catch(err) {
-      // Fallback: guardar offline
       await guardarLocal(payload);
       ultimoRegistro = { ...dataPendiente };
       cerrarModal();
@@ -1174,12 +1179,11 @@ function generarPDFBase64() {
   doc.setTextColor(160, 180, 200);
   doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos', pageW / 2, 287, { align: 'center' });
 
-  // Devolver como base64 (sin el prefijo data:application/pdf;base64,)
   return doc.output('datauristring').split(',')[1];
 }
 
 /* ============================================================
-   DESCARGAR PDF (descarga local)
+   DESCARGAR PDF
    ============================================================ */
 function descargarPDF() {
   if (!ultimoRegistro) return;
@@ -1292,7 +1296,7 @@ function descargarPDF() {
 }
 
 /* ============================================================
-   ✅ SUBIR PDF A GOOGLE DRIVE (vía Apps Script)
+   SUBIR PDF A GOOGLE DRIVE
    ============================================================ */
 async function subirPDFaDrive() {
   if (!ultimoRegistro) { setStatus('error', 'No hay pedido activo. Guarda primero el registro.'); return; }
@@ -1313,7 +1317,6 @@ async function subirPDFaDrive() {
   progText.textContent = 'Generando PDF...';
   progPct.textContent  = '0%';
 
-  // Simular progreso mientras genera
   let pct = 0;
   const tick = setInterval(() => {
     pct = Math.min(pct + 8, 40);
@@ -1337,7 +1340,6 @@ async function subirPDFaDrive() {
   progPct.textContent  = '45%';
   progText.textContent = 'Subiendo a Google Drive...';
 
-  // Simular progreso de subida
   const tick2 = setInterval(() => {
     pct = Math.min(pct + 5, 85);
     progFill.style.width = pct + '%';
@@ -1364,7 +1366,6 @@ async function subirPDFaDrive() {
 
     clearInterval(tick2);
 
-    // Intentar leer JSON de respuesta
     let json = {};
     try { json = await resp.json(); } catch(e) { json = { result: 'ok' }; }
 
