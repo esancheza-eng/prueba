@@ -950,7 +950,7 @@ async function confirmarEnvio() {
       await guardarLocal(payload);
       ultimoRegistro = { ...dataPendiente };
       cerrarModal();
-      setStatus('warning', '⚠ Sin conexión estable. Pedido guardado localmente — se enviará a Drive con internet.');
+      setStatus('warning', '⚠ Error: ' + (err.message || err.toString()) + ' — Guardado local OK.');
       document.getElementById('btnWhatsapp').classList.add('visible');
       document.getElementById('btnPdf').style.display = 'flex';
       limpiarFormulario();
