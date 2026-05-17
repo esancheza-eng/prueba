@@ -2,7 +2,7 @@
    SERVICE WORKER — Aqua Luan v3
    ===================================================== */
 
-const CACHE_NAME = 'aqualuan-v4';
+const CACHE_NAME = 'aqualuan-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -65,7 +65,7 @@ self.addEventListener('message', e => {
 });
 
 // ── SINCRONIZACIÓN ────────────────────────────────────
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtpNnAo2sY9PxYr0_re0nLNNV-5F4Sz07iX2OrxTV_CKY2vJRwYfzk3sWU_o8kn6L2/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCrz4qJfYqmXltMPWyx-1QubHba964f-gpPrIt5ba1yY_J-6_uvwOZr5ORXa8L0l3G/exec";
 const DB_NAME    = 'aqualuan-db';
 const STORE      = 'pedidos-pendientes';
 
