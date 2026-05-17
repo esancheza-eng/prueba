@@ -994,7 +994,64 @@ function aplicarNotasFiltros() {
 
   card.style.display = 'block';
 
-  // También actualizar tabla central con los mismos filtros
+  // ── Actualizar KPIs con datos filtrados ──
+  const pedidosConTotal = datos.filter(r => r['TOTAL PEDIDO ($)'] && parseFloat(r['TOTAL PEDIDO ($)']) > 0);
+  const totalReal = pedidosConTotal.reduce((s,r) => s + (parseFloat(r['TOTAL PEDIDO ($)'])||0), 0);
+  const clientesUnicos2 = new Set(datos.map(r => r['CLIENTE'])).size;
+  const pedidosUnicos2  = new Set(datos.map(r => `${r['CLIENTE']}-${r['FECHA']}-${r['ASESOR / RUTA']}`)).size;
+  const ventasPorAsesor2 = {};
+  pedidosConTotal.forEach(r => {
+    const a = r['ASESOR / RUTA']||'Sin asignar';
+    ventasPorAsesor2[a] = (ventasPorAsesor2[a]||0) + (parseFloat(r['TOTAL PEDIDO ($)'])||0);
+  });
+  const asesorTop2 = Object.entries(ventasPorAsesor2).sort((a,b)=>b[1]-a[1])[0];
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi-card teal">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">Total ventas</div>
+      <div class="kpi-value">$${totalReal.toFixed(2)}</div>
+      <div class="kpi-sub">${pedidosUnicos2} pedido(s)</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">💳</div>
+      <div class="kpi-label">Total cobrado</div>
+      <div class="kpi-value">$0.00</div>
+      <div class="kpi-sub">filtrado</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">📉</div>
+      <div class="kpi-label">Total gastos</div>
+      <div class="kpi-value">$0.00</div>
+      <div class="kpi-sub">filtrado</div>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-label">Clientes atendidos</div>
+      <div class="kpi-value">${clientesUnicos2}</div>
+      <div class="kpi-sub">${pedidosUnicos2} pedido(s)</div>
+    </div>
+    <div class="kpi-card navy">
+      <div class="kpi-icon">🏆</div>
+      <div class="kpi-label">Asesor top</div>
+      <div class="kpi-value" style="font-size:1rem">${asesorTop2 ? asesorTop2[0].split(':')[1]?.trim()||asesorTop2[0] : '—'}</div>
+      <div class="kpi-sub">${asesorTop2 ? '$'+asesorTop2[1].toFixed(2) : 'Sin datos'}</div>
+    </div>
+    <div class="kpi-card accent">
+      <div class="kpi-icon">📦</div>
+      <div class="kpi-label">Líneas de producto</div>
+      <div class="kpi-value">${datos.length}</div>
+      <div class="kpi-sub">unidades registradas</div>
+    </div>
+  `;
+
+  // ── Actualizar gráficas y GPS ──
+  renderCharts(datos, pedidosConTotal);
+  renderGPS(pedidosConTotal);
+  document.getElementById('chartsGrid').style.display = 'grid';
+  document.getElementById('mapCard').style.display = 'block';
+
+  // También actualizar tabla central
   actualizarTablaCentral(datos);
 
   // Scroll suave a la tabla
