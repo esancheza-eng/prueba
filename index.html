@@ -1276,8 +1276,13 @@ async function confirmarEnvio() {
 
   if (estaOnline) {
     try {
-      const resp = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (resp.type === 'opaque' || resp.ok) { onExito(); } else throw new Error('Response not ok');
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      onExito();
     } catch(err) {
       await guardarLocal(payload);
       ultimoRegistro = { ...dataPendiente };
