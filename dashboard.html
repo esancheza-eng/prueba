@@ -256,10 +256,104 @@
     .ruta-grid { grid-template-columns: 1fr; }
     .kpi-grid { grid-template-columns: 1fr 1fr; }
     .main { padding: 1rem; }
+    .layout { flex-direction: column; }
+    .sidebar { width: 100% !important; min-width: unset !important; }
   }
   @media (max-width: 480px) {
     .kpi-grid { grid-template-columns: 1fr; }
   }
+
+  /* ── LAYOUT CON SIDEBAR ── */
+  .layout {
+    display: flex; gap: 0; min-height: calc(100vh - 64px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 300px; min-width: 300px;
+    background: var(--navy);
+    padding: 1.25rem;
+    display: flex; flex-direction: column; gap: 12px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    position: sticky; top: 64px; height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+  .sidebar-title {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--accent);
+    padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sidebar-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 5px;
+  }
+  .sidebar select, .sidebar input[type="date"] {
+    width: 100%; background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 8px; color: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 9px 12px; outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234ec9a0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
+    cursor: pointer;
+  }
+  .sidebar select option { background: var(--navy); color: #fff; }
+  .sidebar select:focus, .sidebar input[type="date"]:focus { border-color: var(--accent); }
+  .sidebar input[type="date"] { color: rgba(255,255,255,0.8); }
+  .sidebar input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+
+  .btn-aplicar-notas {
+    width: 100%; padding: 11px; background: var(--accent); color: var(--navy);
+    border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 800; cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.2s, transform 0.1s; margin-top: 4px;
+  }
+  .btn-aplicar-notas:hover { background: #3db88a; }
+  .btn-aplicar-notas:active { transform: scale(0.98); }
+
+  .btn-excel {
+    width: 100%; padding: 11px; background: #1d6f42; color: #fff;
+    border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 800; cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.2s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-excel:hover { background: #155230; }
+  .btn-excel:active { transform: scale(0.98); }
+
+  .notas-resumen {
+    background: rgba(78,201,160,0.1); border: 1px solid rgba(78,201,160,0.2);
+    border-radius: 8px; padding: 12px;
+  }
+  .notas-resumen-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+  .notas-resumen-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; }
+  .notas-resumen-value { font-size: 13px; font-weight: 800; color: var(--accent); }
+
+  .notas-count {
+    background: var(--accent); color: var(--navy);
+    font-size: 10px; font-weight: 800; border-radius: 100px;
+    padding: 2px 8px; min-width: 22px; text-align: center;
+  }
+
+  /* ── CONTENT AREA ── */
+  .content { flex: 1; overflow: hidden; }
+  .content .main { padding: 1.5rem; max-width: 100%; margin: 0; }
+
+  /* ── NOTAS TABLE ── */
+  .notas-table-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 1.25rem; overflow: hidden;
+  }
+  .notas-table-header {
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .notas-table-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
+
 </style>
 </head>
 <body>
@@ -315,8 +409,71 @@
   </div>
 </div>
 
-<!-- MAIN -->
-<div class="main">
+<!-- LAYOUT -->
+<div class="layout">
+
+<!-- SIDEBAR — NOTAS DE VENTAS -->
+<div class="sidebar">
+  <div class="sidebar-title">
+    📋 Notas de Ventas
+    <span class="notas-count" id="notasCount">0</span>
+  </div>
+
+  <div>
+    <div class="sidebar-label">Filtro Día</div>
+    <input type="date" id="notasFecha">
+  </div>
+
+  <div>
+    <div class="sidebar-label">Filtro Asesor / Ruta</div>
+    <select id="notasAsesor">
+      <option value="">-- Todos --</option>
+      <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+      <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+      <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+      <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+      <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+    </select>
+  </div>
+
+  <div>
+    <div class="sidebar-label">Filtro Forma de Pago</div>
+    <select id="notasPago">
+      <option value="">-- Todas --</option>
+      <option value="Contado">Contado</option>
+      <option value="Crédito">Crédito</option>
+      <option value="Transferencia">Transferencia</option>
+      <option value="Cheque">Cheque</option>
+    </select>
+  </div>
+
+  <button class="btn-aplicar-notas" onclick="aplicarNotasFiltros()">
+    🔍 Aplicar filtros
+  </button>
+
+  <div class="notas-resumen" id="notasResumen">
+    <div class="notas-resumen-item">
+      <span class="notas-resumen-label">Pedidos</span>
+      <span class="notas-resumen-value" id="notasTotalPedidos">0</span>
+    </div>
+    <div class="notas-resumen-item">
+      <span class="notas-resumen-label">Total ventas</span>
+      <span class="notas-resumen-value" id="notasTotalVentas">$0.00</span>
+    </div>
+    <div class="notas-resumen-item">
+      <span class="notas-resumen-label">Unidades</span>
+      <span class="notas-resumen-value" id="notasTotalUnidades">0</span>
+    </div>
+  </div>
+
+  <button class="btn-excel" onclick="exportarExcel()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17.5l2.5-3.5L8 10.5h1.5L11 12.8l1.5-2.3H14l-2.5 3.5 2.5 3.5H12.5L11 15.2l-1.5 2.3H8z"/></svg>
+    Exportar a Excel
+  </button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
 
   <!-- FILTER BAR -->
   <div class="filter-bar">
@@ -383,7 +540,34 @@
     </div>
   </div>
 
+  <!-- NOTAS DE VENTAS TABLE -->
+  <div class="notas-table-card" id="notasCard" style="display:none">
+    <div class="notas-table-header">
+      <div class="notas-table-title">📋 Notas de Ventas — Resultados</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Asesor / Ruta</th>
+            <th>Cliente</th>
+            <th>Envase / Producto</th>
+            <th>Precio Unit.</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+            <th>Total Pedido</th>
+            <th>Forma Pago</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="tablaNotas"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div><!-- /main -->
+</div><!-- /content -->
+</div><!-- /layout -->
 
 <script>
 /* ════════════════════════════════════════
@@ -731,7 +915,7 @@ function renderTabla(pedidos) {
     const total = r['TOTAL PEDIDO ($)'] ? `<strong style="color:var(--teal)">$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}</strong>` : '';
     const pago = r['FORMA DE PAGO'] ? `<span class="badge badge-teal">${r['FORMA DE PAGO']}</span>` : '';
     return `<tr>
-      <td style="white-space:nowrap;font-size:12px">${r['FECHA']||'-'}</td>
+      <td style="white-space:nowrap;font-size:12px">${limpiarFecha(r['FECHA'])}</td>
       <td style="font-size:12px">${(r['ASESOR / RUTA']||'').split(':')[1]?.trim()||r['ASESOR / RUTA']||'-'}</td>
       <td style="font-weight:600">${r['CLIENTE']||'-'}</td>
       <td style="font-size:12px;color:var(--muted)">${r['TELÉFONO']||'-'}</td>
@@ -743,6 +927,158 @@ function renderTabla(pedidos) {
       <td>${gps}</td>
     </tr>`;
   }).join('');
+}
+
+/* ════════════════════════════════════════
+   NOTAS DE VENTAS — FILTROS
+════════════════════════════════════════ */
+let datosNotasFiltrados = [];
+
+function aplicarNotasFiltros() {
+  const fecha  = document.getElementById('notasFecha').value;
+  const asesor = document.getElementById('notasAsesor').value;
+  const pago   = document.getElementById('notasPago').value;
+
+  // Filtrar solo pedidos con producto
+  let datos = todosLosDatos.filter(r => r['PRODUCTO'] && r['PRODUCTO'] !== '');
+
+  if (fecha) {
+    datos = datos.filter(r => {
+      const f = String(r['FECHA']||'');
+      // Soporta formato 2026-05-17 y 2026-05-17T05:00:00.000Z
+      return f.startsWith(fecha) || f.includes(fecha.split('-').reverse().join('/'));
+    });
+  }
+  if (asesor) datos = datos.filter(r => (r['ASESOR / RUTA']||'') === asesor);
+  if (pago)   datos = datos.filter(r => (r['FORMA DE PAGO']||'') === pago);
+
+  datosNotasFiltrados = datos;
+
+  // Resumen
+  const pedidosUnicos = new Set(datos.map(r => `${r['CLIENTE']}-${r['FECHA']}-${r['ASESOR / RUTA']}`)).size;
+  const totalVentas   = datos.filter(r => r['TOTAL PEDIDO ($)'] && parseFloat(r['TOTAL PEDIDO ($)']) > 0)
+                             .reduce((s, r) => s + (parseFloat(r['TOTAL PEDIDO ($)']) || 0), 0);
+  const totalUnidades = datos.reduce((s, r) => s + (parseFloat(r['CANTIDAD']) || 0), 0);
+
+  document.getElementById('notasCount').textContent        = datos.length;
+  document.getElementById('notasTotalPedidos').textContent = pedidosUnicos;
+  document.getElementById('notasTotalVentas').textContent  = '$' + totalVentas.toFixed(2);
+  document.getElementById('notasTotalUnidades').textContent = totalUnidades;
+
+  // Render tabla Notas
+  const tbody = document.getElementById('tablaNotas');
+  const card  = document.getElementById('notasCard');
+
+  if (datos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="icon">📋</div>No hay resultados con estos filtros</div></td></tr>`;
+    card.style.display = 'block';
+    return;
+  }
+
+  tbody.innerHTML = datos.map(r => {
+    const total = r['TOTAL PEDIDO ($)'] ? `<strong style="color:var(--teal)">$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}</strong>` : '';
+    // Limpiar fecha
+    const fechaLimpia = limpiarFecha(r['FECHA']);
+    return `<tr>
+      <td style="font-size:12px;white-space:nowrap">${(r['ASESOR / RUTA']||'').split(':')[1]?.trim()||r['ASESOR / RUTA']||'-'}</td>
+      <td style="font-weight:600">${r['CLIENTE']||'-'}</td>
+      <td style="font-size:12px">${r['PRODUCTO']||'-'}</td>
+      <td style="text-align:right;font-size:12px">$${parseFloat(r['PRECIO UNIT.']||0).toFixed(2)}</td>
+      <td style="text-align:center;font-weight:700">${r['CANTIDAD']||'-'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--muted)">$${parseFloat(r['SUBTOTAL']||0).toFixed(2)}</td>
+      <td style="text-align:right">${total}</td>
+      <td><span class="badge badge-teal">${r['FORMA DE PAGO']||'-'}</span></td>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${fechaLimpia}</td>
+    </tr>`;
+  }).join('');
+
+  card.style.display = 'block';
+
+  // También actualizar tabla central con los mismos filtros
+  actualizarTablaCentral(datos);
+
+  // Scroll suave a la tabla
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ════════════════════════════════════════
+   HELPER — LIMPIAR FECHA
+════════════════════════════════════════ */
+function limpiarFecha(fecha) {
+  if (!fecha) return '-';
+  const f = String(fecha);
+  // Si tiene formato ISO largo: 2026-05-17T05:00:00.000Z
+  if (f.includes('T')) return f.split('T')[0];
+  return f;
+}
+
+/* ════════════════════════════════════════
+   ACTUALIZAR TABLA CENTRAL CON FILTROS
+════════════════════════════════════════ */
+function actualizarTablaCentral(datos) {
+  const tbody = document.getElementById('tablaPedidos');
+  const card  = document.getElementById('tableCard');
+  card.style.display = 'block';
+
+  if (datos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div>No hay pedidos con estos filtros</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = datos.map(r => {
+    const gps   = r['LINK GPS'] ? `<a href="${r['LINK GPS']}" target="_blank" style="color:var(--teal);font-weight:700;font-size:11px">📍 Ver</a>` : '<span style="color:var(--muted);font-size:11px">—</span>';
+    const total = r['TOTAL PEDIDO ($)'] ? `<strong style="color:var(--teal)">$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}</strong>` : '';
+    const pago  = r['FORMA DE PAGO'] ? `<span class="badge badge-teal">${r['FORMA DE PAGO']}</span>` : '';
+    return `<tr>
+      <td style="white-space:nowrap;font-size:12px">${limpiarFecha(r['FECHA'])}</td>
+      <td style="font-size:12px">${(r['ASESOR / RUTA']||'').split(':')[1]?.trim()||r['ASESOR / RUTA']||'-'}</td>
+      <td style="font-weight:600">${r['CLIENTE']||'-'}</td>
+      <td style="font-size:12px;color:var(--muted)">${r['TELÉFONO']||'-'}</td>
+      <td style="font-size:12px">${r['PRODUCTO']||'-'}</td>
+      <td style="text-align:center;font-size:12px">${r['CANTIDAD']||'-'}</td>
+      <td style="text-align:right;font-size:12px;color:var(--muted)">$${parseFloat(r['SUBTOTAL']||0).toFixed(2)}</td>
+      <td style="text-align:right">${total}</td>
+      <td>${pago}</td>
+      <td>${gps}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   EXPORTAR A EXCEL (CSV)
+════════════════════════════════════════ */
+function exportarExcel() {
+  const datos = datosNotasFiltrados.length > 0 ? datosNotasFiltrados : todosLosDatos.filter(r => r['PRODUCTO'] && r['PRODUCTO'] !== '');
+
+  if (datos.length === 0) {
+    alert('No hay datos para exportar. Aplica los filtros primero.');
+    return;
+  }
+
+  // Encabezados
+  const headers = ['ASESOR / RUTA','CLIENTE','PRODUCTO','PRECIO UNIT.','CANTIDAD','SUBTOTAL','TOTAL PEDIDO ($)','FORMA DE PAGO','FECHA','TELÉFONO','DIRECCIÓN'];
+
+  // Filas
+  const filas = datos.map(r => headers.map(h => {
+    const val = r[h] !== undefined ? r[h] : '';
+    // Escapar comas y comillas para CSV
+    const str = String(val).replace(/"/g, '""');
+    return str.includes(',') || str.includes('"') || str.includes('\n') ? `"${str}"` : str;
+  }).join(','));
+
+  // Agregar BOM para UTF-8 (caracteres especiales en Excel)
+  const csv = '\uFEFF' + headers.join(',') + '\n' + filas.join('\n');
+
+  // Descargar
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const fecha = document.getElementById('notasFecha').value || new Date().toISOString().split('T')[0];
+  const asesor = document.getElementById('notasAsesor').value.split(':')[1]?.trim() || 'Todos';
+  a.href     = url;
+  a.download = `NotasVentas_${fecha}_${asesor}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 </body>
