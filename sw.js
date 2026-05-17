@@ -1,11 +1,8 @@
 /* =====================================================
-   SERVICE WORKER — Aqua Luan
-   Estrategia: Cache-First para assets, NetworkFirst
-   para el script de Google (cuando hay internet)
-   + Cola de pedidos offline en IndexedDB
+   SERVICE WORKER — Aqua Luan v3
    ===================================================== */
 
-const CACHE_NAME = 'aqualuan-v2';
+const CACHE_NAME = 'aqualuan-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -32,8 +29,11 @@ self.addEventListener('activate', e => {
 
 // ── FETCH ────────────────────────────────────────────
 self.addEventListener('fetch', e => {
-  // Peticiones al script de Google → no interceptar con cache
+  // NUNCA interceptar peticiones a Google Scripts
   if (e.request.url.includes('script.google.com')) return;
+  if (e.request.url.includes('fonts.googleapis.com')) return;
+  if (e.request.url.includes('fonts.gstatic.com')) return;
+  if (e.request.url.includes('cdnjs.cloudflare.com')) return;
 
   e.respondWith(
     caches.match(e.request).then(cached => {
@@ -48,7 +48,7 @@ self.addEventListener('fetch', e => {
   );
 });
 
-// ── SYNC (Background Sync API) ────────────────────────
+// ── SYNC ─────────────────────────────────────────────
 self.addEventListener('sync', e => {
   if (e.tag === 'sync-pedidos') {
     e.waitUntil(syncPendientes());
@@ -64,8 +64,8 @@ self.addEventListener('message', e => {
   }
 });
 
-// ── FUNCIÓN DE SINCRONIZACIÓN ─────────────────────────
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo_NTtQrGMJ4DqVKq3qQT8nrq8YjP55vcgD0PKBde69qngR2boYU-fvXJPqw6kLdG0rw/exec";
+// ── SINCRONIZACIÓN ────────────────────────────────────
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydoaQup9b6JNGYyuTc7Usa37spQvUwZJPNgdoUgsRuJQh1-3Br7V8Ww4lDZwLX0_i4/exec";
 const DB_NAME    = 'aqualuan-db';
 const STORE      = 'pedidos-pendientes';
 
@@ -93,7 +93,8 @@ async function syncPendientes() {
   for (const item of items) {
     try {
       await fetch(SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
+        method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(item.payload)
       });
@@ -104,7 +105,6 @@ async function syncPendientes() {
     }
   }
 
-  // Notificar a todos los clientes abiertos
   const clients = await self.clients.matchAll();
   clients.forEach(c => c.postMessage({
     type: 'SYNC_DONE', synced, failed,
