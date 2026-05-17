@@ -5,7 +5,7 @@
    + Cola de pedidos offline en IndexedDB
    ===================================================== */
 
-const CACHE_NAME = 'aqualuan-v1';
+const CACHE_NAME = 'aqualuan-v2';
 const ASSETS = [
   './',
   './index.html',
