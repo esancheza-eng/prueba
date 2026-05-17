@@ -36,6 +36,15 @@
     --radius: 12px;
     --radius-lg: 18px;
     --shadow: 0 4px 20px rgba(26,58,92,0.1);
+    /* Pagos */
+    --blue: #1565c0;
+    --blue-dark: #0d47a1;
+    --blue-light: #e8f0fd;
+    /* Gastos */
+    --red: #c0392b;
+    --red-dark: #a93226;
+    --red-light: #fdecea;
+    --orange: #e67e22;
   }
   html { font-size: 16px; }
   body {
@@ -53,6 +62,43 @@
   .container { width: 100%; max-width: 640px; animation: fadeUp 0.4s ease both; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
+  /* ── TABS ── */
+  .tabs-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    background: var(--navy);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    margin-bottom: 1.25rem;
+    gap: 4px;
+    box-shadow: var(--shadow);
+  }
+  .tab-btn {
+    padding: 10px 8px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s, color 0.2s;
+    letter-spacing: 0.02em;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,0.8); }
+  .tab-btn.active-ventas { background: var(--teal); color: #fff; }
+  .tab-btn.active-pagos  { background: var(--blue); color: #fff; }
+  .tab-btn.active-gastos { background: var(--red);  color: #fff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; animation: fadeUp 0.3s ease both; }
+
+  /* ── BANNERS ── */
   .offline-banner {
     display: none;
     align-items: center;
@@ -68,7 +114,6 @@
     animation: fadeUp 0.3s ease;
   }
   .offline-banner.show { display: flex; }
-  .offline-banner svg { flex-shrink: 0; }
   .offline-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: #ffc107; flex-shrink: 0;
@@ -79,7 +124,6 @@
     0%,100% { box-shadow: 0 0 0 3px rgba(255,193,7,0.25); }
     50% { box-shadow: 0 0 0 6px rgba(255,193,7,0.1); }
   }
-
   .pending-banner {
     display: none;
     align-items: center;
@@ -118,6 +162,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .spin { animation: spin 0.7s linear infinite; }
 
+  /* ── HEADER ── */
   .header {
     background: var(--navy);
     border-radius: var(--radius-lg);
@@ -138,10 +183,16 @@
   .logo-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
   .date-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); padding: 5px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; white-space: nowrap; }
 
+  /* ── CARD ── */
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 4vw, 1.75rem); box-shadow: var(--shadow); margin-bottom: 1rem; }
   .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
   .section-title::after { content: ''; flex: 1; height: 1.5px; background: var(--teal-light); }
+  .section-title.blue { color: var(--blue); }
+  .section-title.blue::after { background: var(--blue-light); }
+  .section-title.red { color: var(--red); }
+  .section-title.red::after { background: var(--red-light); }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
   .field:last-child { margin-bottom: 0; }
   label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
@@ -155,6 +206,8 @@
   }
   input::placeholder, textarea::placeholder { color: var(--muted2); font-weight: 400; }
   input:focus, textarea:focus, select:focus { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3px rgba(10,124,110,0.1); }
+  .focus-blue:focus { border-color: var(--blue) !important; box-shadow: 0 0 0 3px rgba(21,101,192,0.1) !important; }
+  .focus-red:focus  { border-color: var(--red)  !important; box-shadow: 0 0 0 3px rgba(192,57,43,0.1)  !important; }
   input[type="date"] { cursor: pointer; }
   input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; }
   input[type="number"] { -moz-appearance: textfield; }
@@ -165,7 +218,10 @@
     background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer;
   }
   .divider { border: none; border-top: 1.5px solid var(--teal-light); margin: 1.25rem 0; }
+  .divider-blue { border-top-color: var(--blue-light); }
+  .divider-red  { border-top-color: #fca5a5; }
 
+  /* ── PRODUCTOS (Ventas) ── */
   .add-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: flex-end; }
   .add-row .field { margin-bottom: 0; }
   .btn-add {
@@ -178,6 +234,10 @@
   }
   .btn-add:hover { background: var(--teal-dark); }
   .btn-add:active { transform: scale(0.97); }
+  .btn-add.blue { background: var(--blue); }
+  .btn-add.blue:hover { background: var(--blue-dark); }
+  .btn-add.red  { background: var(--red); }
+  .btn-add.red:hover  { background: var(--red-dark); }
 
   .productos-lista { margin-top: 1rem; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); }
   .productos-lista.empty { display: none; }
@@ -212,8 +272,11 @@
   }
   .total-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
   .total-value { font-family: 'DM Serif Display', serif; font-size: clamp(22px, 6vw, 32px); color: #4ec9a0; letter-spacing: -0.02em; }
+  .total-value.blue { color: #90caf9; }
+  .total-value.red  { color: #f48fb1; }
   .empty-msg { text-align: center; padding: 1.5rem; color: var(--muted); font-size: 14px; border: 1.5px dashed var(--border); border-radius: var(--radius); background: var(--surface2); margin-top: 1rem; }
 
+  /* ── BUTTONS ── */
   .btn {
     width: 100%; padding: 15px; background: var(--teal); color: #fff; border: none;
     border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
@@ -227,25 +290,23 @@
   .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
   .btn-outline:hover { background: var(--surface2); }
+  .btn.blue { background: var(--blue); }
+  .btn.blue:hover { background: var(--blue-dark); }
+  .btn.red  { background: var(--red); }
+  .btn.red:hover  { background: var(--red-dark); }
   .btn-whatsapp { background: var(--whatsapp); color: #fff; margin-top: 10px; display: none; }
   .btn-whatsapp:hover { background: var(--whatsapp-hover); }
   .btn-whatsapp.visible { display: flex; }
   .btn-pdf { background: #c0392b; color: #fff; margin-top: 10px; }
   .btn-pdf:hover { background: #a93226; }
-
-  /* Botón Drive */
   .btn-drive { background: #1967d2; color: #fff; margin-top: 10px; display: none; }
   .btn-drive:hover { background: #1558b8; }
   .btn-drive.visible { display: flex; }
 
-  /* Progress bar para subida */
+  /* ── DRIVE PROGRESS ── */
   .drive-progress {
-    display: none;
-    margin-top: 10px;
-    background: var(--surface2);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 16px;
+    display: none; margin-top: 10px; background: var(--surface2);
+    border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px;
   }
   .drive-progress.show { display: block; }
   .progress-label { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; justify-content: space-between; }
@@ -255,15 +316,18 @@
   .progress-link a { color: #1967d2; text-decoration: underline; }
   .progress-link.show { display: block; }
 
+  /* ── STATUS ── */
   .status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; line-height: 1.4; }
   .status.success { display: flex; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
   .status.error   { display: flex; background: var(--error-bg);   border: 1px solid var(--error-border);   color: var(--error-text); }
   .status.warning { display: flex; background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text); }
 
+  /* ── FOOTER ── */
   .footer { margin-top: 1.5rem; text-align: center; }
   .footer a { font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; letter-spacing: 0.03em; }
   .footer a:hover { color: var(--teal); }
 
+  /* ── MODAL ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,30,60,0.7); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
   .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
@@ -307,21 +371,78 @@
   .gps-badge.err .gps-dot { background: #e57373; }
   .gps-badge.wait .gps-dot { background: #ffc107; animation: pulse-dot 1.2s ease infinite; }
 
-  @media (max-width: 480px) {
-    body { padding: 1rem 0.75rem 3rem; }
-    .grid-2 { grid-template-columns: 1fr; }
-    .add-row { grid-template-columns: 1fr 1fr; }
-    .add-row .btn-add { grid-column: 1 / -1; width: 100%; }
-    .lista-header, .lista-item { grid-template-columns: 1fr 48px 68px 68px 28px; font-size: 12px; }
-    .modal-btns { grid-template-columns: 1fr; }
-  }
-  @media (min-width: 768px) {
-    .modal-overlay { align-items: center; padding: 1rem; }
-    .modal { border-radius: var(--radius-lg); max-height: 85vh; }
-    .modal-handle { display: none; }
-    @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-  }
+  /* ── TABLA REGISTROS (Pagos / Gastos) ── */
+  .reg-lista { margin-top: 1rem; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); }
+  .reg-lista.empty { display: none; }
 
+  /* Pagos lista */
+  .pagos-header {
+    display: grid; grid-template-columns: 1fr 90px 90px 80px 32px;
+    gap: 8px; padding: 9px 12px;
+    background: var(--blue);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.9);
+  }
+  .pago-item {
+    display: grid; grid-template-columns: 1fr 90px 90px 80px 32px;
+    gap: 8px; padding: 10px 12px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    align-items: center;
+  }
+  .pago-item:nth-child(even) { background: var(--blue-light); }
+  .pago-monto { font-size: 13px; font-weight: 700; text-align: right; color: var(--blue); }
+
+  /* Gastos lista */
+  .gastos-header {
+    display: grid; grid-template-columns: 1fr 100px 90px 80px 32px;
+    gap: 8px; padding: 9px 12px;
+    background: var(--red);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.9);
+  }
+  .gasto-item {
+    display: grid; grid-template-columns: 1fr 100px 90px 80px 32px;
+    gap: 8px; padding: 10px 12px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    align-items: center;
+  }
+  .gasto-item:nth-child(even) { background: var(--red-light); }
+  .gasto-monto { font-size: 13px; font-weight: 700; text-align: right; color: var(--red); }
+
+  /* Badge tipo */
+  .badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 100px;
+  }
+  .badge-contado   { background: #e6f4f2; color: #085f54; }
+  .badge-credito   { background: #e8f0fd; color: #1565c0; }
+  .badge-transfer  { background: #fff8e1; color: #795c00; }
+  .badge-cheque    { background: #fce4ec; color: #880e4f; }
+  .badge-efectivo  { background: #e8f5e9; color: #1b5e20; }
+  .badge-datafono  { background: #e3f2fd; color: #0d47a1; }
+  .badge-deposito  { background: #fce4ec; color: #880e4f; }
+
+  /* Resumen cards */
+  .resumen-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+  .resumen-card {
+    border-radius: var(--radius); padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .resumen-card.teal  { background: var(--teal-light); border: 1.5px solid var(--success-border); }
+  .resumen-card.blue  { background: var(--blue-light); border: 1.5px solid #90caf9; }
+  .resumen-card.red   { background: var(--red-light);  border: 1.5px solid #e57373; }
+  .resumen-card.navy  { background: var(--navy); }
+  .resumen-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .resumen-card.teal .resumen-label { color: var(--teal); }
+  .resumen-card.blue .resumen-label { color: var(--blue); }
+  .resumen-card.red  .resumen-label { color: var(--red); }
+  .resumen-card.navy .resumen-label { color: rgba(255,255,255,0.5); }
+  .resumen-value { font-family: 'DM Serif Display', serif; font-size: 1.4rem; letter-spacing: -0.01em; }
+  .resumen-card.teal .resumen-value { color: var(--teal-dark); }
+  .resumen-card.blue .resumen-value { color: var(--blue-dark); }
+  .resumen-card.red  .resumen-value { color: var(--red-dark); }
+  .resumen-card.navy .resumen-value { color: #4ec9a0; }
+  .resumen-sub { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+  /* ── LOGIN ── */
   .login-overlay {
     position: fixed; inset: 0;
     background: linear-gradient(135deg, #dde8f2 0%, #e8f2f8 50%, #d8edf2 100%);
@@ -336,21 +457,40 @@
   .login-field label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
   .login-error { display: none; color: #b71c1c; font-size: 13px; font-weight: 600; background: #fdecea; border: 1px solid #e57373; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; }
   .login-error.show { display: block; }
+
+  @media (max-width: 480px) {
+    body { padding: 1rem 0.75rem 3rem; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .add-row { grid-template-columns: 1fr 1fr; }
+    .add-row .btn-add { grid-column: 1 / -1; width: 100%; }
+    .lista-header, .lista-item { grid-template-columns: 1fr 48px 68px 68px 28px; font-size: 12px; }
+    .pagos-header, .pago-item { grid-template-columns: 1fr 80px 70px 64px 28px; font-size: 12px; }
+    .gastos-header, .gasto-item { grid-template-columns: 1fr 90px 70px 64px 28px; font-size: 12px; }
+    .modal-btns { grid-template-columns: 1fr; }
+    .resumen-grid { grid-template-columns: 1fr; }
+    .tab-btn { font-size: 11px; }
+  }
+  @media (min-width: 768px) {
+    .modal-overlay { align-items: center; padding: 1rem; }
+    .modal { border-radius: var(--radius-lg); max-height: 85vh; }
+    .modal-handle { display: none; }
+    @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  }
 </style>
 </head>
 <body>
 
-<!-- MODAL CONFIRMACIÓN -->
+<!-- ═══════════════════════════════════════
+     MODAL CONFIRMACIÓN VENTAS
+════════════════════════════════════════ -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Confirmar pedido</div>
     <div class="modal-subtitle" id="modal-subtitle-text">Revisa todos los datos antes de guardar</div>
-
     <div class="modal-offline-note" id="modalOfflineNote">
       ⚠️ Sin conexión a internet. El pedido se guardará localmente y se enviará a Google Drive automáticamente cuando haya conexión.
     </div>
-
     <table class="modal-table">
       <tr><td>Asesor / Ruta</td><td id="m-empleado">-</td></tr>
       <tr><td>Forma de pago</td><td id="m-formapago">-</td></tr>
@@ -384,7 +524,9 @@
   </div>
 </div>
 
-<!-- LOGIN OVERLAY -->
+<!-- ═══════════════════════════════════════
+     LOGIN
+════════════════════════════════════════ -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <div class="login-logo">
@@ -415,13 +557,16 @@
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════
+     CONTAINER PRINCIPAL
+════════════════════════════════════════ -->
 <div class="container">
 
+  <!-- Banners offline / pendientes -->
   <div class="offline-banner" id="offlineBanner">
     <div class="offline-dot"></div>
     <span>Sin internet — Los pedidos se guardarán localmente y se sincronizarán automáticamente cuando haya conexión.</span>
   </div>
-
   <div class="pending-banner" id="pendingBanner">
     <div class="pending-left">
       <span class="pending-count" id="pendingCount">0</span>
@@ -433,6 +578,7 @@
     </button>
   </div>
 
+  <!-- Header -->
   <div class="header">
     <div class="logo-wrap">
       <svg class="logo-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -443,196 +589,409 @@
       </svg>
       <div class="logo-text">
         <div class="logo-name">AQUA <span>LUAN</span></div>
-        <div class="logo-sub">Registro de Pedidos</div>
+        <div class="logo-sub" id="logoSub">Registro de Pedidos</div>
       </div>
     </div>
     <div class="date-badge" id="fechaHoy"></div>
   </div>
 
-  <!-- DATOS CLIENTE -->
-  <div class="card">
-    <div class="section-title">Empleado responsable</div>
-    <div class="grid-2">
-      <div class="field">
-        <label>Ruta / Asesor</label>
-        <select id="empleado" required>
-          <option value="">-- Selecciona --</option>
-          <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
-          <option value="RUTA 2: Luis">RUTA 2: Luis</option>
-          <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
-          <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
-          <option value="RUTA 5: Lister">RUTA 5: Lister</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Forma de pago</label>
-        <select id="formapago" required>
-          <option value="">-- Selecciona --</option>
-          <option value="Contado">Contado</option>
-          <option value="Crédito">Crédito</option>
-          <option value="Transferencia">Transferencia</option>
-          <option value="Cheque">Cheque</option>
-        </select>
-      </div>
-    </div>
-    <hr class="divider">
-    <div class="section-title">Datos del cliente</div>
-    <div class="field">
-      <label>Nombre completo</label>
-      <input type="text" id="nombre" placeholder="Ej. Maria Garcia Lopez" autocomplete="off" required>
-    </div>
-    <div class="grid-2">
-      <div class="field">
-        <label>Telefono</label>
-        <input type="tel" id="telefono" placeholder="0991234567" autocomplete="off" inputmode="tel">
-      </div>
-      <div class="field">
-        <label>Fecha</label>
-        <input type="date" id="fecha">
-      </div>
-    </div>
-    <div class="field">
-      <label>Direccion</label>
-      <input type="text" id="direccion" placeholder="Calle, numero, sector" autocomplete="off">
-    </div>
-    <div class="field" style="margin-bottom:0">
-      <label>Notas adicionales</label>
-      <textarea id="notas" placeholder="Observaciones, condiciones de pago, entregas..."></textarea>
-    </div>
+  <!-- NAVEGACIÓN TABS -->
+  <div class="tabs-nav">
+    <button class="tab-btn active-ventas" onclick="cambiarTab('ventas')" id="tab-ventas">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 2h1.5l2 8h6l1.5-5H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="13" r="1" fill="currentColor"/><circle cx="12" cy="13" r="1" fill="currentColor"/></svg>
+      Ventas
+    </button>
+    <button class="tab-btn" onclick="cambiarTab('pagos')" id="tab-pagos">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="4" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 7h13" stroke="currentColor" stroke-width="1.5"/><path d="M5 10.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Pagos
+    </button>
+    <button class="tab-btn" onclick="cambiarTab('gastos')" id="tab-gastos">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Gastos
+    </button>
   </div>
 
-  <!-- PRODUCTOS -->
-  <div class="card">
-    <div class="section-title">Productos del pedido</div>
-    <div class="add-row">
+  <!-- ════════════════════
+       TAB: VENTAS
+  ════════════════════ -->
+  <div class="tab-content active" id="content-ventas">
+
+    <!-- DATOS CLIENTE -->
+    <div class="card">
+      <div class="section-title">Empleado responsable</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Ruta / Asesor</label>
+          <select id="empleado" required>
+            <option value="">-- Selecciona --</option>
+            <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+            <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+            <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+            <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+            <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Forma de pago</label>
+          <select id="formapago" required>
+            <option value="">-- Selecciona --</option>
+            <option value="Contado">Contado</option>
+            <option value="Crédito">Crédito</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="section-title">Datos del cliente</div>
       <div class="field">
-        <label>Producto</label>
-        <select id="sel-producto">
-          <option value="">-- Selecciona --</option>
-          <option value="BOTELLON 20LT">BOTELLON 20LT</option>
-          <option value="BOTELLON CON LLAVE">BOTELLON CON LLAVE</option>
-          <option value="PACA 625ML AZUL">PACA 625ML AZUL</option>
-          <option value="PACA 600ML VERDE">PACA 600ML VERDE</option>
-          <option value="PACA 1000ML">PACA 1000ML</option>
-          <option value="PACA 400ML">PACA 400ML</option>
-          <option value="GALONES 4LT">GALONES 4LT</option>
-          <option value="POMA 5LTS">POMA 5LTS</option>
-          <option value="ENVASE CON LLAVE">ENVASE CON LLAVE</option>
-          <option value="ENVASE AZUL ADICIONAL">ENVASE AZUL ADICIONAL</option>
-        </select>
+        <label>Nombre completo</label>
+        <input type="text" id="nombre" placeholder="Ej. Maria Garcia Lopez" autocomplete="off" required>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Telefono</label>
+          <input type="tel" id="telefono" placeholder="0991234567" autocomplete="off" inputmode="tel">
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="fecha">
+        </div>
       </div>
       <div class="field">
-        <label>Cantidad</label>
-        <input type="number" id="sel-cantidad" placeholder="1" min="1" value="1" inputmode="numeric">
+        <label>Direccion</label>
+        <input type="text" id="direccion" placeholder="Calle, numero, sector" autocomplete="off">
       </div>
-      <div class="field">
-        <label>Precio ($)</label>
-        <input type="number" id="sel-precio" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+      <div class="field" style="margin-bottom:0">
+        <label>Notas adicionales</label>
+        <textarea id="notas" placeholder="Observaciones, condiciones de pago, entregas..."></textarea>
       </div>
-      <button class="btn-add" onclick="agregarProducto()">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Agregar
+    </div>
+
+    <!-- PRODUCTOS -->
+    <div class="card">
+      <div class="section-title">Productos del pedido</div>
+      <div class="add-row">
+        <div class="field">
+          <label>Producto</label>
+          <select id="sel-producto">
+            <option value="">-- Selecciona --</option>
+            <option value="BOTELLON 20LT">BOTELLON 20LT</option>
+            <option value="BOTELLON CON LLAVE">BOTELLON CON LLAVE</option>
+            <option value="PACA 625ML AZUL">PACA 625ML AZUL</option>
+            <option value="PACA 600ML VERDE">PACA 600ML VERDE</option>
+            <option value="PACA 1000ML">PACA 1000ML</option>
+            <option value="PACA 400ML">PACA 400ML</option>
+            <option value="GALONES 4LT">GALONES 4LT</option>
+            <option value="POMA 5LTS">POMA 5LTS</option>
+            <option value="ENVASE CON LLAVE">ENVASE CON LLAVE</option>
+            <option value="ENVASE AZUL ADICIONAL">ENVASE AZUL ADICIONAL</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cantidad</label>
+          <input type="number" id="sel-cantidad" placeholder="0" min="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Precio ($)</label>
+          <input type="number" id="sel-precio" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+        </div>
+        <button class="btn-add" onclick="agregarProducto()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Agregar
+        </button>
+      </div>
+      <div class="productos-lista empty" id="productosLista">
+        <div class="lista-header">
+          <span>Producto</span>
+          <span style="text-align:center">Cant.</span>
+          <span style="text-align:right">Precio</span>
+          <span style="text-align:right">Subtotal</span>
+          <span></span>
+        </div>
+        <div id="productosItems"></div>
+      </div>
+      <div id="emptyMsg" class="empty-msg">
+        Aun no hay productos. Selecciona un producto y haz clic en <strong>Agregar</strong>.
+      </div>
+      <div class="total-row">
+        <span class="total-label">Total general</span>
+        <span class="total-value" id="totalGeneral">$0.00</span>
+      </div>
+    </div>
+
+    <!-- GUARDAR -->
+    <div class="card">
+      <button class="btn" id="btnGuardar" onclick="abrirModal()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 10v2a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 12v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M8 2v7M5.5 6.5 8 9l2.5-2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Guardar registro
       </button>
-    </div>
-
-    <div class="productos-lista empty" id="productosLista">
-      <div class="lista-header">
-        <span>Producto</span>
-        <span style="text-align:center">Cant.</span>
-        <span style="text-align:right">Precio</span>
-        <span style="text-align:right">Subtotal</span>
-        <span></span>
+      <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="enviarWhatsapp()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Enviar por WhatsApp a Zoila
+      </button>
+      <button class="btn btn-pdf" id="btnPdf" onclick="descargarPDF()" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        Descargar PDF del pedido
+      </button>
+      <button class="btn btn-drive" id="btnDrive" onclick="subirPDFaDrive()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002zm2 0h6.6L22.8 2H8.2l2.8 5z" opacity=".5"/><path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002z"/></svg>
+        Subir PDF a Google Drive
+      </button>
+      <div class="drive-progress" id="driveProgress">
+        <div class="progress-label">
+          <span id="progressText">Subiendo PDF a Drive...</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="progress-link" id="progressLink"></div>
       </div>
-      <div id="productosItems"></div>
+      <div class="status" id="status"></div>
     </div>
-    <div id="emptyMsg" class="empty-msg">
-      Aun no hay productos. Selecciona un producto y haz clic en <strong>Agregar</strong>.
-    </div>
-    <div class="total-row">
-      <span class="total-label">Total general</span>
-      <span class="total-value" id="totalGeneral">$0.00</span>
-    </div>
-  </div>
 
-  <!-- GUARDAR -->
-  <div class="card">
-    <button class="btn" id="btnGuardar" onclick="abrirModal()">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 10v2a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 12v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M8 2v7M5.5 6.5 8 9l2.5-2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Guardar registro
-    </button>
+  </div><!-- /tab-content ventas -->
 
-    <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="enviarWhatsapp()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      Enviar por WhatsApp a Zoila
-    </button>
+  <!-- ════════════════════
+       TAB: PAGOS
+  ════════════════════ -->
+  <div class="tab-content" id="content-pagos">
 
-    <!-- BOTÓN DESCARGAR PDF -->
-    <button class="btn btn-pdf" id="btnPdf" onclick="descargarPDF()" style="display:none">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="12" y1="18" x2="12" y2="12"/>
-        <line x1="9" y1="15" x2="15" y2="15"/>
-      </svg>
-      Descargar PDF del pedido
-    </button>
-
-    <!-- ✅ NUEVO: BOTÓN SUBIR PDF A DRIVE -->
-    <button class="btn btn-drive" id="btnDrive" onclick="subirPDFaDrive()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002zm2 0h6.6L22.8 2H8.2l2.8 5z" opacity=".5"/>
-        <path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002z"/>
-      </svg>
-      Subir PDF a Google Drive
-    </button>
-
-    <!-- Barra de progreso de subida -->
-    <div class="drive-progress" id="driveProgress">
-      <div class="progress-label">
-        <span id="progressText">Subiendo PDF a Drive...</span>
-        <span id="progressPct">0%</span>
+    <!-- Resumen -->
+    <div class="card">
+      <div class="section-title blue">Resumen del día</div>
+      <div class="resumen-grid">
+        <div class="resumen-card blue">
+          <span class="resumen-label">Total cobrado</span>
+          <span class="resumen-value" id="pago-total-dia">$0.00</span>
+          <span class="resumen-sub" id="pago-count-dia">0 pagos registrados</span>
+        </div>
+        <div class="resumen-card navy">
+          <span class="resumen-label">Último pago</span>
+          <span class="resumen-value" id="pago-ultimo">—</span>
+          <span class="resumen-sub" id="pago-ultimo-cliente" style="color:rgba(255,255,255,0.4)">Sin registros</span>
+        </div>
       </div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="progressFill"></div>
-      </div>
-      <div class="progress-link" id="progressLink"></div>
     </div>
 
-    <div class="status" id="status"></div>
-  </div>
+    <!-- Formulario de pago -->
+    <div class="card">
+      <div class="section-title blue">Registrar pago recibido</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Asesor / Ruta</label>
+          <select id="pago-empleado" class="focus-blue">
+            <option value="">-- Selecciona --</option>
+            <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+            <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+            <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+            <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+            <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="pago-fecha" class="focus-blue">
+        </div>
+      </div>
+      <div class="field">
+        <label>Cliente</label>
+        <input type="text" id="pago-cliente" placeholder="Nombre del cliente" autocomplete="off" class="focus-blue">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Monto recibido ($)</label>
+          <input type="number" id="pago-monto" placeholder="0.00" step="0.01" min="0" inputmode="decimal" class="focus-blue">
+        </div>
+        <div class="field">
+          <label>Forma de pago</label>
+          <select id="pago-forma" class="focus-blue">
+            <option value="">-- Selecciona --</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Referencia / Notas</label>
+        <input type="text" id="pago-notas" placeholder="N° transferencia, observación..." autocomplete="off" class="focus-blue">
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="btn blue" onclick="registrarPago()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="4" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 7h13" stroke="currentColor" stroke-width="1.5"/><path d="M5 10.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Registrar pago
+      </button>
+      <div class="status" id="status-pagos"></div>
+    </div>
+
+    <!-- Lista de pagos -->
+    <div class="card">
+      <div class="section-title blue">Pagos registrados hoy</div>
+      <div class="reg-lista empty" id="pagosLista">
+        <div class="pagos-header">
+          <span>Cliente</span>
+          <span>Asesor</span>
+          <span style="text-align:center">Forma</span>
+          <span style="text-align:right">Monto</span>
+          <span></span>
+        </div>
+        <div id="pagosItems"></div>
+      </div>
+      <div id="pagosEmptyMsg" class="empty-msg">
+        Aún no hay pagos registrados. Completa el formulario y haz clic en <strong>Registrar pago</strong>.
+      </div>
+    </div>
+
+  </div><!-- /tab-content pagos -->
+
+  <!-- ════════════════════
+       TAB: GASTOS
+  ════════════════════ -->
+  <div class="tab-content" id="content-gastos">
+
+    <!-- Resumen -->
+    <div class="card">
+      <div class="section-title red">Resumen del día</div>
+      <div class="resumen-grid">
+        <div class="resumen-card red">
+          <span class="resumen-label">Total gastos</span>
+          <span class="resumen-value" id="gasto-total-dia">$0.00</span>
+          <span class="resumen-sub" id="gasto-count-dia">0 gastos registrados</span>
+        </div>
+        <div class="resumen-card navy">
+          <span class="resumen-label">Último gasto</span>
+          <span class="resumen-value" id="gasto-ultimo">—</span>
+          <span class="resumen-sub" id="gasto-ultimo-desc" style="color:rgba(255,255,255,0.4)">Sin registros</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de gasto -->
+    <div class="card">
+      <div class="section-title red">Registrar gasto</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Responsable</label>
+          <select id="gasto-empleado" class="focus-red">
+            <option value="">-- Selecciona --</option>
+            <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+            <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+            <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+            <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+            <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+            <option value="Administración">Administración</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="gasto-fecha" class="focus-red">
+        </div>
+      </div>
+      <datalist id="gasto-categorias-list">
+        <option value="Combustible">
+        <option value="Almuerzos">
+        <option value="Ascensor">
+        <option value="Triciclo">
+        <option value="Otro">
+      </datalist>
+      <div class="grid-2">
+        <div class="field">
+          <label>Categoría</label>
+          <input type="text" id="gasto-categoria" list="gasto-categorias-list" placeholder="Combustible, Almuerzos..." autocomplete="off" class="focus-red">
+        </div>
+        <div class="field">
+          <label>Monto ($)</label>
+          <input type="number" id="gasto-monto" placeholder="0.00" step="0.01" min="0" inputmode="decimal" class="focus-red">
+        </div>
+      </div>
+      <div class="field">
+        <label>Descripción</label>
+        <input type="text" id="gasto-desc" placeholder="Describe el gasto..." autocomplete="off" class="focus-red">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Comprobante / Referencia</label>
+        <input type="text" id="gasto-ref" placeholder="N° factura, voucher, nota..." autocomplete="off" class="focus-red">
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="btn red" onclick="registrarGasto()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Registrar gasto
+      </button>
+      <div class="status" id="status-gastos"></div>
+    </div>
+
+    <!-- Lista de gastos -->
+    <div class="card">
+      <div class="section-title red">Gastos registrados hoy</div>
+      <div class="reg-lista empty" id="gastosLista">
+        <div class="gastos-header">
+          <span>Descripción</span>
+          <span>Categoría</span>
+          <span style="text-align:center">Responsable</span>
+          <span style="text-align:right">Monto</span>
+          <span></span>
+        </div>
+        <div id="gastosItems"></div>
+      </div>
+      <div id="gastosEmptyMsg" class="empty-msg">
+        Aún no hay gastos registrados. Completa el formulario y haz clic en <strong>Registrar gasto</strong>.
+      </div>
+    </div>
+
+  </div><!-- /tab-content gastos -->
 
   <div class="footer"><a href="https://www.elhyai.com" target="_blank">www.elhyai.com &nbsp;|&nbsp; Aqua Luan</a></div>
-</div>
+</div><!-- /container -->
 
-<!-- jsPDF desde CDN -->
+<!-- jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-/* ============================================================
-   CONFIG  —  ⚠️ Cambia esta URL por la de tu Apps Script
-   ============================================================ */
-const SCRIPT_URL      = "https://script.google.com/macros/s/AKfycbxQW6T1cKkXRXX9pQhngDq8qg6X8d1CiaghirD1qvVUkCzxnHzqqpoUNaabzDBOD7U0bA/exec";
+/* ════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════ */
+const SCRIPT_URL      = "https://script.google.com/macros/s/AKfycbw_6TR4PdnK_79K2QQgpZpx-93pnkWysue5tN4OLqG3uS9LHFKIgLWL0ChzUR93afbiPw/exec";
 const WHATSAPP_NUMBER = "593985886107";
 const DB_NAME  = 'aqualuan-db';
 const STORE    = 'pedidos-pendientes';
 
-let productos     = [];
-let dataPendiente = null;
+let productos      = [];
+let dataPendiente  = null;
 let ultimoRegistro = null;
-let dbInstance    = null;
+let dbInstance     = null;
 
-/* ============================================================
+// Datos en memoria para Pagos y Gastos
+let listaPagos  = [];
+let listaGastos = [];
+
+/* ════════════════════════════════════════════
+   TABS
+════════════════════════════════════════════ */
+const tabSubs = { ventas: 'Registro de Pedidos', pagos: 'Registro de Pagos', gastos: 'Registro de Gastos' };
+function cambiarTab(tab) {
+  ['ventas','pagos','gastos'].forEach(t => {
+    document.getElementById('content-' + t).classList.toggle('active', t === tab);
+    const btn = document.getElementById('tab-' + t);
+    btn.className = 'tab-btn' + (t === tab ? ' active-' + t : '');
+  });
+  document.getElementById('logoSub').textContent = tabSubs[tab];
+}
+
+/* ════════════════════════════════════════════
    INDEXEDDB
-   ============================================================ */
+════════════════════════════════════════════ */
 function abrirDB() {
   if (dbInstance) return Promise.resolve(dbInstance);
   return new Promise((res, rej) => {
     const req = indexedDB.open(DB_NAME, 1);
     req.onupgradeneeded = e => {
       const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE)) {
+      if (!db.objectStoreNames.contains(STORE))
         db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-      }
     };
     req.onsuccess = e => { dbInstance = e.target.result; res(dbInstance); };
     req.onerror   = e => rej(e.target.error);
@@ -666,9 +1025,9 @@ async function eliminarLocal(id) {
   });
 }
 
-/* ============================================================
+/* ════════════════════════════════════════════
    BANNERS
-   ============================================================ */
+════════════════════════════════════════════ */
 function actualizarBanners() {
   const offline = !navigator.onLine;
   document.getElementById('offlineBanner').classList.toggle('show', offline);
@@ -681,9 +1040,9 @@ function actualizarBanners() {
 window.addEventListener('online',  () => { actualizarBanners(); sincronizarAuto(); if (ultimoRegistro) document.getElementById('btnWhatsapp').classList.add('visible'); });
 window.addEventListener('offline', () => { actualizarBanners(); document.getElementById('btnWhatsapp').classList.remove('visible'); });
 
-/* ============================================================
-   SINCRONIZACIÓN (pendientes offline)
-   ============================================================ */
+/* ════════════════════════════════════════════
+   SINCRONIZACIÓN OFFLINE
+════════════════════════════════════════════ */
 async function sincronizarAuto() {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     const reg = await navigator.serviceWorker.ready;
@@ -692,14 +1051,10 @@ async function sincronizarAuto() {
   await sincronizarManual(true);
 }
 async function sincronizarManual(silencioso = false) {
-  if (!navigator.onLine) {
-    if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.');
-    return;
-  }
+  if (!navigator.onLine) { if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.'); return; }
   const btn  = document.getElementById('btnSync');
   const icon = document.getElementById('syncIcon');
-  btn.disabled = true;
-  icon.classList.add('spin');
+  btn.disabled = true; icon.classList.add('spin');
   const items = await obtenerPendientes();
   if (!items.length) { btn.disabled = false; icon.classList.remove('spin'); actualizarBanners(); return; }
   let synced = 0, failed = 0;
@@ -707,13 +1062,10 @@ async function sincronizarManual(silencioso = false) {
     try {
       const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.payload) });
       const json = await resp.json().catch(() => ({ result: 'ok' }));
-      if (json.result === 'ok' || resp.ok) { await eliminarLocal(item.id); synced++; }
-      else failed++;
+      if (json.result === 'ok' || resp.ok) { await eliminarLocal(item.id); synced++; } else failed++;
     } catch { failed++; }
   }
-  btn.disabled = false;
-  icon.classList.remove('spin');
-  actualizarBanners();
+  btn.disabled = false; icon.classList.remove('spin'); actualizarBanners();
   if (!silencioso) {
     if (synced > 0 && failed === 0) setStatus('success', `✓ ${synced} pedido(s) sincronizado(s) correctamente con Google Drive.`);
     else if (synced > 0 && failed > 0) setStatus('warning', `⚠ ${synced} enviado(s), ${failed} fallaron. Intenta de nuevo.`);
@@ -730,22 +1082,23 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
 }
 
-/* ============================================================
+/* ════════════════════════════════════════════
    FECHA
-   ============================================================ */
+════════════════════════════════════════════ */
 (function() {
   const hoy = new Date();
   document.getElementById('fechaHoy').textContent = hoy.toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long' });
-  const yyyy = hoy.getFullYear();
-  const mm   = String(hoy.getMonth()+1).padStart(2,'0');
-  const dd   = String(hoy.getDate()).padStart(2,'0');
-  document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
+  const yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
+  const hoyStr = yyyy+'-'+mm+'-'+dd;
+  document.getElementById('fecha').value     = hoyStr;
+  document.getElementById('pago-fecha').value  = hoyStr;
+  document.getElementById('gasto-fecha').value = hoyStr;
   actualizarBanners();
 })();
 
-/* ============================================================
-   PRODUCTOS
-   ============================================================ */
+/* ════════════════════════════════════════════
+   VENTAS — PRODUCTOS
+════════════════════════════════════════════ */
 function calcTotal() { return productos.reduce((s,p) => s + p.subtotal, 0); }
 function renderLista() {
   const items    = document.getElementById('productosItems');
@@ -765,10 +1118,11 @@ function renderLista() {
 }
 function agregarProducto() {
   const nombre   = document.getElementById('sel-producto').value;
-  const cantidad = parseFloat(document.getElementById('sel-cantidad').value) || 1;
+  const cantidad = parseFloat(document.getElementById('sel-cantidad').value);
   const precio   = parseFloat(document.getElementById('sel-precio').value);
-  if (!nombre)              { alert('Selecciona un producto.'); return; }
-  if (!precio || precio<=0) { alert('Ingresa el precio unitario.'); return; }
+  if (!nombre)               { alert('Selecciona un producto.'); return; }
+  if (!cantidad || cantidad <= 0) { alert('Ingresa la cantidad.'); return; }
+  if (!precio || precio <= 0)    { alert('Ingresa el precio unitario.'); return; }
   const existente = productos.findIndex(p => p.nombre === nombre);
   if (existente >= 0) {
     productos[existente].cantidad += cantidad;
@@ -783,18 +1137,21 @@ function agregarProducto() {
 }
 function eliminarProducto(i) { productos.splice(i, 1); renderLista(); }
 
-/* ============================================================
-   STATUS
-   ============================================================ */
-function setStatus(type, msg) {
-  const el = document.getElementById('status');
+/* ════════════════════════════════════════════
+   STATUS helpers
+════════════════════════════════════════════ */
+function setStatus(type, msg)       { _setStatus('status',        type, msg); }
+function setStatusPagos(type, msg)  { _setStatus('status-pagos',  type, msg); }
+function setStatusGastos(type, msg) { _setStatus('status-gastos', type, msg); }
+function _setStatus(id, type, msg) {
+  const el = document.getElementById(id);
   el.className = 'status ' + type;
   el.innerHTML = msg;
 }
 
-/* ============================================================
+/* ════════════════════════════════════════════
    GPS
-   ============================================================ */
+════════════════════════════════════════════ */
 function resetGpsBadge() {
   const badge = document.getElementById('gpsBadge');
   badge.className = 'gps-badge wait';
@@ -812,9 +1169,9 @@ function capturarGPS() {
   });
 }
 
-/* ============================================================
-   MODAL
-   ============================================================ */
+/* ════════════════════════════════════════════
+   MODAL (Ventas)
+════════════════════════════════════════════ */
 async function abrirModal() {
   const empleado  = document.getElementById('empleado').value;
   const formapago = document.getElementById('formapago').value;
@@ -857,10 +1214,9 @@ async function abrirModal() {
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  const badge     = document.getElementById('gpsBadge');
+  const badge = document.getElementById('gpsBadge');
   const badgeText = document.getElementById('gpsBadgeText');
-  const mGps      = document.getElementById('m-gps');
-
+  const mGps  = document.getElementById('m-gps');
   const coords = await capturarGPS();
   if (coords) {
     const mapsUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
@@ -880,43 +1236,33 @@ function cerrarModal() {
   dataPendiente = null;
 }
 
-/* ============================================================
-   CONFIRMAR ENVÍO  →  envía datos (fila) al Apps Script
-   ============================================================ */
+/* ════════════════════════════════════════════
+   CONFIRMAR ENVÍO
+════════════════════════════════════════════ */
 async function confirmarEnvio() {
   if (!dataPendiente) return;
-
   const btn = document.getElementById('btnConfirmar');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner2"></div> Guardando...';
 
   const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
-  const dia = fechaObj.getDate();
-  const mes = fechaObj.getMonth() + 1;
-
+  const dia = fechaObj.getDate(), mes = fechaObj.getMonth() + 1;
   const productosTexto = dataPendiente.productos.map(p =>
     `${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
 
   const payload = {
-    accion:    'registrar_pedido',   // ← campo nuevo para el script
-    dia, mes,
-    empleado:  dataPendiente.empleado,
-    formapago: dataPendiente.formapago,
-    nombre:    dataPendiente.nombre,
-    telefono:  dataPendiente.telefono,
-    fecha:     dataPendiente.fecha,
-    direccion: dataPendiente.direccion,
-    notas:     dataPendiente.notas,
-    productos: productosTexto,
-    total:     dataPendiente.total,
-    latitud:   dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
-    longitud:  dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
-    gps_link:  dataPendiente.gps ? dataPendiente.gps.url : '',
-    gps_prec:  dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : ''
+    accion: 'registrar_pedido', dia, mes,
+    empleado: dataPendiente.empleado, formapago: dataPendiente.formapago,
+    nombre: dataPendiente.nombre, telefono: dataPendiente.telefono,
+    fecha: dataPendiente.fecha, direccion: dataPendiente.direccion,
+    notas: dataPendiente.notas, productos: productosTexto, total: dataPendiente.total,
+    latitud:  dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
+    longitud: dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
+    gps_link: dataPendiente.gps ? dataPendiente.gps.url : '',
+    gps_prec: dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : ''
   };
 
   const estaOnline = navigator.onLine;
-
   const onExito = () => {
     ultimoRegistro = { ...dataPendiente };
     cerrarModal();
@@ -924,32 +1270,23 @@ async function confirmarEnvio() {
     document.getElementById('btnWhatsapp').classList.add('visible');
     document.getElementById('btnDrive').classList.add('visible');
     document.getElementById('btnPdf').style.display = 'flex';
+    document.getElementById('btnGuardar').style.display = 'none';
     limpiarFormulario();
   };
 
   if (estaOnline) {
     try {
-      const resp = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      // no-cors devuelve opaque, tipo '' — igual se considera ok
-      if (resp.type === 'opaque' || resp.ok) {
-        onExito();
-      } else {
-        throw new Error('Response not ok');
-      }
+      const resp = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (resp.type === 'opaque' || resp.ok) { onExito(); } else throw new Error('Response not ok');
     } catch(err) {
-      // Fallback: guardar offline
       await guardarLocal(payload);
       ultimoRegistro = { ...dataPendiente };
       cerrarModal();
       setStatus('warning', '⚠ Sin conexión estable. Pedido guardado localmente — se enviará a Drive con internet.');
       document.getElementById('btnWhatsapp').classList.add('visible');
       document.getElementById('btnPdf').style.display = 'flex';
-      limpiarFormulario();
-      actualizarBanners();
+      document.getElementById('btnGuardar').style.display = 'none';
+      limpiarFormulario(); actualizarBanners();
     }
   } else {
     try {
@@ -958,16 +1295,12 @@ async function confirmarEnvio() {
       cerrarModal();
       setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.');
       document.getElementById('btnPdf').style.display = 'flex';
-      limpiarFormulario();
-      actualizarBanners();
+      limpiarFormulario(); actualizarBanners();
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         const reg = await navigator.serviceWorker.ready;
         reg.sync.register('sync-pedidos').catch(() => {});
       }
-    } catch(err) {
-      cerrarModal();
-      setStatus('error', 'Error al guardar. Intenta de nuevo.');
-    }
+    } catch(err) { cerrarModal(); setStatus('error', 'Error al guardar. Intenta de nuevo.'); }
   }
 
   btn.disabled = false;
@@ -975,329 +1308,319 @@ async function confirmarEnvio() {
   dataPendiente = null;
 }
 
-/* ============================================================
-   LIMPIAR FORMULARIO
-   ============================================================ */
+/* ════════════════════════════════════════════
+   LIMPIAR FORMULARIO VENTAS
+════════════════════════════════════════════ */
 function limpiarFormulario() {
-  ['empleado','formapago','nombre','telefono','direccion','notas'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  productos = [];
-  renderLista();
-  const hoy  = new Date();
-  const yyyy = hoy.getFullYear();
-  const mm   = String(hoy.getMonth()+1).padStart(2,'0');
-  const dd   = String(hoy.getDate()).padStart(2,'0');
+  ['empleado','formapago','nombre','telefono','direccion','notas'].forEach(id => { document.getElementById(id).value = ''; });
+  productos = []; renderLista();
+  const hoy = new Date(), yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
   document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
+  // Restaurar botón guardar y ocultar los demás
+  document.getElementById('btnGuardar').style.display = 'flex';
+  document.getElementById('btnWhatsapp').classList.remove('visible');
+  document.getElementById('btnDrive').classList.remove('visible');
+  document.getElementById('btnPdf').style.display = 'none';
 }
 
-/* ============================================================
-   GENERAR PDF (en memoria como base64)
-   ============================================================ */
+/* ════════════════════════════════════════════
+   PAGOS — Registrar
+════════════════════════════════════════════ */
+function registrarPago() {
+  const empleado = document.getElementById('pago-empleado').value;
+  const fecha    = document.getElementById('pago-fecha').value;
+  const cliente  = document.getElementById('pago-cliente').value.trim();
+  const monto    = parseFloat(document.getElementById('pago-monto').value);
+  const forma    = document.getElementById('pago-forma').value;
+  const notas    = document.getElementById('pago-notas').value.trim();
+
+  if (!empleado) { setStatusPagos('error', 'Selecciona el asesor / ruta.'); return; }
+  if (!cliente)  { setStatusPagos('error', 'Ingresa el nombre del cliente.'); return; }
+  if (!monto || monto <= 0) { setStatusPagos('error', 'Ingresa un monto válido mayor a $0.'); return; }
+  if (!forma)    { setStatusPagos('error', 'Selecciona la forma de pago.'); return; }
+
+  const pago = { id: Date.now(), empleado, fecha, cliente, monto, forma, notas, hora: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) };
+  listaPagos.unshift(pago);
+  renderPagos();
+  actualizarResumenPagos();
+
+  // Enviar a Google Sheets si hay conexión
+  if (navigator.onLine) {
+    const payload = { accion: 'registrar_pago', empleado, fecha, cliente, monto: monto.toFixed(2), forma, notas };
+    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
+  }
+
+  // Limpiar formulario
+  ['pago-empleado','pago-forma'].forEach(id => document.getElementById(id).value = '');
+  ['pago-cliente','pago-monto','pago-notas'].forEach(id => document.getElementById(id).value = '');
+  setStatusPagos('success', `✓ Pago de $${monto.toFixed(2)} registrado para ${cliente}.`);
+}
+
+function eliminarPago(id) {
+  listaPagos = listaPagos.filter(p => p.id !== id);
+  renderPagos(); actualizarResumenPagos();
+}
+
+function badgeForma(forma) {
+  const map = { 'Efectivo': 'efectivo', 'Transferencia': 'transfer', 'Datáfono': 'datafono', 'Cheque': 'cheque', 'Depósito': 'deposito', 'Contado': 'contado', 'Crédito': 'credito' };
+  const cls = map[forma] || 'contado';
+  return `<span class="badge badge-${cls}">${forma}</span>`;
+}
+
+function renderPagos() {
+  const lista = document.getElementById('pagosLista');
+  const empty = document.getElementById('pagosEmptyMsg');
+  const items = document.getElementById('pagosItems');
+  if (listaPagos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
+  else { lista.classList.remove('empty'); empty.style.display = 'none'; }
+  items.innerHTML = listaPagos.map(p => `
+    <div class="pago-item">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${p.cliente}</div>
+        <div style="font-size:11px;color:var(--muted)">${p.empleado.replace('RUTA ','R.')} · ${p.hora}</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.notas || '-'}</div>
+      <div style="text-align:center">${badgeForma(p.forma)}</div>
+      <span class="pago-monto">$${p.monto.toFixed(2)}</span>
+      <button class="btn-remove" onclick="eliminarPago(${p.id})">&times;</button>
+    </div>`).join('');
+}
+
+function actualizarResumenPagos() {
+  const total = listaPagos.reduce((s, p) => s + p.monto, 0);
+  document.getElementById('pago-total-dia').textContent = '$' + total.toFixed(2);
+  document.getElementById('pago-count-dia').textContent = `${listaPagos.length} pago${listaPagos.length !== 1 ? 's' : ''} registrado${listaPagos.length !== 1 ? 's' : ''}`;
+  if (listaPagos.length > 0) {
+    const u = listaPagos[0];
+    document.getElementById('pago-ultimo').textContent = '$' + u.monto.toFixed(2);
+    document.getElementById('pago-ultimo-cliente').textContent = u.cliente;
+  } else {
+    document.getElementById('pago-ultimo').textContent = '—';
+    document.getElementById('pago-ultimo-cliente').textContent = 'Sin registros';
+  }
+}
+
+/* ════════════════════════════════════════════
+   GASTOS — Registrar
+════════════════════════════════════════════ */
+function registrarGasto() {
+  const empleado   = document.getElementById('gasto-empleado').value;
+  const fecha      = document.getElementById('gasto-fecha').value;
+  const categoria  = document.getElementById('gasto-categoria').value;
+  const monto      = parseFloat(document.getElementById('gasto-monto').value);
+  const desc       = document.getElementById('gasto-desc').value.trim();
+  const ref        = document.getElementById('gasto-ref').value.trim();
+
+  if (!empleado)              { setStatusGastos('error', 'Selecciona el responsable.'); return; }
+  if (!categoria)             { setStatusGastos('error', 'Selecciona la categoría del gasto.'); return; }
+  if (!monto || monto <= 0)   { setStatusGastos('error', 'Ingresa un monto válido mayor a $0.'); return; }
+  if (!desc)                  { setStatusGastos('error', 'Describe el gasto.'); return; }
+
+  const gasto = { id: Date.now(), empleado, fecha, categoria, monto, desc, ref, hora: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) };
+  listaGastos.unshift(gasto);
+  renderGastos();
+  actualizarResumenGastos();
+
+  // Enviar a Google Sheets si hay conexión
+  if (navigator.onLine) {
+    const payload = { accion: 'registrar_gasto', empleado, fecha, categoria, monto: monto.toFixed(2), desc, ref };
+    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
+  }
+
+  // Limpiar
+  ['gasto-empleado','gasto-categoria'].forEach(id => document.getElementById(id).value = '');
+  ['gasto-monto','gasto-desc','gasto-ref'].forEach(id => document.getElementById(id).value = '');
+  setStatusGastos('success', `✓ Gasto de $${monto.toFixed(2)} registrado — ${desc}.`);
+}
+
+function eliminarGasto(id) {
+  listaGastos = listaGastos.filter(g => g.id !== id);
+  renderGastos(); actualizarResumenGastos();
+}
+
+function categoriaBadge(cat) {
+  const map = {
+    'Combustible': 'warning', 'Mantenimiento vehículo': 'credito',
+    'Insumos / Materiales': 'efectivo', 'Alimentación': 'contado',
+    'Servicios básicos': 'transfer', 'Publicidad': 'datafono',
+    'Administrativo': 'cheque', 'Otro': 'deposito'
+  };
+  const cls = map[cat] || 'contado';
+  const label = cat.length > 12 ? cat.substring(0,12) + '…' : cat;
+  return `<span class="badge badge-${cls}" style="font-size:9px">${label}</span>`;
+}
+
+function renderGastos() {
+  const lista = document.getElementById('gastosLista');
+  const empty = document.getElementById('gastosEmptyMsg');
+  const items = document.getElementById('gastosItems');
+  if (listaGastos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
+  else { lista.classList.remove('empty'); empty.style.display = 'none'; }
+  items.innerHTML = listaGastos.map(g => `
+    <div class="gasto-item">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${g.desc}</div>
+        <div style="font-size:11px;color:var(--muted)">${g.empleado.replace('RUTA ','R.')} · ${g.hora}${g.ref ? ' · ' + g.ref : ''}</div>
+      </div>
+      <div style="text-align:center">${categoriaBadge(g.categoria)}</div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.empleado.split(':')[1]?.trim() || g.empleado}</div>
+      <span class="gasto-monto">$${g.monto.toFixed(2)}</span>
+      <button class="btn-remove" onclick="eliminarGasto(${g.id})">&times;</button>
+    </div>`).join('');
+}
+
+function actualizarResumenGastos() {
+  const total = listaGastos.reduce((s, g) => s + g.monto, 0);
+  document.getElementById('gasto-total-dia').textContent = '$' + total.toFixed(2);
+  document.getElementById('gasto-count-dia').textContent = `${listaGastos.length} gasto${listaGastos.length !== 1 ? 's' : ''} registrado${listaGastos.length !== 1 ? 's' : ''}`;
+  if (listaGastos.length > 0) {
+    const u = listaGastos[0];
+    document.getElementById('gasto-ultimo').textContent = '$' + u.monto.toFixed(2);
+    document.getElementById('gasto-ultimo-desc').textContent = u.desc;
+  } else {
+    document.getElementById('gasto-ultimo').textContent = '—';
+    document.getElementById('gasto-ultimo-desc').textContent = 'Sin registros';
+  }
+}
+
+/* ════════════════════════════════════════════
+   PDF (Ventas)
+════════════════════════════════════════════ */
 function generarPDFBase64() {
   if (!ultimoRegistro) return null;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const d   = ultimoRegistro;
-  const pageW = 210;
-  const margin = 18;
-  const col2 = 100;
-
-  doc.setFillColor(26, 58, 92);
-  doc.rect(0, 0, pageW, 38, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.setTextColor(255, 255, 255);
-  doc.text('AQUA LUAN', margin, 16);
-  doc.setFontSize(8);
-  doc.setTextColor(78, 201, 160);
-  doc.text('SISTEMA DE PEDIDOS', margin, 22);
-  doc.setFontSize(9);
-  doc.setTextColor(200, 220, 240);
-  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC', { day:'2-digit', month:'long', year:'numeric' })}`, margin, 30);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(200, 220, 240);
-  const fechaStr = d.fecha ? new Date(d.fecha + 'T00:00:00').toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '-';
-  doc.text(`Fecha pedido: ${fechaStr}`, pageW - margin, 30, { align: 'right' });
-
-  let y = 48;
-  doc.setFillColor(240, 245, 248);
-  doc.roundedRect(margin, y, pageW - margin*2, 22, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(10, 124, 110);
-  doc.text('ASESOR / RUTA', margin + 4, y + 7);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(26, 58, 92);
-  doc.text(d.empleado || '-', margin + 4, y + 15);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(10, 124, 110);
-  doc.text('FORMA DE PAGO', col2, y + 7);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(26, 58, 92);
-  doc.text(d.formapago || '-', col2, y + 15);
-
-  y += 30;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(10, 124, 110);
-  doc.text('DATOS DEL CLIENTE', margin, y);
-  doc.setDrawColor(78, 201, 160);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y + 2, pageW - margin, y + 2);
-  y += 8;
-  const campos = [
-    ['Cliente',   d.nombre    || '-'],
-    ['Teléfono',  d.telefono  || '-'],
-    ['Dirección', d.direccion || '-'],
-    ['Notas',     d.notas     || '-'],
-  ];
-  campos.forEach(([lbl, val]) => {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text(lbl.toUpperCase(), margin, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(26, 58, 92);
-    const lines = doc.splitTextToSize(val, pageW - margin - col2 + 20);
-    doc.text(lines, col2, y);
-    y += Math.max(7, lines.length * 5);
+  const d = ultimoRegistro, pageW = 210, margin = 18, col2 = 100;
+  doc.setFillColor(26,58,92); doc.rect(0,0,pageW,38,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+  doc.text('AQUA LUAN',margin,16);
+  doc.setFontSize(8); doc.setTextColor(78,201,160); doc.text('SISTEMA DE PEDIDOS',margin,22);
+  doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
+  doc.setFont('helvetica','normal');
+  const fechaStr = d.fecha ? new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
+  doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
+  let y=48;
+  doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
+  doc.text('ASESOR / RUTA',margin+4,y+7); doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+  doc.text(d.empleado||'-',margin+4,y+15); doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
+  doc.text('FORMA DE PAGO',col2,y+7); doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+  doc.text(d.formapago||'-',col2,y+15);
+  y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('DATOS DEL CLIENTE',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=8;
+  [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text(lbl.toUpperCase(),margin,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+    const lines=doc.splitTextToSize(val,pageW-margin-col2+20); doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
   });
-
-  y += 4;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(10, 124, 110);
-  doc.text('PRODUCTOS DEL PEDIDO', margin, y);
-  doc.line(margin, y + 2, pageW - margin, y + 2);
-  y += 7;
-  doc.setFillColor(26, 58, 92);
-  doc.rect(margin, y, pageW - margin*2, 8, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(255, 255, 255);
-  doc.text('PRODUCTO',              margin + 3, y + 5.5);
-  doc.text('CANT.',                 138,        y + 5.5, { align: 'center' });
-  doc.text('PRECIO',                158,        y + 5.5, { align: 'right' });
-  doc.text('SUBTOTAL',              pageW - margin - 2, y + 5.5, { align: 'right' });
-  y += 8;
-  d.productos.forEach((p, idx) => {
-    if (idx % 2 === 0) { doc.setFillColor(240, 245, 248); doc.rect(margin, y, pageW - margin*2, 7, 'F'); }
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 58, 92);
-    doc.text(p.nombre,                   margin + 3, y + 5);
-    doc.text(String(p.cantidad),          138,        y + 5, { align: 'center' });
-    doc.text(`$${p.precio.toFixed(2)}`,   158,        y + 5, { align: 'right' });
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(10, 124, 110);
-    doc.text(`$${p.subtotal.toFixed(2)}`, pageW - margin - 2, y + 5, { align: 'right' });
-    y += 7;
+  y+=4; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
+  doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  doc.text('PRODUCTO',margin+3,y+5.5); doc.text('CANT.',138,y+5.5,{align:'center'});
+  doc.text('PRECIO',158,y+5.5,{align:'right'}); doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'}); y+=8;
+  d.productos.forEach((p,idx)=>{
+    if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+    doc.text(p.nombre,margin+3,y+5); doc.text(String(p.cantidad),138,y+5,{align:'center'});
+    doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
+    doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
+    doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'}); y+=7;
   });
-
-  y += 4;
-  doc.setFillColor(26, 58, 92);
-  doc.roundedRect(margin, y, pageW - margin*2, 12, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(200, 220, 240);
-  doc.text('TOTAL GENERAL', margin + 4, y + 8);
-  doc.setFontSize(13);
-  doc.setTextColor(78, 201, 160);
-  doc.text(`$${d.total}`, pageW - margin - 4, y + 8.5, { align: 'right' });
-
-  if (d.gps) {
-    y += 18;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(10, 124, 110);
-    doc.text('UBICACIÓN GPS DEL PEDIDO', margin, y);
-    doc.setDrawColor(78, 201, 160);
-    doc.setLineWidth(0.5);
-    doc.line(margin, y + 2, pageW - margin, y + 2);
-    y += 9;
-    doc.setFillColor(230, 244, 242);
-    doc.setDrawColor(78, 201, 160);
-    doc.setLineWidth(0.4);
-    doc.roundedRect(margin, y, pageW - margin*2, 22, 3, 3, 'FD');
-    doc.setFillColor(10, 124, 110);
-    doc.circle(margin + 7, y + 7, 3, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(255, 255, 255);
-    doc.text('GPS', margin + 7, y + 7.8, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text('COORDENADAS', margin + 14, y + 6);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 58, 92);
-    doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`, margin + 14, y + 12);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text('PRECISIÓN', margin + 14, y + 18);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(26, 58, 92);
-    doc.text(`±${d.gps.acc} metros`, margin + 38, y + 18);
-    const linkCorto = `maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 130, 160);
-    doc.text('LINK PARA ABRIR EN MAPS', pageW - margin - 4, y + 6, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(10, 124, 110);
-    doc.textWithLink(linkCorto, pageW - margin - 4, y + 13, { url: d.gps.url, align: 'right' });
-    y += 26;
+  y+=4; doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text('TOTAL GENERAL',margin+4,y+8); doc.setFontSize(13); doc.setTextColor(78,201,160);
+  doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
+  if(d.gps){
+    y+=18; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=9;
+    doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
+    doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255); doc.text('GPS',margin+7,y+7.8,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('COORDENADAS',margin+14,y+6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('PRECISIÓN',margin+14,y+18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
+    const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'}); y+=26;
   }
-
-  y += 16;
-  doc.setDrawColor(180, 200, 220);
-  doc.setLineWidth(0.4);
-  doc.line(margin, y, margin + 60, y);
-  doc.line(pageW - margin - 60, y, pageW - margin, y);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(140, 160, 180);
-  doc.text('Firma del asesor', margin + 30, y + 5, { align: 'center' });
-  doc.text('Firma del cliente', pageW - margin - 30, y + 5, { align: 'center' });
-
-  doc.setFontSize(7);
-  doc.setTextColor(160, 180, 200);
-  doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos', pageW / 2, 287, { align: 'center' });
-
-  // Devolver como base64 (sin el prefijo data:application/pdf;base64,)
+  y+=16; doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
+  doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
+  doc.text('Firma del asesor',margin+30,y+5,{align:'center'}); doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
+  doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
   return doc.output('datauristring').split(',')[1];
 }
 
-/* ============================================================
-   DESCARGAR PDF (descarga local)
-   ============================================================ */
 function descargarPDF() {
   if (!ultimoRegistro) return;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const d   = ultimoRegistro;
-  const pageW = 210, margin = 18, col2 = 100;
-
-  doc.setFillColor(26, 58, 92);
-  doc.rect(0, 0, pageW, 38, 'F');
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
-  doc.text('AQUA LUAN', margin, 16);
-  doc.setFontSize(8); doc.setTextColor(78,201,160);
-  doc.text('SISTEMA DE PEDIDOS', margin, 22);
+  const d = ultimoRegistro, pageW = 210, margin = 18, col2 = 100;
+  doc.setFillColor(26,58,92); doc.rect(0,0,pageW,38,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255); doc.text('AQUA LUAN',margin,16);
+  doc.setFontSize(8); doc.setTextColor(78,201,160); doc.text('SISTEMA DE PEDIDOS',margin,22);
   doc.setFontSize(9); doc.setTextColor(200,220,240);
-  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`, margin, 30);
-  const fechaStr = d.fecha ? new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
-  doc.setFont('helvetica','normal'); doc.text(`Fecha pedido: ${fechaStr}`, pageW-margin, 30, {align:'right'});
-
-  let y = 48;
+  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
+  const fechaStr=d.fecha?new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'-';
+  doc.setFont('helvetica','normal'); doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
+  let y=48;
   doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
-  doc.text('ASESOR / RUTA',margin+4,y+7);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
-  doc.text(d.empleado||'-',margin+4,y+15);
-  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
-  doc.text('FORMA DE PAGO',col2,y+7);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
-  doc.text(d.formapago||'-',col2,y+15);
-
-  y+=30;
-  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-  doc.text('DATOS DEL CLIENTE',margin,y);
-  doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2);
-  y+=8;
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('ASESOR / RUTA',margin+4,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.empleado||'-',margin+4,y+15);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('FORMA DE PAGO',col2,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.formapago||'-',col2,y+15);
+  y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('DATOS DEL CLIENTE',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=8;
   [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
-    doc.text(lbl.toUpperCase(),margin,y);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text(lbl.toUpperCase(),margin,y);
     doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
-    const lines=doc.splitTextToSize(val,pageW-margin-col2+20);
-    doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
+    const lines=doc.splitTextToSize(val,pageW-margin-col2+20); doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
   });
-
-  y+=4;
-  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  y+=4; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
   doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
   doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
   doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-  doc.text('PRODUCTO',margin+3,y+5.5);
-  doc.text('CANT.',138,y+5.5,{align:'center'});
-  doc.text('PRECIO',158,y+5.5,{align:'right'});
-  doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'});
-  y+=8;
+  doc.text('PRODUCTO',margin+3,y+5.5); doc.text('CANT.',138,y+5.5,{align:'center'});
+  doc.text('PRECIO',158,y+5.5,{align:'right'}); doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'}); y+=8;
   d.productos.forEach((p,idx)=>{
     if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
-    doc.text(p.nombre,margin+3,y+5);
-    doc.text(String(p.cantidad),138,y+5,{align:'center'});
+    doc.text(p.nombre,margin+3,y+5); doc.text(String(p.cantidad),138,y+5,{align:'center'});
     doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
     doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
-    doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'});
-    y+=7;
+    doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'}); y+=7;
   });
-
-  y+=4;
-  doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240);
-  doc.text('TOTAL GENERAL',margin+4,y+8);
-  doc.setFontSize(13); doc.setTextColor(78,201,160);
-  doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
-
+  y+=4; doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240); doc.text('TOTAL GENERAL',margin+4,y+8);
+  doc.setFontSize(13); doc.setTextColor(78,201,160); doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
   if(d.gps){
-    y+=18;
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y);
-    doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2);
-    y+=9;
-    doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4);
-    doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
+    y+=18; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=9;
+    doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
     doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-    doc.text('GPS',margin+7,y+7.8,{align:'center'});
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
-    doc.text('COORDENADAS',margin+14,y+6);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
-    doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
-    doc.text('PRECISIÓN',margin+14,y+18);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
-    doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255); doc.text('GPS',margin+7,y+7.8,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('COORDENADAS',margin+14,y+6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('PRECISIÓN',margin+14,y+18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
     const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160);
-    doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110);
-    doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'});
-    y+=26;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'}); y+=26;
   }
-
-  y+=16;
-  doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
+  y+=16; doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
   doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
   doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
-  doc.text('Firma del asesor',margin+30,y+5,{align:'center'});
-  doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
-  doc.setFontSize(7); doc.setTextColor(160,180,200);
-  doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
-
-  const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`;
-  doc.save(nombreArchivo);
+  doc.text('Firma del asesor',margin+30,y+5,{align:'center'}); doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
+  doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com  |  Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
+  doc.save(`Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`);
 }
 
-/* ============================================================
-   ✅ SUBIR PDF A GOOGLE DRIVE (vía Apps Script)
-   ============================================================ */
 async function subirPDFaDrive() {
   if (!ultimoRegistro) { setStatus('error', 'No hay pedido activo. Guarda primero el registro.'); return; }
   if (!navigator.onLine) { setStatus('error', '⚠ Sin conexión. Conéctate a internet para subir el PDF.'); return; }
-
   const d = ultimoRegistro;
   const btn = document.getElementById('btnDrive');
   const progWrap = document.getElementById('driveProgress');
@@ -1305,137 +1628,66 @@ async function subirPDFaDrive() {
   const progText = document.getElementById('progressText');
   const progPct  = document.getElementById('progressPct');
   const progLink = document.getElementById('progressLink');
-
-  btn.disabled = true;
-  progWrap.classList.add('show');
-  progLink.classList.remove('show');
-  progFill.style.width = '0%';
-  progText.textContent = 'Generando PDF...';
-  progPct.textContent  = '0%';
-
-  // Simular progreso mientras genera
+  btn.disabled = true; progWrap.classList.add('show'); progLink.classList.remove('show');
+  progFill.style.width = '0%'; progText.textContent = 'Generando PDF...'; progPct.textContent = '0%';
   let pct = 0;
-  const tick = setInterval(() => {
-    pct = Math.min(pct + 8, 40);
-    progFill.style.width = pct + '%';
-    progPct.textContent  = pct + '%';
-  }, 120);
-
+  const tick = setInterval(() => { pct = Math.min(pct+8,40); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; }, 120);
   let pdfBase64;
-  try {
-    pdfBase64 = generarPDFBase64();
-  } catch(e) {
-    clearInterval(tick);
-    btn.disabled = false;
-    progWrap.classList.remove('show');
-    setStatus('error', 'Error al generar el PDF. Intenta de nuevo.');
-    return;
+  try { pdfBase64 = generarPDFBase64(); } catch(e) {
+    clearInterval(tick); btn.disabled=false; progWrap.classList.remove('show');
+    setStatus('error','Error al generar el PDF. Intenta de nuevo.'); return;
   }
-
-  clearInterval(tick);
-  progFill.style.width = '45%';
-  progPct.textContent  = '45%';
-  progText.textContent = 'Subiendo a Google Drive...';
-
-  // Simular progreso de subida
-  const tick2 = setInterval(() => {
-    pct = Math.min(pct + 5, 85);
-    progFill.style.width = pct + '%';
-    progPct.textContent  = pct + '%';
-  }, 200);
-
+  clearInterval(tick); progFill.style.width='45%'; progPct.textContent='45%'; progText.textContent='Subiendo a Google Drive...';
+  const tick2 = setInterval(() => { pct=Math.min(pct+5,85); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; },200);
   const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`;
-
-  const payload = {
-    accion:        'subir_pdf',
-    pdfBase64:     pdfBase64,
-    nombreArchivo: nombreArchivo,
-    empleado:      d.empleado,
-    nombre:        d.nombre,
-    fecha:         d.fecha
-  };
-
+  const payload = { accion:'subir_pdf', pdfBase64, nombreArchivo, empleado:d.empleado, nombre:d.nombre, fecha:d.fecha };
   try {
-    const resp = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
+    const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     clearInterval(tick2);
-
-    // Intentar leer JSON de respuesta
-    let json = {};
-    try { json = await resp.json(); } catch(e) { json = { result: 'ok' }; }
-
-    if (json.result === 'ok' || resp.ok) {
-      progFill.style.width = '100%';
-      progPct.textContent  = '100%';
-      progText.textContent = '✓ PDF subido a Google Drive';
-
-      if (json.fileUrl) {
-        progLink.innerHTML = `📄 <a href="${json.fileUrl}" target="_blank">Ver PDF en Google Drive</a>`;
-        progLink.classList.add('show');
-      }
-
-      setStatus('success', '✓ PDF del pedido subido correctamente a Google Drive.');
-    } else {
-      throw new Error(json.error || 'Error del servidor');
-    }
-  } catch(err) {
-    clearInterval(tick2);
-    progWrap.classList.remove('show');
-    setStatus('error', `Error al subir el PDF: ${err.message || 'verifica tu conexión y vuelve a intentar.'}`);
-  }
-
-  btn.disabled = false;
+    let json={};
+    try { json = await resp.json(); } catch(e) { json={ result:'ok' }; }
+    if (json.result==='ok'||resp.ok) {
+      progFill.style.width='100%'; progPct.textContent='100%'; progText.textContent='✓ PDF subido a Google Drive';
+      if (json.fileUrl) { progLink.innerHTML=`📄 <a href="${json.fileUrl}" target="_blank">Ver PDF en Google Drive</a>`; progLink.classList.add('show'); }
+      setStatus('success','✓ PDF del pedido subido correctamente a Google Drive.');
+    } else throw new Error(json.error||'Error del servidor');
+  } catch(err) { clearInterval(tick2); progWrap.classList.remove('show'); setStatus('error',`Error al subir el PDF: ${err.message||'verifica tu conexión.'}`); }
+  btn.disabled=false;
 }
 
-/* ============================================================
+/* ════════════════════════════════════════════
    WHATSAPP
-   ============================================================ */
+════════════════════════════════════════════ */
 function enviarWhatsapp() {
   if (!ultimoRegistro) return;
   const d = ultimoRegistro;
-  const lineas = d.productos.map(p =>
-    `  - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`
-  ).join('%0A');
+  const lineas = d.productos.map(p => `  - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
   const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${d.gps.url}` : '';
   const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
-    `👤 *Cliente:* ${d.nombre}%0A` +
-    `📞 *Telefono:* ${d.telefono || '-'}%0A` +
-    `📍 *Direccion:* ${d.direccion || '-'}%0A` +
-    `📅 *Fecha:* ${d.fecha}%0A` +
-    `👷 *Asesor:* ${d.empleado}%0A` +
-    `💳 *Pago:* ${d.formapago || '-'}%0A%0A` +
-    `📦 *Productos:*%0A${lineas}%0A%0A` +
-    `💰 *TOTAL: $${d.total}*%0A` +
-    `📝 *Notas:* ${d.notas || '-'}` +
-    gpsLinea;
+    `👤 *Cliente:* ${d.nombre}%0A📞 *Telefono:* ${d.telefono||'-'}%0A📍 *Direccion:* ${d.direccion||'-'}%0A` +
+    `📅 *Fecha:* ${d.fecha}%0A👷 *Asesor:* ${d.empleado}%0A💳 *Pago:* ${d.formapago||'-'}%0A%0A` +
+    `📦 *Productos:*%0A${lineas}%0A%0A💰 *TOTAL: $${d.total}*%0A📝 *Notas:* ${d.notas||'-'}` + gpsLinea;
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
 }
 
-/* ============================================================
-   MODAL CLICK FUERA
-   ============================================================ */
-document.getElementById('modalOverlay').addEventListener('click', function(e) {
-  if (e.target === this) cerrarModal();
-});
-
+/* ════════════════════════════════════════════
+   MODAL click fuera
+════════════════════════════════════════════ */
+document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target===this) cerrarModal(); });
 renderLista();
 
-/* ============================================================
+/* ════════════════════════════════════════════
    LOGIN
-   ============================================================ */
+════════════════════════════════════════════ */
 function doLogin() {
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
-  if (user === 'admin' && pass === '1234') {
-    document.getElementById('loginOverlay').style.display = 'none';
+  if (user==='admin' && pass==='00000') {
+    document.getElementById('loginOverlay').style.display='none';
     document.getElementById('loginError').classList.remove('show');
   } else {
     document.getElementById('loginError').classList.add('show');
-    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').value='';
     document.getElementById('loginPass').focus();
   }
 }
