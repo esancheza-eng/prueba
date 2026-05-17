@@ -1109,7 +1109,7 @@ function renderLista() {
   else { lista.classList.remove('empty'); emptyMsg.style.display = 'none'; }
   items.innerHTML = productos.map((p, i) => `
     <div class="lista-item">
-      <span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;display:block" title="${p.nombre}">${p.nombre}</span>
+      <span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.nombre}">${p.nombre}</span>
       <span class="item-num">${p.cantidad}</span>
       <span class="item-precio">$${p.precio.toFixed(2)}</span>
       <span class="item-subtotal">$${p.subtotal.toFixed(2)}</span>
