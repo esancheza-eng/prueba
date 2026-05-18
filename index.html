@@ -290,9 +290,7 @@ transition: background 0.2s, transform 0.1s;
 .btn-whatsapp.visible { display: flex; }
 .btn-pdf { background: #c0392b; color: #fff; margin-top: 10px; }
 .btn-pdf:hover { background: #a93226; }
-.btn-drive { background: #1967d2; color: #fff; margin-top: 10px; display: none; }
-.btn-drive:hover { background: #1558b8; }
-.btn-drive.visible { display: flex; }
+
 /* ── DRIVE PROGRESS ── */
 .drive-progress {
 display: none; margin-top: 10px; background: var(--surface2);
@@ -1217,13 +1215,14 @@ async function confirmarEnvio() {
     setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.');
     // Mostrar botones de acción post-guardado
     document.getElementById('btnWhatsapp').classList.add('visible');
-    document.getElementById('btnDrive').classList.add('visible');
     document.getElementById('btnPdf').style.display = 'flex';
     document.getElementById('btnNuevo').style.display = 'flex';
     // Ocultar botón de guardar
     document.getElementById('btnGuardar').style.display = 'none';
     // Limpiar solo campos y productos — NO toca los botones
     limpiarSoloFormulario();
+    // ── Subir PDF a Drive automáticamente en segundo plano (no bloquea la UI)
+    subirPDFaDrive(ultimoRegistro);
   };
 
   if (estaOnline) {
@@ -1295,7 +1294,6 @@ function limpiarFormulario() {
   document.getElementById('btnGuardar').style.display = 'flex';
   // Ocultar todos los botones post-guardado
   document.getElementById('btnWhatsapp').classList.remove('visible');
-  document.getElementById('btnDrive').classList.remove('visible');
   document.getElementById('btnPdf').style.display = 'none';
   document.getElementById('btnNuevo').style.display = 'none';
   // Limpiar progress bar y status
@@ -1584,27 +1582,28 @@ function descargarPDF() {
   doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
   doc.save(`Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`);
 }
-async function subirPDFaDrive() {
-  if (!ultimoRegistro) { setStatus('error', 'No hay pedido activo. Guarda primero el registro.'); return; }
-  if (!navigator.onLine) { setStatus('error', '⚠ Sin conexión. Conéctate a internet para subir el PDF.'); return; }
-  const d = ultimoRegistro;
-  const btn = document.getElementById('btnDrive');
+// ── Sube el PDF a Drive automáticamente. Se llama desde onExito() sin intervención del usuario.
+//    Si no hay conexión al momento de guardar, se omite silenciosamente (el pedido ya quedó
+//    registrado en Sheets vía fetch con no-cors, o en IndexedDB para sincronizar después).
+async function subirPDFaDrive(registroSnapshot) {
+  if (!registroSnapshot) return;
+  if (!navigator.onLine) return; // sin internet: omitir silenciosamente
+  const d = registroSnapshot;
   const progWrap = document.getElementById('driveProgress');
   const progFill = document.getElementById('progressFill');
   const progText = document.getElementById('progressText');
   const progPct = document.getElementById('progressPct');
   const progLink = document.getElementById('progressLink');
-  btn.disabled = true; progWrap.classList.add('show'); progLink.classList.remove('show');
+  progWrap.classList.add('show'); progLink.classList.remove('show');
   progFill.style.width = '0%'; progText.textContent = 'Generando PDF...'; progPct.textContent = '0%';
   let pct = 0;
   const tick = setInterval(() => { pct = Math.min(pct+8,40); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; }, 120);
   let pdfBase64;
   try { pdfBase64 = generarPDFBase64(); } catch(e) {
-    clearInterval(tick); btn.disabled=false; progWrap.classList.remove('show');
-    setStatus('error','Error al generar el PDF. Intenta de nuevo.'); return;
+    clearInterval(tick); progWrap.classList.remove('show'); return;
   }
   clearInterval(tick); progFill.style.width='45%'; progPct.textContent='45%'; progText.textContent='Subiendo a Google Drive...';
-  const tick2 = setInterval(() => { pct=Math.min(pct+5,85); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; },200);
+  const tick2 = setInterval(() => { pct=Math.min(pct+5,85); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; }, 200);
   const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`;
   const payload = { accion:'subir_pdf', pdfBase64, nombreArchivo, empleado:d.empleado, nombre:d.nombre, fecha:d.fecha };
   try {
@@ -1615,10 +1614,9 @@ async function subirPDFaDrive() {
     if (json.result==='ok'||resp.ok) {
       progFill.style.width='100%'; progPct.textContent='100%'; progText.textContent='✓ PDF subido a Google Drive';
       if (json.fileUrl) { progLink.innerHTML=`📄 <a href="${json.fileUrl}" target="_blank">Ver PDF en Google Drive</a>`; progLink.classList.add('show'); }
-      setStatus('success','✓ PDF del pedido subido correctamente a Google Drive.');
+      setStatus('success','✓ Pedido guardado y PDF subido a Google Drive.');
     } else throw new Error(json.error||'Error del servidor');
-  } catch(err) { clearInterval(tick2); progWrap.classList.remove('show'); setStatus('error',`Error al subir el PDF: ${err.message||'verifica tu conexión.'}`); }
-  btn.disabled=false;
+  } catch(err) { clearInterval(tick2); progWrap.classList.remove('show'); }
 }
 
 /* ════════════════════════════════════════════
