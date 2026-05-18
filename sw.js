@@ -2,7 +2,7 @@
    SERVICE WORKER — Aqua Luan v3
    ===================================================== */
 
-const CACHE_NAME = 'aqualuan-v6';
+const CACHE_NAME = 'aqualuan-v7';
 const ASSETS = [
   './',
   './index.html',
