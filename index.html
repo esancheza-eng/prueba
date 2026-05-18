@@ -695,17 +695,18 @@ Aun no hay productos. Selecciona un producto y haz clic en <strong>Agregar</stro
 Guardar registro
 </button>
 <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="enviarWhatsapp()">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-
-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
 Enviar por WhatsApp a Zoila
 </button>
 <button class="btn btn-pdf" id="btnPdf" onclick="descargarPDF()" style="display:none">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
 Descargar PDF del pedido
 </button>
-<button class="btn btn-drive" id="btnDrive" onclick="subirPDFaDrive()">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002zm2 0h6.6L22.8 2H8.2l2.8 5z" opacity=".5"/><path d="M6.6 9L1 19h6.8l5.6-10H6.6zm5.6 0l5.6 10H24l-5.6-10H12.2zm-1.2-2l-2.8-5H5L1 9h6.6l3.4-6h.002z"/></svg>
-Subir PDF a Google Drive
+
+<!-- ✅ NUEVO: botón para registrar otro pedido, solo visible post-guardado -->
+<button class="btn" id="btnNuevo" onclick="nuevoPedido()" style="display:none;margin-top:10px;background:var(--navy)">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+Registrar nuevo pedido
 </button>
 <div class="drive-progress" id="driveProgress">
 <div class="progress-label">
@@ -919,169 +920,176 @@ let dbInstance = null;
 // Datos en memoria para Pagos y Gastos
 let listaPagos = [];
 let listaGastos = [];
+
 /* ════════════════════════════════════════════
 TABS
 ════════════════════════════════════════════ */
 const tabSubs = { ventas: 'Registro de Pedidos', pagos: 'Registro de Pagos', gastos: 'Registro de Gastos' };
 function cambiarTab(tab) {
-['ventas','pagos','gastos'].forEach(t => {
-document.getElementById('content-' + t).classList.toggle('active', t === tab);
-const btn = document.getElementById('tab-' + t);
-btn.className = 'tab-btn' + (t === tab ? ' active-' + t : '');
-});
-document.getElementById('logoSub').textContent = tabSubs[tab];
+  ['ventas','pagos','gastos'].forEach(t => {
+    document.getElementById('content-' + t).classList.toggle('active', t === tab);
+    const btn = document.getElementById('tab-' + t);
+    btn.className = 'tab-btn' + (t === tab ? ' active-' + t : '');
+  });
+  document.getElementById('logoSub').textContent = tabSubs[tab];
 }
+
 /* ════════════════════════════════════════════
 INDEXEDDB
 ════════════════════════════════════════════ */
 function abrirDB() {
-if (dbInstance) return Promise.resolve(dbInstance);
-return new Promise((res, rej) => {
-const req = indexedDB.open(DB_NAME, 1);
-req.onupgradeneeded = e => {
-const db = e.target.result;
-if (!db.objectStoreNames.contains(STORE))
-db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-};
-req.onsuccess = e => { dbInstance = e.target.result; res(dbInstance); };
-req.onerror = e => rej(e.target.error);
-});
+  if (dbInstance) return Promise.resolve(dbInstance);
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE))
+        db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+    };
+    req.onsuccess = e => { dbInstance = e.target.result; res(dbInstance); };
+    req.onerror = e => rej(e.target.error);
+  });
 }
 async function guardarLocal(payload) {
-const db = await abrirDB();
-return new Promise((res, rej) => {
-const tx = db.transaction(STORE, 'readwrite');
-const req = tx.objectStore(STORE).add({ payload, fecha: new Date().toISOString() });
-req.onsuccess = () => res(req.result);
-req.onerror = e => rej(e.target.error);
-});
+  const db = await abrirDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).add({ payload, fecha: new Date().toISOString() });
+    req.onsuccess = () => res(req.result);
+    req.onerror = e => rej(e.target.error);
+  });
 }
 async function obtenerPendientes() {
-const db = await abrirDB();
-return new Promise((res, rej) => {
-const tx = db.transaction(STORE, 'readonly');
-const req = tx.objectStore(STORE).getAll();
-req.onsuccess = () => res(req.result);
-req.onerror = e => rej(e.target.error);
-});
+  const db = await abrirDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = e => rej(e.target.error);
+  });
 }
 async function eliminarLocal(id) {
-const db = await abrirDB();
-return new Promise((res, rej) => {
-const tx = db.transaction(STORE, 'readwrite');
-const req = tx.objectStore(STORE).delete(id);
-req.onsuccess = () => res();
-req.onerror = e => rej(e.target.error);
-});
+  const db = await abrirDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).delete(id);
+    req.onsuccess = () => res();
+    req.onerror = e => rej(e.target.error);
+  });
 }
+
 /* ════════════════════════════════════════════
 BANNERS
 ════════════════════════════════════════════ */
 function actualizarBanners() {
-const offline = !navigator.onLine;
-document.getElementById('offlineBanner').classList.toggle('show', offline);
-obtenerPendientes().then(items => {
-const n = items.length;
-document.getElementById('pendingBanner').classList.toggle('show', n > 0);
-document.getElementById('pendingCount').textContent = n;
-});
+  const offline = !navigator.onLine;
+  document.getElementById('offlineBanner').classList.toggle('show', offline);
+  obtenerPendientes().then(items => {
+    const n = items.length;
+    document.getElementById('pendingBanner').classList.toggle('show', n > 0);
+    document.getElementById('pendingCount').textContent = n;
+  });
 }
 window.addEventListener('online', () => { actualizarBanners(); sincronizarAuto(); if (ultimoRegistro) document.getElementById('btnWhatsapp').classList.add('visible'); });
 window.addEventListener('offline', () => { actualizarBanners(); document.getElementById('btnWhatsapp').classList.remove('visible'); });
+
 /* ════════════════════════════════════════════
 SINCRONIZACIÓN OFFLINE
 ════════════════════════════════════════════ */
 async function sincronizarAuto() {
-if ('serviceWorker' in navigator && 'SyncManager' in window) {
-const reg = await navigator.serviceWorker.ready;
-try { await reg.sync.register('sync-pedidos'); return; } catch(e) {}
-}
-await sincronizarManual(true);
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    const reg = await navigator.serviceWorker.ready;
+    try { await reg.sync.register('sync-pedidos'); return; } catch(e) {}
+  }
+  await sincronizarManual(true);
 }
 async function sincronizarManual(silencioso = false) {
-if (!navigator.onLine) { if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.'); return; }
-const btn = document.getElementById('btnSync');
-const icon = document.getElementById('syncIcon');
-btn.disabled = true; icon.classList.add('spin');
-const items = await obtenerPendientes();
-if (!items.length) { btn.disabled = false; icon.classList.remove('spin'); actualizarBanners(); return; }
-let synced = 0, failed = 0;
-for (const item of items) {
-try {
-const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.payload) });
-const json = await resp.json().catch(() => ({ result: 'ok' }));
-if (json.result === 'ok' || resp.ok) { await eliminarLocal(item.id); synced++; } else failed++;
-} catch { failed++; }
-}
-btn.disabled = false; icon.classList.remove('spin'); actualizarBanners();
-if (!silencioso) {
-if (synced > 0 && failed === 0) setStatus('success', `✓ ${synced} pedido(s) sincronizado(s) correctamente con Google Drive.`);
-else if (synced > 0 && failed > 0) setStatus('warning', `⚠ ${synced} enviado(s), ${failed} fallaron. Intenta de nuevo.`);
-else setStatus('error', 'No se pudo sincronizar. Verifica tu conexión.');
-}
+  if (!navigator.onLine) { if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.'); return; }
+  const btn = document.getElementById('btnSync');
+  const icon = document.getElementById('syncIcon');
+  btn.disabled = true; icon.classList.add('spin');
+  const items = await obtenerPendientes();
+  if (!items.length) { btn.disabled = false; icon.classList.remove('spin'); actualizarBanners(); return; }
+  let synced = 0, failed = 0;
+  for (const item of items) {
+    try {
+      const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.payload) });
+      const json = await resp.json().catch(() => ({ result: 'ok' }));
+      if (json.result === 'ok' || resp.ok) { await eliminarLocal(item.id); synced++; } else failed++;
+    } catch { failed++; }
+  }
+  btn.disabled = false; icon.classList.remove('spin'); actualizarBanners();
+  if (!silencioso) {
+    if (synced > 0 && failed === 0) setStatus('success', `✓ ${synced} pedido(s) sincronizado(s) correctamente con Google Drive.`);
+    else if (synced > 0 && failed > 0) setStatus('warning', `⚠ ${synced} enviado(s), ${failed} fallaron. Intenta de nuevo.`);
+    else setStatus('error', 'No se pudo sincronizar. Verifica tu conexión.');
+  }
 }
 if ('serviceWorker' in navigator) {
-navigator.serviceWorker.addEventListener('message', e => {
-if (e.data && (e.data.type === 'SYNC_DONE' || e.data.type === 'SYNC_RESULT')) {
-actualizarBanners();
-if (e.data.synced > 0) setStatus('success', `✓ ${e.data.synced} pedido(s) sincronizado(s) automáticamente.`);
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && (e.data.type === 'SYNC_DONE' || e.data.type === 'SYNC_RESULT')) {
+      actualizarBanners();
+      if (e.data.synced > 0) setStatus('success', `✓ ${e.data.synced} pedido(s) sincronizado(s) automáticamente.`);
+    }
+  });
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
 }
-});
-window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
-}
+
 /* ════════════════════════════════════════════
 FECHA
 ════════════════════════════════════════════ */
 (function() {
-const hoy = new Date();
-document.getElementById('fechaHoy').textContent = hoy.toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long' });
-const yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
-const hoyStr = yyyy+'-'+mm+'-'+dd;
-document.getElementById('fecha').value = hoyStr;
-document.getElementById('pago-fecha').value = hoyStr;
-document.getElementById('gasto-fecha').value = hoyStr;
-actualizarBanners();
+  const hoy = new Date();
+  document.getElementById('fechaHoy').textContent = hoy.toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long' });
+  const yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
+  const hoyStr = yyyy+'-'+mm+'-'+dd;
+  document.getElementById('fecha').value = hoyStr;
+  document.getElementById('pago-fecha').value = hoyStr;
+  document.getElementById('gasto-fecha').value = hoyStr;
+  actualizarBanners();
 })();
+
 /* ════════════════════════════════════════════
 VENTAS — PRODUCTOS
 ════════════════════════════════════════════ */
 function calcTotal() { return productos.reduce((s,p) => s + p.subtotal, 0); }
 function renderLista() {
-const items = document.getElementById('productosItems');
-const lista = document.getElementById('productosLista');
-const emptyMsg = document.getElementById('emptyMsg');
-if (productos.length === 0) { lista.classList.add('empty'); emptyMsg.style.display = 'block'; }
-else { lista.classList.remove('empty'); emptyMsg.style.display = 'none'; }
-items.innerHTML = productos.map((p, i) => `
-<div class="lista-item">
-<span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.nombre}">${p.nombre}</span>
-<span class="item-num">${p.cantidad}</span>
-<span class="item-precio">$${p.precio.toFixed(2)}</span>
-<span class="item-subtotal">$${p.subtotal.toFixed(2)}</span>
-<button class="btn-remove" onclick="eliminarProducto(${i})" style="flex-shrink:0">&times;</button>
-</div>`).join('');
-document.getElementById('totalGeneral').textContent = '$' + calcTotal().toFixed(2);
+  const items = document.getElementById('productosItems');
+  const lista = document.getElementById('productosLista');
+  const emptyMsg = document.getElementById('emptyMsg');
+  if (productos.length === 0) { lista.classList.add('empty'); emptyMsg.style.display = 'block'; }
+  else { lista.classList.remove('empty'); emptyMsg.style.display = 'none'; }
+  items.innerHTML = productos.map((p, i) => `
+    <div class="lista-item">
+      <span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.nombre}">${p.nombre}</span>
+      <span class="item-num">${p.cantidad}</span>
+      <span class="item-precio">$${p.precio.toFixed(2)}</span>
+      <span class="item-subtotal">$${p.subtotal.toFixed(2)}</span>
+      <button class="btn-remove" onclick="eliminarProducto(${i})" style="flex-shrink:0">&times;</button>
+    </div>`).join('');
+  document.getElementById('totalGeneral').textContent = '$' + calcTotal().toFixed(2);
 }
 function agregarProducto() {
-const nombre = document.getElementById('sel-producto').value;
-const cantidad = parseFloat(document.getElementById('sel-cantidad').value);
-const precio = parseFloat(document.getElementById('sel-precio').value);
-if (!nombre) { alert('Selecciona un producto.'); return; }
-if (!cantidad || cantidad <= 0) { alert('Ingresa la cantidad.'); return; }
-if (!precio || precio <= 0) { alert('Ingresa el precio unitario.'); return; }
-const existente = productos.findIndex(p => p.nombre === nombre);
-if (existente >= 0) {
-productos[existente].cantidad += cantidad;
-productos[existente].subtotal = productos[existente].cantidad * productos[existente].precio;
-} else {
-productos.push({ nombre, cantidad, precio, subtotal: cantidad * precio });
-}
-document.getElementById('sel-producto').value = '';
-document.getElementById('sel-cantidad').value = '';
-document.getElementById('sel-precio').value = '';
-renderLista();
+  const nombre = document.getElementById('sel-producto').value;
+  const cantidad = parseFloat(document.getElementById('sel-cantidad').value);
+  const precio = parseFloat(document.getElementById('sel-precio').value);
+  if (!nombre) { alert('Selecciona un producto.'); return; }
+  if (!cantidad || cantidad <= 0) { alert('Ingresa la cantidad.'); return; }
+  if (!precio || precio <= 0) { alert('Ingresa el precio unitario.'); return; }
+  const existente = productos.findIndex(p => p.nombre === nombre);
+  if (existente >= 0) {
+    productos[existente].cantidad += cantidad;
+    productos[existente].subtotal = productos[existente].cantidad * productos[existente].precio;
+  } else {
+    productos.push({ nombre, cantidad, precio, subtotal: cantidad * precio });
+  }
+  document.getElementById('sel-producto').value = '';
+  document.getElementById('sel-cantidad').value = '';
+  document.getElementById('sel-precio').value = '';
+  renderLista();
 }
 function eliminarProducto(i) { productos.splice(i, 1); renderLista(); }
+
 /* ════════════════════════════════════════════
 STATUS helpers
 ════════════════════════════════════════════ */
@@ -1089,529 +1097,577 @@ function setStatus(type, msg) { _setStatus('status', type, msg); }
 function setStatusPagos(type, msg) { _setStatus('status-pagos', type, msg); }
 function setStatusGastos(type, msg) { _setStatus('status-gastos', type, msg); }
 function _setStatus(id, type, msg) {
-const el = document.getElementById(id);
-el.className = 'status ' + type;
-el.innerHTML = msg;
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  el.innerHTML = msg;
 }
+
 /* ════════════════════════════════════════════
 GPS
 ════════════════════════════════════════════ */
 function resetGpsBadge() {
-const badge = document.getElementById('gpsBadge');
-badge.className = 'gps-badge wait';
-document.getElementById('gpsBadgeText').textContent = 'Obteniendo ubicación GPS...';
-document.getElementById('m-gps').textContent = '-';
+  const badge = document.getElementById('gpsBadge');
+  badge.className = 'gps-badge wait';
+  document.getElementById('gpsBadgeText').textContent = 'Obteniendo ubicación GPS...';
+  document.getElementById('m-gps').textContent = '-';
 }
 function capturarGPS() {
-return new Promise((resolve) => {
-if (!navigator.geolocation) { resolve(null); return; }
-navigator.geolocation.getCurrentPosition(
-(pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) }),
-() => resolve(null),
-{ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-);
-});
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
 }
+
 /* ════════════════════════════════════════════
 MODAL (Ventas)
 ════════════════════════════════════════════ */
 async function abrirModal() {
-const empleado = document.getElementById('empleado').value;
-const formapago = document.getElementById('formapago').value;
-const nombre = document.getElementById('nombre').value.trim();
-const telefono = document.getElementById('telefono').value.trim();
-const fecha = document.getElementById('fecha').value;
-const direccion = document.getElementById('direccion').value.trim();
-const notas = document.getElementById('notas').value.trim();
-if (!empleado || !nombre) { setStatus('error', 'Selecciona el asesor y completa el nombre del cliente.'); return; }
-if (!formapago) { setStatus('error', 'Selecciona una forma de pago.'); return; }
-if (productos.length===0) { setStatus('error', 'Agrega al menos un producto al pedido.'); return; }
-const total = calcTotal();
-dataPendiente = { empleado, formapago, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2), gps: null };
-const offline = !navigator.onLine;
-document.getElementById('modalOfflineNote').classList.toggle('show', offline);
-document.getElementById('modal-subtitle-text').textContent = offline
-? 'Sin internet — se guardará localmente hasta recuperar conexión'
-: 'Revisa todos los datos antes de enviar a Google Drive';
-document.getElementById('m-empleado').textContent = empleado;
-document.getElementById('m-formapago').textContent = formapago;
-document.getElementById('m-nombre').textContent = nombre;
-document.getElementById('m-telefono').textContent = telefono || '-';
-document.getElementById('m-direccion').textContent = direccion || '-';
-document.getElementById('m-fecha').textContent = fecha || '-';
-document.getElementById('m-notas').textContent = notas || '-';
-document.getElementById('m-total').textContent = '$' + total.toFixed(2);
-document.getElementById('m-productos').innerHTML = productos.map(p => `
-<tr>
-<td>${p.nombre}</td>
-<td style="text-align:center">${p.cantidad}</td>
-<td style="text-align:right">$${p.precio.toFixed(2)}</td>
-<td>$${p.subtotal.toFixed(2)}</td>
-</tr>`).join('');
-resetGpsBadge();
-document.getElementById('modalOverlay').classList.add('open');
-document.body.style.overflow = 'hidden';
-const badge = document.getElementById('gpsBadge');
-const badgeText = document.getElementById('gpsBadgeText');
-const mGps = document.getElementById('m-gps');
-const coords = await capturarGPS();
-if (coords) {
-const mapsUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
-dataPendiente.gps = { lat: coords.lat, lng: coords.lng, acc: coords.acc, url: mapsUrl };
-badge.className = 'gps-badge ok';
-badgeText.innerHTML = `📍 Ubicación capturada — precisión ±${coords.acc}m`;
-mGps.innerHTML = `<a href="${mapsUrl}" target="_blank">${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}</a>`;
-} else {
-badge.className = 'gps-badge err';
-badgeText.textContent = '⚠ No se pudo obtener la ubicación GPS. Se guardará sin coordenadas.';
-mGps.textContent = 'No disponible';
-}
+  const empleado = document.getElementById('empleado').value;
+  const formapago = document.getElementById('formapago').value;
+  const nombre = document.getElementById('nombre').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  const fecha = document.getElementById('fecha').value;
+  const direccion = document.getElementById('direccion').value.trim();
+  const notas = document.getElementById('notas').value.trim();
+  if (!empleado || !nombre) { setStatus('error', 'Selecciona el asesor y completa el nombre del cliente.'); return; }
+  if (!formapago) { setStatus('error', 'Selecciona una forma de pago.'); return; }
+  if (productos.length===0) { setStatus('error', 'Agrega al menos un producto al pedido.'); return; }
+  const total = calcTotal();
+  dataPendiente = { empleado, formapago, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2), gps: null };
+  const offline = !navigator.onLine;
+  document.getElementById('modalOfflineNote').classList.toggle('show', offline);
+  document.getElementById('modal-subtitle-text').textContent = offline
+    ? 'Sin internet — se guardará localmente hasta recuperar conexión'
+    : 'Revisa todos los datos antes de enviar a Google Drive';
+  document.getElementById('m-empleado').textContent = empleado;
+  document.getElementById('m-formapago').textContent = formapago;
+  document.getElementById('m-nombre').textContent = nombre;
+  document.getElementById('m-telefono').textContent = telefono || '-';
+  document.getElementById('m-direccion').textContent = direccion || '-';
+  document.getElementById('m-fecha').textContent = fecha || '-';
+  document.getElementById('m-notas').textContent = notas || '-';
+  document.getElementById('m-total').textContent = '$' + total.toFixed(2);
+  document.getElementById('m-productos').innerHTML = productos.map(p => `
+    <tr>
+      <td>${p.nombre}</td>
+      <td style="text-align:center">${p.cantidad}</td>
+      <td style="text-align:right">$${p.precio.toFixed(2)}</td>
+      <td>$${p.subtotal.toFixed(2)}</td>
+    </tr>`).join('');
+  resetGpsBadge();
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const badge = document.getElementById('gpsBadge');
+  const badgeText = document.getElementById('gpsBadgeText');
+  const mGps = document.getElementById('m-gps');
+  const coords = await capturarGPS();
+  if (coords) {
+    const mapsUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
+    dataPendiente.gps = { lat: coords.lat, lng: coords.lng, acc: coords.acc, url: mapsUrl };
+    badge.className = 'gps-badge ok';
+    badgeText.innerHTML = `📍 Ubicación capturada — precisión ±${coords.acc}m`;
+    mGps.innerHTML = `<a href="${mapsUrl}" target="_blank">${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}</a>`;
+  } else {
+    badge.className = 'gps-badge err';
+    badgeText.textContent = '⚠ No se pudo obtener la ubicación GPS. Se guardará sin coordenadas.';
+    mGps.textContent = 'No disponible';
+  }
 }
 function cerrarModal() {
-document.getElementById('modalOverlay').classList.remove('open');
-document.body.style.overflow = '';
-dataPendiente = null;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  dataPendiente = null;
 }
+
 /* ════════════════════════════════════════════
 CONFIRMAR ENVÍO
 ════════════════════════════════════════════ */
 async function confirmarEnvio() {
-if (!dataPendiente) return;
-const btn = document.getElementById('btnConfirmar');
-btn.disabled = true;
-btn.innerHTML = '<div class="spinner2"></div> Guardando...';
-const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
-const dia = fechaObj.getDate(), mes = fechaObj.getMonth() + 1;
-const productosTexto = dataPendiente.productos.map(p =>
-`${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
-const payload = {
-accion: 'registrar_pedido', dia, mes,
-empleado: dataPendiente.empleado, formapago: dataPendiente.formapago,
-nombre: dataPendiente.nombre, telefono: dataPendiente.telefono,
-fecha: dataPendiente.fecha, direccion: dataPendiente.direccion,
-notas: dataPendiente.notas, productos: productosTexto, total: dataPendiente.total,
-latitud: dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
-longitud: dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
-gps_link: dataPendiente.gps ? dataPendiente.gps.url : '',
-gps_prec: dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : ''
-};
-const estaOnline = navigator.onLine;
-const onExito = () => {
-ultimoRegistro = { ...dataPendiente };
-cerrarModal();
-setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.');
-document.getElementById('btnWhatsapp').classList.add('visible');
-document.getElementById('btnDrive').classList.add('visible');
-document.getElementById('btnPdf').style.display = 'flex';
-document.getElementById('btnGuardar').style.display = 'none';
-limpiarFormulario();
-};
-if (estaOnline) {
-try {
-await fetch(SCRIPT_URL, {
-method: 'POST',
-mode: 'no-cors',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify(payload)
-});
-onExito();
-} catch(err) {
-await guardarLocal(payload);
-ultimoRegistro = { ...dataPendiente };
-cerrarModal();
-setStatus('warning', '⚠ Sin conexión estable. Pedido guardado localmente — se enviará a Drive con internet.');
-document.getElementById('btnWhatsapp').classList.add('visible');
-document.getElementById('btnPdf').style.display = 'flex';
-document.getElementById('btnGuardar').style.display = 'none';
-limpiarFormulario(); actualizarBanners();
+  if (!dataPendiente) return;
+  const btn = document.getElementById('btnConfirmar');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner2"></div> Guardando...';
+  const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
+  const dia = fechaObj.getDate(), mes = fechaObj.getMonth() + 1;
+  const productosTexto = dataPendiente.productos.map(p =>
+    `${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
+  const payload = {
+    accion: 'registrar_pedido', dia, mes,
+    empleado: dataPendiente.empleado, formapago: dataPendiente.formapago,
+    nombre: dataPendiente.nombre, telefono: dataPendiente.telefono,
+    fecha: dataPendiente.fecha, direccion: dataPendiente.direccion,
+    notas: dataPendiente.notas, productos: productosTexto, total: dataPendiente.total,
+    latitud: dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
+    longitud: dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
+    gps_link: dataPendiente.gps ? dataPendiente.gps.url : '',
+    gps_prec: dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : ''
+  };
+
+  const estaOnline = navigator.onLine;
+
+  // ── ✅ FIX: onExito guarda ultimoRegistro, muestra botones y llama
+  //    limpiarSoloFormulario() — sin tocar btnGuardar ni los botones de acción.
+  const onExito = () => {
+    ultimoRegistro = { ...dataPendiente };
+    cerrarModal();
+    setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.');
+    // Mostrar botones de acción post-guardado
+    document.getElementById('btnWhatsapp').classList.add('visible');
+    document.getElementById('btnDrive').classList.add('visible');
+    document.getElementById('btnPdf').style.display = 'flex';
+    document.getElementById('btnNuevo').style.display = 'flex';
+    // Ocultar botón de guardar
+    document.getElementById('btnGuardar').style.display = 'none';
+    // Limpiar solo campos y productos — NO toca los botones
+    limpiarSoloFormulario();
+  };
+
+  if (estaOnline) {
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      onExito();
+    } catch(err) {
+      await guardarLocal(payload);
+      ultimoRegistro = { ...dataPendiente };
+      cerrarModal();
+      setStatus('warning', '⚠ Sin conexión estable. Pedido guardado localmente — se enviará a Drive con internet.');
+      document.getElementById('btnWhatsapp').classList.add('visible');
+      document.getElementById('btnPdf').style.display = 'flex';
+      document.getElementById('btnNuevo').style.display = 'flex';
+      document.getElementById('btnGuardar').style.display = 'none';
+      limpiarSoloFormulario();
+      actualizarBanners();
+    }
+  } else {
+    try {
+      await guardarLocal(payload);
+      ultimoRegistro = { ...dataPendiente };
+      cerrarModal();
+      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.');
+      document.getElementById('btnPdf').style.display = 'flex';
+      document.getElementById('btnNuevo').style.display = 'flex';
+      document.getElementById('btnGuardar').style.display = 'none';
+      limpiarSoloFormulario();
+      actualizarBanners();
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.sync.register('sync-pedidos').catch(() => {});
+      }
+    } catch(err) { cerrarModal(); setStatus('error', 'Error al guardar. Intenta de nuevo.'); }
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
+  dataPendiente = null;
 }
-} else {
-try {
-await guardarLocal(payload);
-ultimoRegistro = { ...dataPendiente };
-cerrarModal();
-setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.');
-document.getElementById('btnPdf').style.display = 'flex';
-limpiarFormulario(); actualizarBanners();
-if ('serviceWorker' in navigator && 'SyncManager' in window) {
-const reg = await navigator.serviceWorker.ready;
-reg.sync.register('sync-pedidos').catch(() => {});
-}
-} catch(err) { cerrarModal(); setStatus('error', 'Error al guardar. Intenta de nuevo.'); }
-}
-btn.disabled = false;
-btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
-dataPendiente = null;
-}
+
 /* ════════════════════════════════════════════
 LIMPIAR FORMULARIO VENTAS
 ════════════════════════════════════════════ */
-function limpiarFormulario() {
-['empleado','formapago','nombre','telefono','direccion','notas'].forEach(id => { document.getElementById(id).value = ''; });
-productos = []; renderLista();
-const hoy = new Date(), yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
-document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
-// Restaurar botón guardar y ocultar los demás
-document.getElementById('btnGuardar').style.display = 'flex';
-document.getElementById('btnWhatsapp').classList.remove('visible');
-document.getElementById('btnDrive').classList.remove('visible');
-document.getElementById('btnPdf').style.display = 'none';
+// ── ✅ FIX 1: Limpia solo campos y productos — NO toca los botones de acción.
+//    Llamada por onExito() para limpiar el formulario después de guardar,
+//    pero manteniendo visibles los botones de PDF, WhatsApp, Drive y Nuevo.
+function limpiarSoloFormulario() {
+  ['empleado','formapago','nombre','telefono','direccion','notas'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  productos = [];
+  renderLista();
+  const hoy = new Date(), yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
 }
+
+// ── ✅ FIX 4: Limpia todo y restaura el estado inicial completo.
+//    Solo se llama desde nuevoPedido().
+function limpiarFormulario() {
+  limpiarSoloFormulario();
+  ultimoRegistro = null;
+  // Restaurar botón guardar
+  document.getElementById('btnGuardar').style.display = 'flex';
+  // Ocultar todos los botones post-guardado
+  document.getElementById('btnWhatsapp').classList.remove('visible');
+  document.getElementById('btnDrive').classList.remove('visible');
+  document.getElementById('btnPdf').style.display = 'none';
+  document.getElementById('btnNuevo').style.display = 'none';
+  // Limpiar progress bar y status
+  document.getElementById('driveProgress').classList.remove('show');
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressLink').classList.remove('show');
+  document.getElementById('status').className = 'status';
+  document.getElementById('status').innerHTML = '';
+}
+
+// ── ✅ FIX 3: Registrar nuevo pedido — limpia todo y restaura estado inicial.
+function nuevoPedido() {
+  limpiarFormulario();
+}
+
 /* ════════════════════════════════════════════
 PAGOS — Registrar
 ════════════════════════════════════════════ */
 function registrarPago() {
-const empleado = document.getElementById('pago-empleado').value;
-const fecha = document.getElementById('pago-fecha').value;
-const cliente = document.getElementById('pago-cliente').value.trim();
-const monto = parseFloat(document.getElementById('pago-monto').value);
-const forma = document.getElementById('pago-forma').value;
-const notas = document.getElementById('pago-notas').value.trim();
-if (!empleado) { setStatusPagos('error', 'Selecciona el asesor / ruta.'); return; }
-if (!cliente) { setStatusPagos('error', 'Ingresa el nombre del cliente.'); return; }
-if (!monto || monto <= 0) { setStatusPagos('error', 'Ingresa un monto válido mayor a $0.'); return; }
-if (!forma) { setStatusPagos('error', 'Selecciona la forma de pago.'); return; }
-const pago = { id: Date.now(), empleado, fecha, cliente, monto, forma, notas, hora: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) };
-listaPagos.unshift(pago);
-renderPagos();
-actualizarResumenPagos();
-// Enviar a Google Sheets si hay conexión
-if (navigator.onLine) {
-const payload = { accion: 'registrar_pago', empleado, fecha, cliente, monto: monto.toFixed(2), forma, notas };
-fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
-}
-// Limpiar formulario
-['pago-empleado','pago-forma'].forEach(id => document.getElementById(id).value = '');
-['pago-cliente','pago-monto','pago-notas'].forEach(id => document.getElementById(id).value = '');
-setStatusPagos('success', `✓ Pago de $${monto.toFixed(2)} registrado para ${cliente}.`);
+  const empleado = document.getElementById('pago-empleado').value;
+  const fecha = document.getElementById('pago-fecha').value;
+  const cliente = document.getElementById('pago-cliente').value.trim();
+  const monto = parseFloat(document.getElementById('pago-monto').value);
+  const forma = document.getElementById('pago-forma').value;
+  const notas = document.getElementById('pago-notas').value.trim();
+  if (!empleado) { setStatusPagos('error', 'Selecciona el asesor / ruta.'); return; }
+  if (!cliente) { setStatusPagos('error', 'Ingresa el nombre del cliente.'); return; }
+  if (!monto || monto <= 0) { setStatusPagos('error', 'Ingresa un monto válido mayor a $0.'); return; }
+  if (!forma) { setStatusPagos('error', 'Selecciona la forma de pago.'); return; }
+  const pago = { id: Date.now(), empleado, fecha, cliente, monto, forma, notas, hora: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) };
+  listaPagos.unshift(pago);
+  renderPagos();
+  actualizarResumenPagos();
+  if (navigator.onLine) {
+    const payload = { accion: 'registrar_pago', empleado, fecha, cliente, monto: monto.toFixed(2), forma, notas };
+    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
+  }
+  ['pago-empleado','pago-forma'].forEach(id => document.getElementById(id).value = '');
+  ['pago-cliente','pago-monto','pago-notas'].forEach(id => document.getElementById(id).value = '');
+  setStatusPagos('success', `✓ Pago de $${monto.toFixed(2)} registrado para ${cliente}.`);
 }
 function eliminarPago(id) {
-listaPagos = listaPagos.filter(p => p.id !== id);
-renderPagos(); actualizarResumenPagos();
+  listaPagos = listaPagos.filter(p => p.id !== id);
+  renderPagos(); actualizarResumenPagos();
 }
 function badgeForma(forma) {
-const map = { 'Efectivo': 'efectivo', 'Transferencia': 'transfer', 'Datáfono': 'datafono', 'Cheque': 'cheque', 'Depósito': 'deposito', 'Contado': 'contado', 'Crédito': 'credito' };
-const cls = map[forma] || 'contado';
-return `<span class="badge badge-${cls}">${forma}</span>`;
+  const map = { 'Efectivo': 'efectivo', 'Transferencia': 'transfer', 'Datáfono': 'datafono', 'Cheque': 'cheque', 'Depósito': 'deposito', 'Contado': 'contado', 'Crédito': 'credito' };
+  const cls = map[forma] || 'contado';
+  return `<span class="badge badge-${cls}">${forma}</span>`;
 }
 function renderPagos() {
-const lista = document.getElementById('pagosLista');
-const empty = document.getElementById('pagosEmptyMsg');
-const items = document.getElementById('pagosItems');
-if (listaPagos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
-else { lista.classList.remove('empty'); empty.style.display = 'none'; }
-items.innerHTML = listaPagos.map(p => `
-<div class="pago-item">
-<div>
-<div style="font-size:13px;font-weight:600;color:var(--navy)">${p.cliente}</div>
-<div style="font-size:11px;color:var(--muted)">${p.empleado.replace('RUTA ','R.')} · ${p.hora}</div>
-</div>
-<div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.notas || '-'}</div>
-<div style="text-align:center">${badgeForma(p.forma)}</div>
-<span class="pago-monto">$${p.monto.toFixed(2)}</span>
-<button class="btn-remove" onclick="eliminarPago(${p.id})">&times;</button>
-</div>`).join('');
+  const lista = document.getElementById('pagosLista');
+  const empty = document.getElementById('pagosEmptyMsg');
+  const items = document.getElementById('pagosItems');
+  if (listaPagos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
+  else { lista.classList.remove('empty'); empty.style.display = 'none'; }
+  items.innerHTML = listaPagos.map(p => `
+    <div class="pago-item">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${p.cliente}</div>
+        <div style="font-size:11px;color:var(--muted)">${p.empleado.replace('RUTA ','R.')} · ${p.hora}</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.notas || '-'}</div>
+      <div style="text-align:center">${badgeForma(p.forma)}</div>
+      <span class="pago-monto">$${p.monto.toFixed(2)}</span>
+      <button class="btn-remove" onclick="eliminarPago(${p.id})">&times;</button>
+    </div>`).join('');
 }
 function actualizarResumenPagos() {
-const total = listaPagos.reduce((s, p) => s + p.monto, 0);
-document.getElementById('pago-total-dia').textContent = '$' + total.toFixed(2);
-document.getElementById('pago-count-dia').textContent = `${listaPagos.length} pago${listaPagos.length !== 1 ? 's' : ''} registrado${listaPagos.length !== 1 ? 's' : ''}`;
-if (listaPagos.length > 0) {
-const u = listaPagos[0];
-document.getElementById('pago-ultimo').textContent = '$' + u.monto.toFixed(2);
-document.getElementById('pago-ultimo-cliente').textContent = u.cliente;
-} else {
-document.getElementById('pago-ultimo').textContent = '—';
-document.getElementById('pago-ultimo-cliente').textContent = 'Sin registros';
+  const total = listaPagos.reduce((s, p) => s + p.monto, 0);
+  document.getElementById('pago-total-dia').textContent = '$' + total.toFixed(2);
+  document.getElementById('pago-count-dia').textContent = `${listaPagos.length} pago${listaPagos.length !== 1 ? 's' : ''} registrado${listaPagos.length !== 1 ? 's' : ''}`;
+  if (listaPagos.length > 0) {
+    const u = listaPagos[0];
+    document.getElementById('pago-ultimo').textContent = '$' + u.monto.toFixed(2);
+    document.getElementById('pago-ultimo-cliente').textContent = u.cliente;
+  } else {
+    document.getElementById('pago-ultimo').textContent = '—';
+    document.getElementById('pago-ultimo-cliente').textContent = 'Sin registros';
+  }
 }
-}
+
 /* ════════════════════════════════════════════
 GASTOS — Registrar
 ════════════════════════════════════════════ */
 function registrarGasto() {
-const empleado = document.getElementById('gasto-empleado').value;
-const fecha = document.getElementById('gasto-fecha').value;
-const categoria = document.getElementById('gasto-categoria').value;
-const monto = parseFloat(document.getElementById('gasto-monto').value);
-const desc = document.getElementById('gasto-desc').value.trim();
-const ref = document.getElementById('gasto-ref').value.trim();
-if (!empleado) { setStatusGastos('error', 'Selecciona el responsable.'); return; }
-if (!categoria) { setStatusGastos('error', 'Selecciona la categoría del gasto.'); return; }
-if (!monto || monto <= 0) { setStatusGastos('error', 'Ingresa un monto válido mayor a $0.'); return; }
-if (!desc) { setStatusGastos('error', 'Describe el gasto.'); return; }
-const gasto = { id: Date.now(), empleado, fecha, categoria, monto, desc, ref, hora: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) };
-listaGastos.unshift(gasto);
-renderGastos();
-actualizarResumenGastos();
-// Enviar a Google Sheets si hay conexión
-if (navigator.onLine) {
-const payload = { accion: 'registrar_gasto', empleado, fecha, categoria, monto: monto.toFixed(2), desc, ref };
-fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
-}
-// Limpiar
-['gasto-empleado','gasto-categoria'].forEach(id => document.getElementById(id).value = '');
-['gasto-monto','gasto-desc','gasto-ref'].forEach(id => document.getElementById(id).value = '');
-setStatusGastos('success', `✓ Gasto de $${monto.toFixed(2)} registrado — ${desc}.`);
+  const empleado = document.getElementById('gasto-empleado').value;
+  const fecha = document.getElementById('gasto-fecha').value;
+  const categoria = document.getElementById('gasto-categoria').value;
+  const monto = parseFloat(document.getElementById('gasto-monto').value);
+  const desc = document.getElementById('gasto-desc').value.trim();
+  const ref = document.getElementById('gasto-ref').value.trim();
+  if (!empleado) { setStatusGastos('error', 'Selecciona el responsable.'); return; }
+  if (!categoria) { setStatusGastos('error', 'Selecciona la categoría del gasto.'); return; }
+  if (!monto || monto <= 0) { setStatusGastos('error', 'Ingresa un monto válido mayor a $0.'); return; }
+  if (!desc) { setStatusGastos('error', 'Describe el gasto.'); return; }
+  const gasto = { id: Date.now(), empleado, fecha, categoria, monto, desc, ref, hora: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) };
+  listaGastos.unshift(gasto);
+  renderGastos();
+  actualizarResumenGastos();
+  if (navigator.onLine) {
+    const payload = { accion: 'registrar_gasto', empleado, fecha, categoria, monto: monto.toFixed(2), desc, ref };
+    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(() => {});
+  }
+  ['gasto-empleado','gasto-categoria'].forEach(id => document.getElementById(id).value = '');
+  ['gasto-monto','gasto-desc','gasto-ref'].forEach(id => document.getElementById(id).value = '');
+  setStatusGastos('success', `✓ Gasto de $${monto.toFixed(2)} registrado — ${desc}.`);
 }
 function eliminarGasto(id) {
-listaGastos = listaGastos.filter(g => g.id !== id);
-renderGastos(); actualizarResumenGastos();
+  listaGastos = listaGastos.filter(g => g.id !== id);
+  renderGastos(); actualizarResumenGastos();
 }
 function categoriaBadge(cat) {
-const map = {
-'Combustible': 'warning', 'Mantenimiento vehículo': 'credito',
-'Insumos / Materiales': 'efectivo', 'Alimentación': 'contado',
-'Servicios básicos': 'transfer', 'Publicidad': 'datafono',
-'Administrativo': 'cheque', 'Otro': 'deposito'
-};
-const cls = map[cat] || 'contado';
-const label = cat.length > 12 ? cat.substring(0,12) + '…' : cat;
-return `<span class="badge badge-${cls}" style="font-size:9px">${label}</span>`;
+  const map = {
+    'Combustible': 'warning', 'Mantenimiento vehículo': 'credito',
+    'Insumos / Materiales': 'efectivo', 'Alimentación': 'contado',
+    'Servicios básicos': 'transfer', 'Publicidad': 'datafono',
+    'Administrativo': 'cheque', 'Otro': 'deposito'
+  };
+  const cls = map[cat] || 'contado';
+  const label = cat.length > 12 ? cat.substring(0,12) + '…' : cat;
+  return `<span class="badge badge-${cls}" style="font-size:9px">${label}</span>`;
 }
 function renderGastos() {
-const lista = document.getElementById('gastosLista');
-const empty = document.getElementById('gastosEmptyMsg');
-const items = document.getElementById('gastosItems');
-if (listaGastos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
-else { lista.classList.remove('empty'); empty.style.display = 'none'; }
-items.innerHTML = listaGastos.map(g => `
-<div class="gasto-item">
-<div>
-<div style="font-size:13px;font-weight:600;color:var(--navy)">${g.desc}</div>
-<div style="font-size:11px;color:var(--muted)">${g.empleado.replace('RUTA ','R.')} · ${g.hora}${g.ref ? ' · ' + g.ref : ''}</div>
-</div>
-<div style="text-align:center">${categoriaBadge(g.categoria)}</div>
-<div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.empleado.split(':')[1]?.trim() || g.empleado}</div>
-<span class="gasto-monto">$${g.monto.toFixed(2)}</span>
-<button class="btn-remove" onclick="eliminarGasto(${g.id})">&times;</button>
-</div>`).join('');
+  const lista = document.getElementById('gastosLista');
+  const empty = document.getElementById('gastosEmptyMsg');
+  const items = document.getElementById('gastosItems');
+  if (listaGastos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
+  else { lista.classList.remove('empty'); empty.style.display = 'none'; }
+  items.innerHTML = listaGastos.map(g => `
+    <div class="gasto-item">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${g.desc}</div>
+        <div style="font-size:11px;color:var(--muted)">${g.empleado.replace('RUTA ','R.')} · ${g.hora}${g.ref ? ' · ' + g.ref : ''}</div>
+      </div>
+      <div style="text-align:center">${categoriaBadge(g.categoria)}</div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.empleado.split(':')[1]?.trim() || g.empleado}</div>
+      <span class="gasto-monto">$${g.monto.toFixed(2)}</span>
+      <button class="btn-remove" onclick="eliminarGasto(${g.id})">&times;</button>
+    </div>`).join('');
 }
 function actualizarResumenGastos() {
-const total = listaGastos.reduce((s, g) => s + g.monto, 0);
-document.getElementById('gasto-total-dia').textContent = '$' + total.toFixed(2);
-document.getElementById('gasto-count-dia').textContent = `${listaGastos.length} gasto${listaGastos.length !== 1 ? 's' : ''} registrado${listaGastos.length !== 1 ? 's' : ''}`;
-if (listaGastos.length > 0) {
-const u = listaGastos[0];
-document.getElementById('gasto-ultimo').textContent = '$' + u.monto.toFixed(2);
-document.getElementById('gasto-ultimo-desc').textContent = u.desc;
-} else {
-document.getElementById('gasto-ultimo').textContent = '—';
-document.getElementById('gasto-ultimo-desc').textContent = 'Sin registros';
+  const total = listaGastos.reduce((s, g) => s + g.monto, 0);
+  document.getElementById('gasto-total-dia').textContent = '$' + total.toFixed(2);
+  document.getElementById('gasto-count-dia').textContent = `${listaGastos.length} gasto${listaGastos.length !== 1 ? 's' : ''} registrado${listaGastos.length !== 1 ? 's' : ''}`;
+  if (listaGastos.length > 0) {
+    const u = listaGastos[0];
+    document.getElementById('gasto-ultimo').textContent = '$' + u.monto.toFixed(2);
+    document.getElementById('gasto-ultimo-desc').textContent = u.desc;
+  } else {
+    document.getElementById('gasto-ultimo').textContent = '—';
+    document.getElementById('gasto-ultimo-desc').textContent = 'Sin registros';
+  }
 }
-}
+
 /* ════════════════════════════════════════════
 PDF (Ventas)
 ════════════════════════════════════════════ */
 function generarPDFBase64() {
-if (!ultimoRegistro) return null;
-const { jsPDF } = window.jspdf;
-const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-const d = ultimoRegistro, pageW = 210, margin = 18, col2 = 100;
-doc.setFillColor(26,58,92); doc.rect(0,0,pageW,38,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
-doc.text('AQUA LUAN',margin,16);
-doc.setFontSize(8); doc.setTextColor(78,201,160); doc.text('SISTEMA DE PEDIDOS',margin,22);
-doc.setFontSize(9); doc.setTextColor(200,220,240);
-doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
-doc.setFont('helvetica','normal');
-const fechaStr = d.fecha ? new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
-doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
-let y=48;
-doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
-doc.text('ASESOR / RUTA',margin+4,y+7); doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
-doc.text(d.empleado||'-',margin+4,y+15); doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
-doc.text('FORMA DE PAGO',col2,y+7); doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
-doc.text(d.formapago||'-',col2,y+15);
-y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-doc.text('DATOS DEL CLIENTE',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=8;
-[['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text(lbl.toUpperCase(),margin,y);
-doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
-const lines=doc.splitTextToSize(val,pageW-margin-col2+20); doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
-});
-y+=4; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
-doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-doc.text('PRODUCTO',margin+3,y+5.5); doc.text('CANT.',138,y+5.5,{align:'center'});
-doc.text('PRECIO',158,y+5.5,{align:'right'}); doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'}); y+=8;
-d.productos.forEach((p,idx)=>{
-if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
-doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
-doc.text(p.nombre,margin+3,y+5); doc.text(String(p.cantidad),138,y+5,{align:'center'});
-doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
-doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
-doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'}); y+=7;
-});
-y+=4; doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240);
-doc.text('TOTAL GENERAL',margin+4,y+8); doc.setFontSize(13); doc.setTextColor(78,201,160);
-doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
-if(d.gps){
-y+=18; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=9;
-doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
-doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255); doc.text('GPS',margin+7,y+7.8,{align:'center'});
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('COORDENADAS',margin+14,y+6);
-doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('PRECISIÓN',margin+14,y+18);
-doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
-const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
-doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'}); y+=26;
-}
-y+=16; doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
-doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
-doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
-doc.text('Firma del asesor',margin+30,y+5,{align:'center'}); doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
-doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
-return doc.output('datauristring').split(',')[1];
+  if (!ultimoRegistro) return null;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const d = ultimoRegistro, pageW = 210, margin = 18, col2 = 100;
+  doc.setFillColor(26,58,92); doc.rect(0,0,pageW,38,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+  doc.text('AQUA LUAN',margin,16);
+  doc.setFontSize(8); doc.setTextColor(78,201,160); doc.text('SISTEMA DE PEDIDOS',margin,22);
+  doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
+  doc.setFont('helvetica','normal');
+  const fechaStr = d.fecha ? new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
+  doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
+  let y=48;
+  doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
+  doc.text('ASESOR / RUTA',margin+4,y+7); doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+  doc.text(d.empleado||'-',margin+4,y+15); doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110);
+  doc.text('FORMA DE PAGO',col2,y+7); doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+  doc.text(d.formapago||'-',col2,y+15);
+  y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('DATOS DEL CLIENTE',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=8;
+  [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text(lbl.toUpperCase(),margin,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+    const lines=doc.splitTextToSize(val,pageW-margin-col2+20); doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
+  });
+  y+=4; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
+  doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  doc.text('PRODUCTO',margin+3,y+5.5); doc.text('CANT.',138,y+5.5,{align:'center'});
+  doc.text('PRECIO',158,y+5.5,{align:'right'}); doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'}); y+=8;
+  d.productos.forEach((p,idx)=>{
+    if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+    doc.text(p.nombre,margin+3,y+5); doc.text(String(p.cantidad),138,y+5,{align:'center'});
+    doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
+    doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
+    doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'}); y+=7;
+  });
+  y+=4; doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text('TOTAL GENERAL',margin+4,y+8); doc.setFontSize(13); doc.setTextColor(78,201,160);
+  doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
+  if(d.gps){
+    y+=18; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=9;
+    doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
+    doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255); doc.text('GPS',margin+7,y+7.8,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('COORDENADAS',margin+14,y+6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('PRECISIÓN',margin+14,y+18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
+    const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'}); y+=26;
+  }
+  y+=16; doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
+  doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
+  doc.text('Firma del asesor',margin+30,y+5,{align:'center'}); doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
+  doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
+  return doc.output('datauristring').split(',')[1];
 }
 function descargarPDF() {
-if (!ultimoRegistro) return;
-const { jsPDF } = window.jspdf;
-const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-const d = ultimoRegistro, pageW = 210, margin = 18, col2 = 100;
-doc.setFillColor(26,58,92); doc.rect(0,0,pageW,38,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255); doc.text('AQUA LUAN',margin,16);
-doc.setFontSize(8); doc.setTextColor(78,201,160); doc.text('SISTEMA DE PEDIDOS',margin,22);
-doc.setFontSize(9); doc.setTextColor(200,220,240);
-doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
-const fechaStr=d.fecha?new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'-';
-doc.setFont('helvetica','normal'); doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
-let y=48;
-doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('ASESOR / RUTA',margin+4,y+7);
-doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.empleado||'-',margin+4,y+15);
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('FORMA DE PAGO',col2,y+7);
-doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.formapago||'-',col2,y+15);
-y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-doc.text('DATOS DEL CLIENTE',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=8;
-[['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text(lbl.toUpperCase(),margin,y);
-doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
-const lines=doc.splitTextToSize(val,pageW-margin-col2+20); doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
-});
-y+=4; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
-doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-doc.text('PRODUCTO',margin+3,y+5.5); doc.text('CANT.',138,y+5.5,{align:'center'});
-doc.text('PRECIO',158,y+5.5,{align:'right'}); doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'}); y+=8;
-d.productos.forEach((p,idx)=>{
-if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
-doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
-doc.text(p.nombre,margin+3,y+5); doc.text(String(p.cantidad),138,y+5,{align:'center'});
-doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
-doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
-doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'}); y+=7;
-});
-y+=4; doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240); doc.text('TOTAL GENERAL',margin+4,y+8);
-doc.setFontSize(13); doc.setTextColor(78,201,160); doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
-if(d.gps){
-y+=18; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
-doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=9;
-doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
-doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255); doc.text('GPS',margin+7,y+7.8,{align:'center'});
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('COORDENADAS',margin+14,y+6);
-doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('PRECISIÓN',margin+14,y+18);
-doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
-const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
-doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
-doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'}); y+=26;
-}
-y+=16; doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
-doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
-doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
-doc.text('Firma del asesor',margin+30,y+5,{align:'center'}); doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
-doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
-doc.save(`Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`);
+  if (!ultimoRegistro) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const d = ultimoRegistro, pageW = 210, margin = 18, col2 = 100;
+  doc.setFillColor(26,58,92); doc.rect(0,0,pageW,38,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255); doc.text('AQUA LUAN',margin,16);
+  doc.setFontSize(8); doc.setTextColor(78,201,160); doc.text('SISTEMA DE PEDIDOS',margin,22);
+  doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
+  const fechaStr=d.fecha?new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'-';
+  doc.setFont('helvetica','normal'); doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
+  let y=48;
+  doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('ASESOR / RUTA',margin+4,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.empleado||'-',margin+4,y+15);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('FORMA DE PAGO',col2,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.formapago||'-',col2,y+15);
+  y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('DATOS DEL CLIENTE',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=8;
+  [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text(lbl.toUpperCase(),margin,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+    const lines=doc.splitTextToSize(val,pageW-margin-col2+20); doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
+  });
+  y+=4; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
+  doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  doc.text('PRODUCTO',margin+3,y+5.5); doc.text('CANT.',138,y+5.5,{align:'center'});
+  doc.text('PRECIO',158,y+5.5,{align:'right'}); doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'}); y+=8;
+  d.productos.forEach((p,idx)=>{
+    if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+    doc.text(p.nombre,margin+3,y+5); doc.text(String(p.cantidad),138,y+5,{align:'center'});
+    doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
+    doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
+    doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'}); y+=7;
+  });
+  y+=4; doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240); doc.text('TOTAL GENERAL',margin+4,y+8);
+  doc.setFontSize(13); doc.setTextColor(78,201,160); doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
+  if(d.gps){
+    y+=18; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=9;
+    doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
+    doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255); doc.text('GPS',margin+7,y+7.8,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('COORDENADAS',margin+14,y+6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('PRECISIÓN',margin+14,y+18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
+    const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'}); y+=26;
+  }
+  y+=16; doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
+  doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
+  doc.text('Firma del asesor',margin+30,y+5,{align:'center'}); doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
+  doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
+  doc.save(`Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`);
 }
 async function subirPDFaDrive() {
-if (!ultimoRegistro) { setStatus('error', 'No hay pedido activo. Guarda primero el registro.'); return; }
-if (!navigator.onLine) { setStatus('error', '⚠ Sin conexión. Conéctate a internet para subir el PDF.'); return; }
-const d = ultimoRegistro;
-const btn = document.getElementById('btnDrive');
-const progWrap = document.getElementById('driveProgress');
-const progFill = document.getElementById('progressFill');
-const progText = document.getElementById('progressText');
-const progPct = document.getElementById('progressPct');
-const progLink = document.getElementById('progressLink');
-btn.disabled = true; progWrap.classList.add('show'); progLink.classList.remove('show');
-progFill.style.width = '0%'; progText.textContent = 'Generando PDF...'; progPct.textContent = '0%';
-let pct = 0;
-const tick = setInterval(() => { pct = Math.min(pct+8,40); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; }, 120);
-let pdfBase64;
-try { pdfBase64 = generarPDFBase64(); } catch(e) {
-clearInterval(tick); btn.disabled=false; progWrap.classList.remove('show');
-setStatus('error','Error al generar el PDF. Intenta de nuevo.'); return;
+  if (!ultimoRegistro) { setStatus('error', 'No hay pedido activo. Guarda primero el registro.'); return; }
+  if (!navigator.onLine) { setStatus('error', '⚠ Sin conexión. Conéctate a internet para subir el PDF.'); return; }
+  const d = ultimoRegistro;
+  const btn = document.getElementById('btnDrive');
+  const progWrap = document.getElementById('driveProgress');
+  const progFill = document.getElementById('progressFill');
+  const progText = document.getElementById('progressText');
+  const progPct = document.getElementById('progressPct');
+  const progLink = document.getElementById('progressLink');
+  btn.disabled = true; progWrap.classList.add('show'); progLink.classList.remove('show');
+  progFill.style.width = '0%'; progText.textContent = 'Generando PDF...'; progPct.textContent = '0%';
+  let pct = 0;
+  const tick = setInterval(() => { pct = Math.min(pct+8,40); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; }, 120);
+  let pdfBase64;
+  try { pdfBase64 = generarPDFBase64(); } catch(e) {
+    clearInterval(tick); btn.disabled=false; progWrap.classList.remove('show');
+    setStatus('error','Error al generar el PDF. Intenta de nuevo.'); return;
+  }
+  clearInterval(tick); progFill.style.width='45%'; progPct.textContent='45%'; progText.textContent='Subiendo a Google Drive...';
+  const tick2 = setInterval(() => { pct=Math.min(pct+5,85); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; },200);
+  const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`;
+  const payload = { accion:'subir_pdf', pdfBase64, nombreArchivo, empleado:d.empleado, nombre:d.nombre, fecha:d.fecha };
+  try {
+    const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    clearInterval(tick2);
+    let json={};
+    try { json = await resp.json(); } catch(e) { json={ result:'ok' }; }
+    if (json.result==='ok'||resp.ok) {
+      progFill.style.width='100%'; progPct.textContent='100%'; progText.textContent='✓ PDF subido a Google Drive';
+      if (json.fileUrl) { progLink.innerHTML=`📄 <a href="${json.fileUrl}" target="_blank">Ver PDF en Google Drive</a>`; progLink.classList.add('show'); }
+      setStatus('success','✓ PDF del pedido subido correctamente a Google Drive.');
+    } else throw new Error(json.error||'Error del servidor');
+  } catch(err) { clearInterval(tick2); progWrap.classList.remove('show'); setStatus('error',`Error al subir el PDF: ${err.message||'verifica tu conexión.'}`); }
+  btn.disabled=false;
 }
-clearInterval(tick); progFill.style.width='45%'; progPct.textContent='45%'; progText.textContent='Subiendo a Google Drive...';
-const tick2 = setInterval(() => { pct=Math.min(pct+5,85); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; },200);
-const nombreArchivo = `Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`;
-const payload = { accion:'subir_pdf', pdfBase64, nombreArchivo, empleado:d.empleado, nombre:d.nombre, fecha:d.fecha };
-try {
-const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-clearInterval(tick2);
-let json={};
-try { json = await resp.json(); } catch(e) { json={ result:'ok' }; }
-if (json.result==='ok'||resp.ok) {
-progFill.style.width='100%'; progPct.textContent='100%'; progText.textContent='✓ PDF subido a Google Drive';
-if (json.fileUrl) { progLink.innerHTML=`📄 <a href="${json.fileUrl}" target="_blank">Ver PDF en Google Drive</a>`; progLink.classList.add('show'); }
-setStatus('success','✓ PDF del pedido subido correctamente a Google Drive.');
-} else throw new Error(json.error||'Error del servidor');
-} catch(err) { clearInterval(tick2); progWrap.classList.remove('show'); setStatus('error',`Error al subir el PDF: ${err.message||'verifica tu conexión.'}`); }
-btn.disabled=false;
-}
+
 /* ════════════════════════════════════════════
 WHATSAPP
 ════════════════════════════════════════════ */
+// ── ✅ FIX 5: WhatsApp lee siempre desde ultimoRegistro (persistido post-guardado)
 function enviarWhatsapp() {
-if (!ultimoRegistro) return;
-const d = ultimoRegistro;
-const lineas = d.productos.map(p => ` - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
-const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${d.gps.url}` : '';
-const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
-`👤 *Cliente:* ${d.nombre}%0A📞 *Telefono:* ${d.telefono||'-'}%0A📍 *Direccion:* ${d.direccion||'-'}%0A` +
-`📅 *Fecha:* ${d.fecha}%0A👷 *Asesor:* ${d.empleado}%0A💳 *Pago:* ${d.formapago||'-'}%0A%0A` +
-`📦 *Productos:*%0A${lineas}%0A%0A💰 *TOTAL: $${d.total}*%0A📝 *Notas:* ${d.notas||'-'}` + gpsLinea;
-window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${msg}`, '_blank');
+  if (!ultimoRegistro) return;
+  const d = ultimoRegistro;
+  const lineas = d.productos.map(p => ` - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
+  const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${d.gps.url}` : '';
+  const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
+    `👤 *Cliente:* ${d.nombre}%0A📞 *Telefono:* ${d.telefono||'-'}%0A📍 *Direccion:* ${d.direccion||'-'}%0A` +
+    `📅 *Fecha:* ${d.fecha}%0A👷 *Asesor:* ${d.empleado}%0A💳 *Pago:* ${d.formapago||'-'}%0A%0A` +
+    `📦 *Productos:*%0A${lineas}%0A%0A💰 *TOTAL: $${d.total}*%0A📝 *Notas:* ${d.notas||'-'}` + gpsLinea;
+  window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${msg}`, '_blank');
 }
 function enviarWhatsappSecretaria() {
-if (!ultimoRegistro) return;
-const d = ultimoRegistro;
-const lineas = d.productos.map(p => ` - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
-const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${d.gps.url}` : '';
-const msg = `Estimada Secretaria, se envia pedido de cliente:%0A%0A` +
-`👤 *Cliente:* ${d.nombre}%0A📞 *Telefono:* ${d.telefono||'-'}%0A📍 *Direccion:* ${d.direccion||'-'}%0A` +
-`📅 *Fecha:* ${d.fecha}%0A👷 *Asesor:* ${d.empleado}%0A💳 *Pago:* ${d.formapago||'-'}%0A%0A` +
-`📦 *Productos:*%0A${lineas}%0A%0A💰 *TOTAL: $${d.total}*%0A📝 *Notas:* ${d.notas||'-'}` + gpsLinea;
-window.open(`https://wa.me/${WHATSAPP_SECRETARIA}?text=${msg}`, '_blank');
+  if (!ultimoRegistro) return;
+  const d = ultimoRegistro;
+  const lineas = d.productos.map(p => ` - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
+  const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${d.gps.url}` : '';
+  const msg = `Estimada Secretaria, se envia pedido de cliente:%0A%0A` +
+    `👤 *Cliente:* ${d.nombre}%0A📞 *Telefono:* ${d.telefono||'-'}%0A📍 *Direccion:* ${d.direccion||'-'}%0A` +
+    `📅 *Fecha:* ${d.fecha}%0A👷 *Asesor:* ${d.empleado}%0A💳 *Pago:* ${d.formapago||'-'}%0A%0A` +
+    `📦 *Productos:*%0A${lineas}%0A%0A💰 *TOTAL: $${d.total}*%0A📝 *Notas:* ${d.notas||'-'}` + gpsLinea;
+  window.open(`https://wa.me/${WHATSAPP_SECRETARIA}?text=${msg}`, '_blank');
 }
+
 /* ════════════════════════════════════════════
 MODAL click fuera
 ════════════════════════════════════════════ */
 document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target===this) cerrarModal(); });
 renderLista();
+
 /* ════════════════════════════════════════════
 LOGIN
 ════════════════════════════════════════════ */
 function doLogin() {
-const user = document.getElementById('loginUser').value.trim();
-const pass = document.getElementById('loginPass').value;
-if (user==='admin' && pass==='00000') {
-document.getElementById('loginOverlay').style.display='none';
-document.getElementById('loginError').classList.remove('show');
-} else {
-document.getElementById('loginError').classList.add('show');
-document.getElementById('loginPass').value='';
-document.getElementById('loginPass').focus();
-}
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (user==='admin' && pass==='00000') {
+    document.getElementById('loginOverlay').style.display='none';
+    document.getElementById('loginError').classList.remove('show');
+  } else {
+    document.getElementById('loginError').classList.add('show');
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginPass').focus();
+  }
 }
 </script>
 </body>
