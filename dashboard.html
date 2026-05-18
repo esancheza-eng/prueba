@@ -1,203 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard Aqua Luan</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+    background:#f4f6f9;
+}
+
+/* LOGIN */
+
+#loginOverlay{
+    position:fixed;
+    inset:0;
+    background:#0f172a;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.login-box{
+    background:#fff;
+    padding:40px;
+    border-radius:16px;
+    width:320px;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+}
+
+.login-box h2{
+    margin-top:0;
+    text-align:center;
+}
+
+.login-box input{
+    width:100%;
+    padding:12px;
+    margin-bottom:14px;
+    border:1px solid #ccc;
+    border-radius:10px;
+    font-size:16px;
+}
+
+.btn-login{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#0ea5e9;
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.error{
+    display:none;
+    color:red;
+    margin-bottom:10px;
+}
+
+.error.show{
+    display:block;
+}
+
+.hidden{
+    display:none !important;
+}
+
+/* HEADER */
+
+.header{
+    background:#0f172a;
+    color:#fff;
+    padding:20px;
+}
+
+.header h1{
+    margin:0;
+}
+
+/* FILTROS */
+
+.filters{
+    display:flex;
+    gap:10px;
+    padding:20px;
+    flex-wrap:wrap;
+}
+
+.filters input,
+.filters button{
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+.filters button{
+    background:#0ea5e9;
+    color:#fff;
+    border:none;
+    cursor:pointer;
+}
+
+/* KPIs */
+
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    padding:20px;
+}
+
+.kpi-card{
+    background:#fff;
+    border-radius:16px;
+    padding:25px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.kpi-card h3{
+    margin:0;
+    font-size:34px;
+}
+
+.kpi-card p{
+    margin-top:8px;
+    color:#666;
+}
+
+.teal{
+    border-left:8px solid #14b8a6;
+}
+
+.orange{
+    border-left:8px solid #f97316;
+}
+
+.blue{
+    border-left:8px solid #3b82f6;
+}
+
+/* TABLA */
+
+.table-card{
+    background:#fff;
+    margin:20px;
+    border-radius:16px;
+    overflow:auto;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#0f172a;
+    color:#fff;
+    padding:12px;
+    text-align:left;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+
+.loading{
+    padding:40px;
+    text-align:center;
+    font-size:18px;
+}
+
+.footer{
+    padding:20px;
+    color:#666;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div id="loginOverlay">
+
+    <div class="login-box">
+
+        <h2>Dashboard Aqua Luan</h2>
+
+        <div id="loginError" class="error">
+            Usuario o contraseña incorrectos
+        </div>
+
+        <input
+            type="text"
+            id="loginUser"
+            placeholder="Usuario"
+        >
+
+        <input
+            type="password"
+            id="loginPass"
+            placeholder="Contraseña"
+        >
+
+        <button
+            class="btn-login"
+            onclick="doLogin()"
+        >
+            Ingresar al Dashboard
+        </button>
+
+    </div>
+
+</div>
+
+<!-- HEADER -->
+
+<div class="header">
+
+    <h1>Dashboard Aqua Luan</h1>
+
+</div>
+
+<!-- FILTROS -->
+
+<div class="filters">
+
+    <input
+        type="date"
+        id="filtroFecha"
+        onchange="renderDashboard()"
+    >
+
+    <button onclick="filtrarHoy()">
+        Hoy
+    </button>
+
+    <button onclick="limpiarFiltro()">
+        Limpiar
+    </button>
+
+</div>
+
+<!-- KPIS -->
+
+<div class="kpi-grid" id="kpiGrid">
+
+    <div class="loading">
+        Cargando...
+    </div>
+
+</div>
+
+<!-- TABLA -->
+
+<div class="table-card">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Fecha</th>
+<th>Asesor</th>
+<th>Cliente</th>
+<th>Teléfono</th>
+<th>Producto</th>
+<th>Cantidad</th>
+<th>Subtotal</th>
+<th>Total</th>
+<th>Pago</th>
+<th>GPS</th>
+</tr>
+
+</thead>
+
+<tbody id="tablaPedidos">
+
+<tr>
+<td colspan="10">
+Cargando...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<div class="footer" id="lastUpdate">
+Actualizado: -
+</div>
+
 <script>
 
-/* ════════════════════════════════════════
-CONFIG
-════════════════════════════════════════ */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-AimadRlsKD3mKqOWq9gmTybPkvqdd-K6-Tlxo4cdguqFt11hF9RO2N27-t68_uQT/exec';
+/* CONFIG */
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-AimadRlsKD3mKqOWq9gmTybPkvqdd-K6-Tlxo4cdguqFt11hF9RO2N27-t68_uQT/exec";
 
 const USUARIO = 'supervisor';
 const CLAVE = 'aqua2026';
 
 let todosLosDatos = [];
-let charts = {};
 let autoRefreshInterval = null;
-let datosNotasFiltrados = [];
 
-/* ════════════════════════════════════════
-LOGIN
-════════════════════════════════════════ */
-async function doLogin() {
+/* LOGIN */
 
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
+async function doLogin(){
 
-  const btn = document.querySelector('.btn-login');
-  const errorMsg = document.getElementById('loginError');
+    const user =
+        document.getElementById('loginUser').value.trim();
 
-  btn.innerHTML = "Verificando...";
+    const pass =
+        document.getElementById('loginPass').value;
 
-  if (errorMsg) {
+    const btn =
+        document.querySelector('.btn-login');
+
+    const errorMsg =
+        document.getElementById('loginError');
+
+    btn.innerHTML = "Verificando...";
+
     errorMsg.classList.remove('show');
-  }
 
-  try {
+    try{
 
-    const resp = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        accion: 'login',
-        user: user,
-        pass: pass
-      })
-    });
+        const resp = await fetch(SCRIPT_URL,{
+            method:'POST',
+            body:JSON.stringify({
+                accion:'login',
+                user:user,
+                pass:pass
+            })
+        });
 
-    const res = await resp.json();
+        const res = await resp.json();
 
-    if (res.result === 'ok') {
+        if(res.result === 'ok'){
 
-      document.getElementById('loginOverlay')
-        .classList.add('hidden');
+            document
+                .getElementById('loginOverlay')
+                .classList.add('hidden');
 
-      iniciar();
+            iniciar();
 
-    } else {
+        }else{
 
-      if (errorMsg) {
-        errorMsg.classList.add('show');
-      }
+            errorMsg.classList.add('show');
 
-      btn.innerHTML = "Ingresar al Dashboard";
+            btn.innerHTML =
+                "Ingresar al Dashboard";
+        }
+
+    }catch(err){
+
+        alert("Error de conexión");
+
+        btn.innerHTML =
+            "Ingresar al Dashboard";
     }
-
-  } catch (err) {
-
-    alert("Error de conexión con el servidor");
-
-    btn.innerHTML = "Ingresar al Dashboard";
-  }
 }
 
-/* ════════════════════════════════════════
-INICIAR
-════════════════════════════════════════ */
-function iniciar() {
+/* INICIAR */
 
-  const hoy = new Date();
+function iniciar(){
 
-  const yyyy = hoy.getFullYear();
-  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dd = String(hoy.getDate()).padStart(2, '0');
+    const hoy = new Date();
 
-  document.getElementById('filtroFecha').value =
-    `${yyyy}-${mm}-${dd}`;
+    const yyyy = hoy.getFullYear();
 
-  document.getElementById('notasFecha').value =
-    `${yyyy}-${mm}-${dd}`;
+    const mm =
+        String(hoy.getMonth()+1).padStart(2,'0');
 
-  cargarDatos();
+    const dd =
+        String(hoy.getDate()).padStart(2,'0');
 
-  autoRefreshInterval = setInterval(() => {
+    document.getElementById('filtroFecha').value =
+        `${yyyy}-${mm}-${dd}`;
 
-    const hora = new Date().getHours();
+    cargarDatos();
 
-    if (hora >= 7 && hora < 20) {
-      cargarDatos(false);
-    }
+    autoRefreshInterval = setInterval(()=>{
 
-  }, 60000);
+        const hora = new Date().getHours();
+
+        if(hora >= 7 && hora < 20){
+            cargarDatos(false);
+        }
+
+    },60000);
 }
 
-/* ════════════════════════════════════════
-CARGAR DATOS
-════════════════════════════════════════ */
-async function cargarDatos(mostrarSpinner = true) {
+/* CARGAR DATOS */
 
-  const kpiGrid = document.getElementById('kpiGrid');
+async function cargarDatos(mostrarSpinner = true){
 
-  if (mostrarSpinner && kpiGrid) {
+    const kpiGrid =
+        document.getElementById('kpiGrid');
 
-    kpiGrid.innerHTML = `
-      <div class="loading">
-        <div class="spinner"></div>
-        <span>Cargando datos seguros...</span>
-      </div>
-    `;
-  }
-
-  try {
-
-    const resp = await fetch(
-      `${SCRIPT_URL}?token=aqua2026&t=${Date.now()}`
-    );
-
-    const json = await resp.json();
-
-    if (json.result === 'ok') {
-
-      todosLosDatos = json.data || [];
-
-      renderDashboard();
-
-      document.getElementById('lastUpdate').textContent =
-        'Actualizado: ' + new Date().toLocaleTimeString();
-
-    } else {
-
-      if (kpiGrid) {
+    if(mostrarSpinner){
 
         kpiGrid.innerHTML = `
-          <div class="loading">
-            <span>⚠️ Error: ${json.error}</span>
-          </div>
+            <div class="loading">
+                Cargando datos...
+            </div>
         `;
-      }
     }
 
-  } catch (err) {
+    try{
 
-    console.error("Error en fetch:", err);
+        const resp = await fetch(
+            `${SCRIPT_URL}?token=aqua2026&t=${Date.now()}`
+        );
 
-    if (kpiGrid) {
+        const json = await resp.json();
 
-      kpiGrid.innerHTML = `
-        <div class="loading">
-          <span>⚠️ Error de conexión</span>
+        if(json.result === 'ok'){
+
+            todosLosDatos = json.data || [];
+
+            renderDashboard();
+
+            document.getElementById('lastUpdate')
+                .textContent =
+                'Actualizado: ' +
+                new Date().toLocaleTimeString();
+
+        }else{
+
+            kpiGrid.innerHTML = `
+                <div class="loading">
+                    ⚠️ ${json.error}
+                </div>
+            `;
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+        kpiGrid.innerHTML = `
+            <div class="loading">
+                ⚠️ Error de conexión
+            </div>
+        `;
+    }
+}
+
+/* FILTROS */
+
+function filtrarHoy(){
+
+    const hoy = new Date();
+
+    const yyyy = hoy.getFullYear();
+
+    const mm =
+        String(hoy.getMonth()+1).padStart(2,'0');
+
+    const dd =
+        String(hoy.getDate()).padStart(2,'0');
+
+    document.getElementById('filtroFecha').value =
+        `${yyyy}-${mm}-${dd}`;
+
+    renderDashboard();
+}
+
+function limpiarFiltro(){
+
+    document.getElementById('filtroFecha').value = '';
+
+    renderDashboard();
+}
+
+function getDatosFiltrados(){
+
+    const filtro =
+        document.getElementById('filtroFecha').value;
+
+    if(!filtro) return todosLosDatos;
+
+    return todosLosDatos.filter(r=>{
+
+        const fecha =
+            r['FECHA'] || '';
+
+        return String(fecha).includes(filtro);
+
+    });
+}
+
+/* DASHBOARD */
+
+function renderDashboard(){
+
+    const datos = getDatosFiltrados();
+
+    const total = datos.reduce((s,r)=>
+        s + (parseFloat(r['TOTAL PEDIDO ($)']) || 0)
+    ,0);
+
+    const unidades = datos.reduce((s,r)=>
+        s + (parseFloat(r['CANTIDAD']) || 0)
+    ,0);
+
+    const kpiGrid =
+        document.getElementById('kpiGrid');
+
+    kpiGrid.innerHTML = `
+
+        <div class="kpi-card teal">
+            <h3>$${total.toFixed(2)}</h3>
+            <p>TOTAL VENTAS</p>
         </div>
-      `;
+
+        <div class="kpi-card orange">
+            <h3>${unidades}</h3>
+            <p>BOTELLONES</p>
+        </div>
+
+        <div class="kpi-card blue">
+            <h3>${datos.length}</h3>
+            <p>PEDIDOS</p>
+        </div>
+
+    `;
+
+    const tbody =
+        document.getElementById('tablaPedidos');
+
+    if(datos.length === 0){
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10">
+                    No hay datos
+                </td>
+            </tr>
+        `;
+
+        return;
     }
-  }
-}
 
-/* ════════════════════════════════════════
-FILTROS
-════════════════════════════════════════ */
-function filtrarHoy() {
+    tbody.innerHTML = datos.map(r=>`
 
-  const hoy = new Date();
+        <tr>
 
-  const yyyy = hoy.getFullYear();
-  const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dd = String(hoy.getDate()).padStart(2, '0');
+            <td>
+                ${String(r.FECHA || '').split('T')[0]}
+            </td>
 
-  document.getElementById('filtroFecha').value =
-    `${yyyy}-${mm}-${dd}`;
+            <td>
+                ${r['ASESOR / RUTA'] || '-'}
+            </td>
 
-  renderDashboard();
-}
+            <td>
+                ${r.CLIENTE || '-'}
+            </td>
 
-function limpiarFiltro() {
+            <td>
+                ${r['TELÉFONO'] || '-'}
+            </td>
 
-  document.getElementById('filtroFecha').value = '';
+            <td>
+                ${r.PRODUCTO || '-'}
+            </td>
 
-  renderDashboard();
-}
+            <td>
+                ${r.CANTIDAD || '0'}
+            </td>
 
-function getDatosFiltrados() {
+            <td>
+                $${parseFloat(
+                    r['SUBTOTAL'] || 0
+                ).toFixed(2)}
+            </td>
 
-  const filtro =
-    document.getElementById('filtroFecha').value;
+            <td>
+                <strong>
+                    $${parseFloat(
+                        r['TOTAL PEDIDO ($)'] || 0
+                    ).toFixed(2)}
+                </strong>
+            </td>
 
-  if (!filtro) return todosLosDatos;
+            <td>
+                ${r['FORMA DE PAGO'] || '-'}
+            </td>
 
-  return todosLosDatos.filter(r => {
+            <td>
+                ${
+                    r['LINK GPS']
+                    ? `<a href="${r['LINK GPS']}" target="_blank">📍</a>`
+                    : '-'
+                }
+            </td>
 
-    const fecha =
-      r['FECHA'] || r['fecha'] || '';
+        </tr>
 
-    return String(fecha).includes(filtro);
-  });
+    `).join('');
 }
 
 </script>
+
 </body>
 </html>
