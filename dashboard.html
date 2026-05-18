@@ -4,104 +4,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — Aqua Luan</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  /* MANTENEMOS TU DISEÑO ORIGINAL */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --navy: #1a3a5c; --teal: #0a7c6e; --accent: #4ec9a0; --text: #1a3a5c; --radius: 14px; }
-  body { background: linear-gradient(135deg, #d8e8f2 0%, #e8f2f8 100%); min-height: 100vh; font-family: 'DM Sans', sans-serif; color: var(--text); }
-  .login-overlay { position: fixed; inset: 0; background: var(--navy); z-index: 999; display: flex; align-items: center; justify-content: center; }
-  .login-overlay.hidden { display: none; }
-  .login-box { background: white; padding: 2.5rem; border-radius: var(--radius); width: 100%; max-width: 380px; text-align: center; }
-  .header { background: var(--navy); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; color: white; }
-  .layout { display: flex; }
-  .sidebar { width: 300px; background: var(--navy); padding: 1.25rem; color: white; min-height: calc(100vh - 64px); }
-  .content { flex: 1; padding: 1.5rem; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
-  .kpi-card { background: white; padding: 1.25rem; border-radius: var(--radius); box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-  .chart-card { background: white; padding: 1.25rem; border-radius: var(--radius); margin-bottom: 1.25rem; }
-  .hidden { display: none !important; }
-  input, select { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; }
-  table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
-  th { background: var(--navy); color: white; padding: 10px; text-align: left; font-size: 12px; }
-  td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+/* Mantenemos TODA tu estética original intacta */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+--navy: #1a3a5c; --teal: #0a7c6e; --teal-dark: #085f54; --teal-light: #e6f4f2;
+--accent: #4ec9a0; --blue: #1565c0; --red: #c0392b; --orange: #e67e22;
+--surface: #ffffff; --surface2: #f0f5f8; --border: rgba(0,80,120,0.1);
+--text: #1a3a5c; --muted: rgba(26,58,92,0.5); --radius: 14px;
+--radius-lg: 20px; --shadow: 0 4px 24px rgba(26,58,92,0.10);
+--shadow-lg: 0 8px 40px rgba(26,58,92,0.15);
+}
+html { font-size: 16px; }
+body {
+background: linear-gradient(135deg, #d8e8f2 0%, #e8f2f8 50%, #d0e8f0 100%);
+min-height: 100vh; font-family: 'DM Sans', sans-serif; color: var(--text); -webkit-text-size-adjust: 100%;
+}
+.login-overlay {
+position: fixed; inset: 0; background: linear-gradient(135deg, #1a3a5c 0%, #0a4a5e 50%, #085f54 100%);
+z-index: 999; display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.login-overlay.hidden { display: none; }
+.login-box {
+background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+backdrop-filter: blur(20px); border-radius: var(--radius-lg); padding: 2.5rem 2rem;
+width: 100%; max-width: 380px; animation: fadeUp 0.4s ease both;
+}
+.login-logo { text-align: center; margin-bottom: 2rem; }
+.login-brand { font-family: 'DM Sans', sans-serif; font-size: 1.8rem; font-weight: 800; color: #fff; letter-spacing: 0.02em; }
+.login-brand span { color: var(--accent); }
+.login-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 4px; }
+.login-field { margin-bottom: 14px; }
+.login-field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+.login-field input {
+width: 100%; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15);
+border-radius: 10px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; padding: 12px 14px; outline: none;
+}
+.login-error { display: none; color: #f48fb1; font-size: 13px; font-weight: 600; margin-bottom: 12px; text-align: center; }
+.login-error.show { display: block; }
+.btn-login {
+width: 100%; padding: 14px; background: var(--accent); color: var(--navy); border: none; border-radius: 10px; font-weight: 800; cursor: pointer;
+}
+.header {
+background: var(--navy); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 50;
+}
+.header-logo { font-size: 1.3rem; font-weight: 800; color: #fff; }
+.header-logo span { color: var(--accent); }
+.layout { display: flex; gap: 0; min-height: calc(100vh - 64px); }
+.sidebar {
+width: 300px; min-width: 300px; background: var(--navy); padding: 1.25rem; display: flex; flex-direction: column; gap: 12px; border-right: 1px solid rgba(255,255,255,0.08); position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto;
+}
+.content { flex: 1; overflow: hidden; }
+.content .main { padding: 1.5rem; max-width: 100%; margin: 0; }
+.filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin: 1.5rem; box-shadow: var(--shadow); }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 0 1.5rem 1.25rem 1.5rem; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.kpi-card.teal::before { background: var(--teal); }
+.kpi-card.blue::before { background: var(--blue); }
+.kpi-card.red::before { background: var(--red); }
+.kpi-card.orange::before { background: var(--orange); }
+.kpi-card.navy::before { background: var(--navy); }
+.kpi-card.accent::before { background: var(--accent); }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 1.5rem 1.25rem 1.5rem; }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); }
+.chart-card.full { grid-column: 1 / -1; }
+.table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin: 0 1.5rem 1.25rem 1.5rem; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { background: var(--navy); }
+thead th { padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.8); text-transform: uppercase; }
+tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; gap: 12px; color: var(--muted); }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--teal-light); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 </style>
 </head>
 <body>
 
 <div class="login-overlay" id="loginOverlay">
-  <div class="login-box">
-    <h2 style="color:var(--navy)">AQUA LUAN</h2>
-    <p style="margin-bottom:1.5rem; font-size:12px; color:#666">Dashboard Seguro</p>
-    <input type="text" id="loginUser" placeholder="Usuario">
-    <input type="password" id="loginPass" placeholder="Contraseña" style="margin-top:10px">
-    <button onclick="doLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:8px; margin-top:15px; font-weight:bold; cursor:pointer">Ingresar</button>
-    <p id="loginError" style="color:red; display:none; margin-top:10px; font-size:12px">Usuario o clave incorrectos</p>
-  </div>
+<div class="login-box">
+<div class="login-logo">
+<div class="login-brand">AQUA <span>LUAN</span></div>
+<div class="login-sub">Dashboard de Supervisión</div>
+</div>
+<div class="login-field">
+<label>Usuario</label>
+<input type="text" id="loginUser" placeholder="supervisor">
+</div>
+<div class="login-field">
+<label>Contraseña</label>
+<input type="password" id="loginPass" placeholder="••••••">
+</div>
+<div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+<button class="btn-login" onclick="doLogin()">Ingresar al Dashboard</button>
+</div>
 </div>
 
 <div class="header">
-  <div style="font-weight:800; font-size:1.2rem">AQUA LUAN <span>DASHBOARD</span></div>
-  <button onclick="location.reload()" style="background:rgba(255,255,255,0.1); border:1px solid white; color:white; padding:5px 15px; border-radius:20px; cursor:pointer">Salir</button>
+<div class="header-logo">AQUA <span>LUAN</span></div>
+<button onclick="cerrarSesion()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px; cursor:pointer">Salir</button>
 </div>
 
 <div class="layout">
-  <div class="sidebar">
-    <h4 style="color:var(--accent)">Filtros de Reporte</h4>
-    <div style="margin-top:20px">
-      <label style="font-size:10px; opacity:0.6">FECHA</label>
-      <input type="date" id="filtroFecha">
-    </div>
-    <button onclick="cargarDatos()" style="margin-top:15px; width:100%; padding:10px; background:var(--accent); border:none; border-radius:8px; font-weight:bold; cursor:pointer">Aplicar Filtro</button>
-  </div>
+<div class="sidebar">
+<div class="sidebar-title">📋 Notas de Ventas</div>
+<input type="date" id="notasFecha">
+<button class="btn-aplicar-notas" onclick="cargarDatos()">🔍 Aplicar Filtros</button>
+</div>
 
-  <div class="content">
-    <div class="kpi-grid" id="kpiGrid">
-        </div>
+<div class="content">
+<div class="filter-bar">
+<span class="filter-label">Fecha Reporte</span>
+<input type="date" id="filtroFecha">
+<button onclick="cargarDatos()" style="padding:5px 10px; cursor:pointer">Actualizar</button>
+</div>
 
-    <div class="chart-card">
-      <h4 style="font-size:11px; margin-bottom:15px; color:var(--teal)">RESUMEN DE VENTAS</h4>
-      <canvas id="chartVentas" height="100"></canvas>
-    </div>
+<div class="kpi-grid" id="kpiGrid"></div>
 
-    <div style="background:white; border-radius:14px; overflow:hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05)">
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody id="tablaPedidos"></tbody>
-      </table>
-    </div>
-  </div>
+<div class="charts-grid" id="chartsGrid">
+<div class="chart-card"><canvas id="chartRutas"></canvas></div>
+<div class="chart-card"><canvas id="chartProductos"></canvas></div>
+</div>
+
+<div class="table-card">
+<table>
+<thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Producto</th><th>Total</th></tr></thead>
+<tbody id="tablaPedidos"></tbody>
+</table>
+</div>
+</div>
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-AimadRlsKD3mKqOWq9gmTybPkvqdd-K6-Tlxo4cdguqFt11hF9RO2N27-t68_uQT/exec";
+/* ════════════════════════════════════════
+   LÓGICA DE SEGURIDAD ACTUALIZADA
+════════════════════════════════════════ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCrz4qJfYqmXltMPWyx-1QubHba964f-gpPrIt5ba1yY_J-6_uvwOZr5ORXa8L0l3G/exec";
+
 let todosLosDatos = [];
-let chartVentas = null;
+let charts = {};
 
 async function doLogin() {
-  const user = document.getElementById('loginUser').value;
+  const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
-  
-  const resp = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify({ accion: 'login', user: user, pass: pass })
-  });
-  const res = await resp.json();
+  const btn = document.querySelector('.btn-login');
 
-  if (res.result === 'ok') {
-    document.getElementById('loginOverlay').classList.add('hidden');
-    iniciar();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
+  btn.innerHTML = "Verificando...";
+  
+  try {
+    const resp = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'login', user: user, pass: pass })
+    });
+    const res = await resp.json();
+
+    if (res.result === 'ok') {
+      document.getElementById('loginOverlay').classList.add('hidden');
+      iniciar();
+    } else {
+      document.getElementById('loginError').classList.add('show');
+      btn.innerHTML = "Ingresar al Dashboard";
+    }
+  } catch (err) {
+    alert("Error de conexión");
+    btn.innerHTML = "Ingresar al Dashboard";
   }
 }
 
@@ -111,62 +180,41 @@ function iniciar() {
 }
 
 async function cargarDatos() {
-  const resp = await fetch(`${SCRIPT_URL}?token=aqua2026&t=${Date.now()}`);
-  const json = await resp.json();
-
-  if (json.result === 'ok') {
-    todosLosDatos = json.data;
-    renderDashboard();
-  }
+  // BLOQUEO: Solo baja datos si se envía el token
+  try {
+    const resp = await fetch(`${SCRIPT_URL}?token=aqua2026&t=${Date.now()}`);
+    const json = await resp.json();
+    if (json.result === 'ok') {
+      todosLosDatos = json.data || [];
+      renderDashboard();
+    }
+  } catch(err) { console.error("Error al cargar datos", err); }
 }
 
 function renderDashboard() {
   const filtro = document.getElementById('filtroFecha').value;
-  const datos = todosLosDatos.filter(r => String(r.FECHA).includes(filtro) || !filtro);
-  
+  const datos = todosLosDatos.filter(r => String(r.FECHA || '').includes(filtro));
+
   // KPIs
   const total = datos.reduce((s, r) => s + (parseFloat(r['TOTAL PEDIDO ($)']) || 0), 0);
-  const unidades = datos.reduce((s, r) => s + (parseFloat(r['CANTIDAD']) || 0), 0);
-  
   document.getElementById('kpiGrid').innerHTML = `
-    <div class="kpi-card"><h3>$${total.toFixed(2)}</h3><p style="font-size:10px; color:#999">TOTAL VENTAS</p></div>
-    <div class="kpi-card"><h3>${unidades}</h3><p style="font-size:10px; color:#999">BOTELLONES</p></div>
-    <div class="kpi-card"><h3>${datos.length}</h3><p style="font-size:10px; color:#999">PEDIDOS</p></div>
+    <div class="kpi-card teal"><h3>$${total.toFixed(2)}</h3><p>TOTAL VENTAS</p></div>
+    <div class="kpi-card orange"><h3>${datos.length}</h3><p>PEDIDOS</p></div>
   `;
 
   // TABLA
   document.getElementById('tablaPedidos').innerHTML = datos.map(r => `
     <tr>
       <td>${String(r.FECHA).split('T')[0]}</td>
+      <td>${r['ASESOR / RUTA'] || '-'}</td>
       <td>${r.CLIENTE}</td>
       <td>${r.PRODUCTO || '-'}</td>
-      <td>${r.CANTIDAD || '-'}</td>
       <td><strong>$${parseFloat(r['TOTAL PEDIDO ($)'] || 0).toFixed(2)}</strong></td>
     </tr>
   `).join('');
-
-  renderGrafica(datos);
 }
 
-function renderGrafica(datos) {
-  const ctx = document.getElementById('chartVentas').getContext('2d');
-  if (chartVentas) chartVentas.destroy();
-
-  const ventasPorHora = {};
-  datos.forEach(r => {
-    const hora = String(r['HORA REGISTRO']).split(':')[0];
-    if(hora) ventasPorHora[hora] = (ventasPorHora[hora] || 0) + (parseFloat(r['TOTAL PEDIDO ($)']) || 0);
-  });
-
-  chartVentas = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: Object.keys(ventasPorHora).map(h => h + ":00"),
-      datasets: [{ label: 'Ventas por Hora', data: Object.values(ventasPorHora), borderColor: '#0a7c6e', tension: 0.4 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false }
-  });
-}
+function cerrarSesion() { location.reload(); }
 </script>
 </body>
 </html>
