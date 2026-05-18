@@ -1,101 +1,165 @@
-// CONFIGURACIÓN DE SEGURIDAD - AQUA LUAN
-const MASTER_USER = "supervisor";
-const MASTER_PASS = "aqua2026";
-const API_TOKEN   = "aqua2026"; 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Aqua Luan</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        /* Estilos base (Mantenemos tu diseño original premium) */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1a3a5c; --teal: #0a7c6e; --accent: #4ec9a0; --surface: #ffffff;
+            --text: #1a3a5c; --muted: rgba(26,58,92,0.5); --radius: 14px;
+        }
+        body { background: #f0f5f8; font-family: 'DM Sans', sans-serif; color: var(--text); }
+        
+        /* LOGIN OVERLAY */
+        .login-overlay {
+            position: fixed; inset: 0; background: var(--navy); z-index: 999;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .login-box { background: white; padding: 2.5rem; border-radius: var(--radius); width: 100%; max-width: 350px; text-align: center; }
+        .login-field { margin-bottom: 1rem; text-align: left; }
+        .login-field input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-login { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 8px; font-weight: 800; cursor: pointer; }
+        
+        /* HEADER & LAYOUT */
+        .header { background: var(--navy); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: white; padding: 1rem; border-right: 1px solid #ddd; }
+        .content { flex: 1; padding: 2rem; }
+        .hidden { display: none !important; }
+        
+        /* CARDS */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .kpi-card { background: white; padding: 1.5rem; border-radius: var(--radius); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .chart-card { background: white; padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
 
-function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    const accion = data.accion;
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+        <h2 style="margin-bottom:1rem">AQUA LUAN</h2>
+        <div class="login-field">
+            <label>Usuario</label>
+            <input type="text" id="loginUser" placeholder="supervisor">
+        </div>
+        <div class="login-field">
+            <label>Contraseña</label>
+            <input type="password" id="loginPass" placeholder="••••••">
+        </div>
+        <button class="btn-login" onclick="doLogin()">Entrar</button>
+        <p id="loginError" style="color:red; display:none; margin-top:1rem">Credenciales incorrectas</p>
+    </div>
+</div>
 
-    // --- LOGIN SEGURO ---
-    if (accion === 'login') {
-      if (data.user === MASTER_USER && data.pass === MASTER_PASS) {
-        return responder({ result: 'ok', message: 'Acceso concedido' });
-      } else {
-        return responder({ result: 'error', error: 'Credenciales inválidas' });
-      }
+<div class="header">
+    <h3>AQUA LUAN DASHBOARD</h3>
+    <button onclick="cerrarSesion()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px; cursor:pointer">Salir</button>
+</div>
+
+<div class="layout">
+    <div class="sidebar">
+        <h4>Filtros</h4>
+        <input type="date" id="filtroFecha" style="width:100%; margin:10px 0; padding:8px">
+        <button onclick="cargarDatos()" style="width:100%; padding:10px; background:var(--navy); color:white; border:none; border-radius:5px; cursor:pointer">Aplicar Filtro</button>
+    </div>
+
+    <div class="content" id="mainContent">
+        <div class="kpi-grid" id="kpiGrid">
+            </div>
+        <div class="chart-card">
+            <canvas id="chartVentas" height="100"></canvas>
+        </div>
+        <div class="chart-card">
+            <table id="tablaDatos" style="width:100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #eee">
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTabla"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL DE TU SCRIPT DE GOOGLE (YA ACTUALIZADA)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-AimadRlsKD3mKqOWq9gmTybPkvqdd-K6-Tlxo4cdguqFt11hF9RO2N27-t68_uQT/exec";
+
+    async function doLogin() {
+        const user = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value;
+        const btn = document.querySelector('.btn-login');
+
+        btn.innerText = "Verificando...";
+        
+        try {
+            const resp = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'login', user: user, pass: pass })
+            });
+            const res = await resp.json();
+
+            if (res.result === 'ok') {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                iniciar();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                btn.innerText = "Entrar";
+            }
+        } catch (e) {
+            alert("Error de conexión");
+            btn.innerText = "Entrar";
+        }
     }
 
-    // --- ACCIONES DE REGISTRO ---
-    if (accion === 'registrar_pedido') return registrarPedido(data);
-    if (accion === 'registrar_pago')   return registrarPago(data);
-    if (accion === 'registrar_gasto')  return registrarGasto(data);
-    if (accion === 'subir_pdf')         return subirPDF(data);
-    
-    return responder({ result: 'error', error: 'Acción no reconocida' });
-  } catch (err) {
-    return responder({ result: 'error', error: err.message });
-  }
-}
-
-function doGet(e) {
-  // BLOQUEO DE SEGURIDAD: Solo responde si el token es correcto
-  if (e.parameter.token !== API_TOKEN) {
-    return responder({ result: 'error', error: 'No autorizado. Se requiere Token.' });
-  }
-
-  const ss   = SpreadsheetApp.getActiveSpreadsheet();
-  const hoja = ss.getSheetByName('GENERAL');
-  const datos = hoja.getDataRange().getValues();
-  
-  if (datos.length <= 1) return responder({ result: 'ok', data: [] });
-
-  const encabezados = datos[0];
-  const filas = datos.slice(1).filter(f => f[0] !== '');
-  
-  const registros = filas.map(f => {
-    const obj = {};
-    encabezados.forEach((h, i) => obj[h] = f[i]);
-    return obj;
-  });
-
-  return responder({ result: 'ok', data: registros });
-}
-
-// --- FUNCIONES DE APOYO (SIN CAMBIOS EN LÓGICA) ---
-
-function registrarPedido(d) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const hoja = ss.getSheetByName('GENERAL');
-  const hora = new Date().toLocaleTimeString('es-EC');
-  const productosRaw = d.productos ? d.productos.split(' | ') : [];
-  productosRaw.forEach((prod, idx) => {
-    const match = prod.match(/^(.+?)\s*\((\d+(?:\.\d+)?)\s*x\s*\$(\d+(?:\.\d+)?)\s*=\s*\$(\d+(?:\.\d+)?)\)$/);
-    let nombre = prod, cantidad = '', precio = '', subtotal = '';
-    if (match) {
-      nombre = match[1].trim(); cantidad = match[2]; precio = match[3]; subtotal = match[4];
+    function iniciar() {
+        // Poner fecha de hoy por defecto
+        document.getElementById('filtroFecha').value = new Date().toISOString().split('T')[0];
+        cargarDatos();
     }
-    hoja.appendRow([d.fecha, d.dia, d.mes, d.empleado, d.formapago, d.nombre, d.telefono, d.direccion, nombre, cantidad, precio, subtotal, idx === 0 ? d.total : '', idx === 0 ? d.notas : '', idx === 0 ? d.latitud : '', idx === 0 ? d.longitud : '', idx === 0 ? d.gps_link : '', idx === 0 ? d.gps_prec : '', idx === 0 ? hora]);
-  });
-  return responder({ result: 'ok' });
-}
 
-function registrarPago(d) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const hoja = ss.getSheetByName('GENERAL');
-  hoja.appendRow([d.fecha, '', '', d.empleado, d.forma, d.cliente, '', '', '', '', '', '', d.monto, d.notas, '', '', '', '', new Date().toLocaleTimeString('es-EC')]);
-  return responder({ result: 'ok' });
-}
+    async function cargarDatos() {
+        const fecha = document.getElementById('filtroFecha').value;
+        // LLAMADA SEGURA CON EL TOKEN
+        const resp = await fetch(`${SCRIPT_URL}?token=aqua2026&t=${Date.now()}`);
+        const json = await resp.json();
 
-function registrarGasto(d) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const hoja = ss.getSheetByName('GENERAL');
-  hoja.appendRow([d.fecha, '', '', d.empleado, d.categoria, d.desc, '', '', '', '', '', '', '-' + d.monto, d.ref, '', '', '', '', new Date().toLocaleTimeString('es-EC')]);
-  return responder({ result: 'ok' });
-}
+        if (json.result === 'ok') {
+            const datosFiltrados = json.data.filter(f => f.FECHA.includes(fecha) || !fecha);
+            renderizar(datosFiltrados);
+        }
+    }
 
-function subirPDF(d) {
-  const nombreCarpeta = 'AQUA LUAN - Pedidos PDF';
-  let carpeta;
-  const carpetas = DriveApp.getFoldersByName(nombreCarpeta);
-  carpeta = carpetas.hasNext() ? carpetas.next() : DriveApp.createFolder(nombreCarpeta);
-  const blob = Utilities.newBlob(Utilities.base64Decode(d.pdfBase64), 'application/pdf', d.nombreArchivo);
-  const archivo = carpeta.createFile(blob);
-  archivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return responder({ result: 'ok', fileUrl: archivo.getUrl() });
-}
+    function renderizar(datos) {
+        // Lógica simplificada para mostrar datos
+        const total = datos.reduce((s, r) => s + (parseFloat(r['TOTAL PEDIDO ($)']) || 0), 0);
+        
+        document.getElementById('kpiGrid').innerHTML = `
+            <div class="kpi-card"><h4>Total Ventas</h4><h2>$${total.toFixed(2)}</h2></div>
+            <div class="kpi-card"><h4>Pedidos</h4><h2>${datos.length}</h2></div>
+        `;
 
-function responder(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-}
+        const htmlTabla = datos.map(r => `
+            <tr style="border-bottom:1px solid #eee; height:40px">
+                <td>${r.FECHA.split('T')[0]}</td>
+                <td>${r.CLIENTE}</td>
+                <td>$${parseFloat(r['TOTAL PEDIDO ($)'] || 0).toFixed(2)}</td>
+            </tr>
+        `).join('');
+        document.getElementById('cuerpoTabla').innerHTML = htmlTabla;
+    }
+
+    function cerrarSesion() {
+        location.reload();
+    }
+</script>
+</body>
+</html>
