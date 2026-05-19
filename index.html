@@ -61,7 +61,7 @@ padding: 2rem 1rem 4rem;
 @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 .tabs-nav {
 display: grid;
-grid-template-columns: 1fr 1fr 1fr;
+grid-template-columns: 1fr 1fr 1fr 1fr; /* NUEVO: 4 tabs */
 background: var(--navy);
 border-radius: var(--radius-lg);
 padding: 6px;
@@ -91,6 +91,52 @@ letter-spacing: 0.02em;
 .tab-btn.active-ventas { background: var(--teal); color: #fff; }
 .tab-btn.active-pagos { background: var(--blue); color: #fff; }
 .tab-btn.active-gastos { background: var(--red); color: #fff; }
+.tab-btn.active-historial { background: #6d28d9; color: #fff; } /* NUEVO */
+/* NUEVO — campo bloqueado de asesor */
+.campo-bloqueado {
+background: var(--teal-light); border: 1.5px solid var(--teal);
+border-radius: var(--radius); padding: 11px 14px;
+font-size: 15px; font-weight: 700; color: var(--teal-dark);
+display: flex; align-items: center; gap: 8px; width: 100%;
+}
+/* NUEVO — botón cerrar sesión en header */
+.btn-logout {
+height: 30px; padding: 0 12px; background: rgba(255,255,255,0.12);
+color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2);
+border-radius: 100px; font-family: 'DM Sans', sans-serif;
+font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
+display: flex; align-items: center; gap: 5px;
+transition: background 0.2s; letter-spacing: 0.03em;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.22); color: #fff; }
+/* NUEVO — card de historial */
+.historial-card {
+background: var(--surface); border: 1px solid var(--border);
+border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+margin-bottom: 0.75rem; box-shadow: 0 2px 8px rgba(26,58,92,0.07);
+}
+.historial-cliente { font-size: 15px; font-weight: 700; color: var(--navy); }
+.historial-total { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #6d28d9; }
+.historial-meta { font-size: 12px; color: var(--muted); margin: 4px 0 10px; }
+.historial-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-hist {
+height: 34px; padding: 0 14px; border: none; border-radius: 100px;
+font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+cursor: pointer; display: flex; align-items: center; gap: 6px;
+transition: opacity 0.15s; color: #fff; white-space: nowrap;
+}
+.btn-hist:hover { opacity: 0.85; }
+.btn-hist-pdf { background: #c0392b; }
+.btn-hist-wa { background: var(--whatsapp); }
+.historial-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.btn-limpiar-hist {
+height: 28px; padding: 0 12px; background: var(--surface2);
+color: var(--muted); border: 1px solid var(--border);
+border-radius: 100px; font-family: 'DM Sans', sans-serif;
+font-size: 11px; font-weight: 700; cursor: pointer;
+transition: background 0.2s;
+}
+.btn-limpiar-hist:hover { background: #fee2e2; color: #b71c1c; border-color: #fca5a5; }
 .tab-content { display: none; }
 .tab-content.active { display: block; animation: fadeUp 0.3s ease both; }
 .offline-banner {
@@ -519,7 +565,11 @@ Sincronizar
 </div>
 </div>
 <div class="date-badge" id="fechaHoy"></div>
-</div>
+<!-- NUEVO: botón cerrar sesión -->
+<button class="btn-logout" id="btnLogout" onclick="cerrarSesion()" style="display:none">
+<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+Salir
+</button>
 <div class="tabs-nav">
 <button class="tab-btn active-ventas" onclick="cambiarTab('ventas')" id="tab-ventas">
 <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 2h1.5l2 8h6l1.5-5H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="13" r="1" fill="currentColor"/><circle cx="12" cy="13" r="1" fill="currentColor"/></svg>
@@ -533,12 +583,19 @@ Pagos
 <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
 Gastos
 </button>
+<!-- NUEVO: tab Historial -->
+<button class="tab-btn" onclick="cambiarTab('historial')" id="tab-historial">
+<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+Historial
+</button>
 </div>
 <div class="tab-content active" id="content-ventas">
 <div class="card">
 <div class="section-title">Empleado responsable</div>
 <div class="grid-2">
 <div class="field"><label>Ruta / Asesor</label>
+<!-- NUEVO: wrapper — admin ve select, asesor ve campo bloqueado -->
+<div id="wrap-empleado">
 <select id="empleado" required>
 <option value="">-- Selecciona --</option>
 <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
@@ -546,7 +603,8 @@ Gastos
 <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
 <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
 <option value="RUTA 5: Lister">RUTA 5: Lister</option>
-</select></div>
+</select>
+</div>
 <div class="field"><label>Forma de pago</label>
 <select id="formapago" required>
 <option value="">-- Selecciona --</option>
@@ -640,6 +698,8 @@ Registrar nuevo pedido
 <div class="section-title blue">Registrar pago recibido</div>
 <div class="grid-2">
 <div class="field"><label>Asesor / Ruta</label>
+<!-- NUEVO: wrapper pagos -->
+<div id="wrap-pago-empleado">
 <select id="pago-empleado" class="focus-blue">
 <option value="">-- Selecciona --</option>
 <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
@@ -647,7 +707,8 @@ Registrar nuevo pedido
 <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
 <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
 <option value="RUTA 5: Lister">RUTA 5: Lister</option>
-</select></div>
+</select>
+</div>
 <div class="field"><label>Fecha</label><input type="date" id="pago-fecha" class="focus-blue"></div>
 </div>
 <div class="field"><label>Cliente</label><input type="text" id="pago-cliente" placeholder="Nombre del cliente" autocomplete="off" class="focus-blue"></div>
@@ -691,6 +752,8 @@ Registrar pago
 <div class="section-title red">Registrar gasto</div>
 <div class="grid-2">
 <div class="field"><label>Responsable</label>
+<!-- NUEVO: wrapper gastos -->
+<div id="wrap-gasto-empleado">
 <select id="gasto-empleado" class="focus-red">
 <option value="">-- Selecciona --</option>
 <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
@@ -699,7 +762,8 @@ Registrar pago
 <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
 <option value="RUTA 5: Lister">RUTA 5: Lister</option>
 <option value="Administración">Administración</option>
-</select></div>
+</select>
+</div>
 <div class="field"><label>Fecha</label><input type="date" id="gasto-fecha" class="focus-red"></div>
 </div>
 <datalist id="gasto-categorias-list">
@@ -728,6 +792,16 @@ Registrar gasto
 <div id="gastosEmptyMsg" class="empty-msg">Aún no hay gastos registrados. Completa el formulario y haz clic en <strong>Registrar gasto</strong>.</div>
 </div>
 </div>
+<!-- NUEVO: tab Historial de pedidos -->
+<div class="tab-content" id="content-historial">
+<div class="card">
+<div class="historial-header-row">
+<div class="section-title" style="margin-bottom:0;flex:1">Pedidos de esta sesión</div>
+<button class="btn-limpiar-hist" onclick="limpiarHistorial()">🗑 Limpiar</button>
+</div>
+<div id="historialLista"></div>
+</div>
+</div>
 <div class="footer"><a href="https://www.elhyai.com" target="_blank">www.elhyai.com &nbsp;|&nbsp; Aqua Luan</a></div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -740,14 +814,26 @@ const STORE = 'pedidos-pendientes';
 const LS_KEY = 'aqualuan-pendientes-ls';
 let productos = [], dataPendiente = null, ultimoRegistro = null, dbInstance = null;
 let listaPagos = [], listaGastos = [];
+let usuarioActual = null; // NUEVO: usuario logueado
 
-const tabSubs = { ventas: 'Registro de Pedidos', pagos: 'Registro de Pagos', gastos: 'Registro de Gastos' };
+// NUEVO: tabla de usuarios
+const USUARIOS = {
+  'admin':     { pass: '00000',  nombre: 'Admin',     ruta: null },
+  'jefferson': { pass: 'ruta1',  nombre: 'Jefferson', ruta: 'RUTA 1: Jefferson' },
+  'luis':      { pass: 'ruta2',  nombre: 'Luis',      ruta: 'RUTA 2: Luis' },
+  'vicente':   { pass: 'ruta3',  nombre: 'Vicente',   ruta: 'RUTA 3: Vicente' },
+  'wilson':    { pass: 'ruta4',  nombre: 'Wilson',    ruta: 'RUTA 4: Wilson' },
+  'lister':    { pass: 'ruta5',  nombre: 'Lister',    ruta: 'RUTA 5: Lister' }
+};
+
+const tabSubs = { ventas: 'Registro de Pedidos', pagos: 'Registro de Pagos', gastos: 'Registro de Gastos', historial: 'Historial de Pedidos' }; // NUEVO: historial
 function cambiarTab(tab) {
-  ['ventas','pagos','gastos'].forEach(t => {
+  ['ventas','pagos','gastos','historial'].forEach(t => { // NUEVO: historial
     document.getElementById('content-' + t).classList.toggle('active', t === tab);
     document.getElementById('tab-' + t).className = 'tab-btn' + (t === tab ? ' active-' + t : '');
   });
   document.getElementById('logoSub').textContent = tabSubs[tab];
+  if (tab === 'historial') cargarHistorial(); // NUEVO: refrescar al abrir
 }
 
 function abrirDB() {
@@ -1026,6 +1112,7 @@ async function confirmarEnvio() {
   const estaOnline = navigator.onLine;
   const onExito = (modoOffline = false) => {
     ultimoRegistro = { ...dataPendiente };
+    guardarEnHistorial(ultimoRegistro); // NUEVO: guardar en historial para PDF posterior
     cerrarModal();
     if (modoOffline) { setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.'); }
     else { setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.'); }
@@ -1061,7 +1148,9 @@ async function confirmarEnvio() {
 }
 
 function limpiarSoloFormulario() {
-  ['empleado','formapago','nombre','telefono','direccion','notas'].forEach(id => { document.getElementById(id).value = ''; });
+  // NUEVO: solo limpiar empleado si es admin; si es asesor, el campo bloqueado ya tiene el valor fijo
+  if (!usuarioActual || usuarioActual.esAdmin) document.getElementById('empleado').value = '';
+  ['formapago','nombre','telefono','direccion','notas'].forEach(id => { document.getElementById(id).value = ''; });
   productos = []; renderLista();
   const hoy = new Date(), yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
   document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
@@ -1287,17 +1376,119 @@ function enviarWhatsappSecretaria() {
 document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target===this) cerrarModal(); });
 renderLista();
 
+// NUEVO: login multi-usuario
 function doLogin() {
-  const user = document.getElementById('loginUser').value.trim();
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
-  if (user==='admin' && pass==='00000') {
-    document.getElementById('loginOverlay').style.display='none';
+  const u = USUARIOS[user];
+  if (u && u.pass === pass) {
+    usuarioActual = { usuario: user, nombre: u.nombre, ruta: u.ruta, esAdmin: u.ruta === null };
+    document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('loginError').classList.remove('show');
+    aplicarUsuario(); // NUEVO
   } else {
     document.getElementById('loginError').classList.add('show');
-    document.getElementById('loginPass').value='';
+    document.getElementById('loginPass').value = '';
     document.getElementById('loginPass').focus();
   }
+}
+
+// NUEVO: aplicar restricciones según usuario
+function aplicarUsuario() {
+  const u = usuarioActual;
+  if (!u) return;
+  // Header: bienvenida + botón salir
+  document.getElementById('logoSub').textContent = u.esAdmin ? 'Administrador' : `Bienvenido, ${u.nombre}`;
+  document.getElementById('btnLogout').style.display = 'flex';
+  if (u.esAdmin) return; // admin: sin restricciones
+  // Asesor: bloquear selectores de ruta
+  const icoCandado = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+  const bloqueado = (ruta) => `<div class="campo-bloqueado">${icoCandado}${ruta}</div>`;
+  document.getElementById('wrap-empleado').innerHTML = bloqueado(u.ruta) + `<input type="hidden" id="empleado" value="${u.ruta}">`;
+  document.getElementById('wrap-pago-empleado').innerHTML = bloqueado(u.ruta) + `<input type="hidden" id="pago-empleado" value="${u.ruta}">`;
+  document.getElementById('wrap-gasto-empleado').innerHTML = bloqueado(u.ruta) + `<input type="hidden" id="gasto-empleado" value="${u.ruta}">`;
+}
+
+// NUEVO: cerrar sesión
+function cerrarSesion() {
+  usuarioActual = null;
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('btnLogout').style.display = 'none';
+  document.getElementById('logoSub').textContent = 'Registro de Pedidos';
+  // Restaurar selects (recargar wrappers)
+  document.getElementById('wrap-empleado').innerHTML = `<select id="empleado" required><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select>`;
+  document.getElementById('wrap-pago-empleado').innerHTML = `<select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select>`;
+  document.getElementById('wrap-gasto-empleado').innerHTML = `<select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="Administración">Administración</option></select>`;
+}
+
+// NUEVO: guardar en historial
+function guardarEnHistorial(reg) {
+  try {
+    const hist = JSON.parse(localStorage.getItem('aqualuan-historial') || '[]');
+    hist.unshift({ id: Date.now(), ...reg });
+    localStorage.setItem('aqualuan-historial', JSON.stringify(hist));
+  } catch(e) {}
+}
+
+// NUEVO: cargar y renderizar historial
+function cargarHistorial() {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('aqualuan-historial') || '[]'); } catch(e) {}
+  const lista = document.getElementById('historialLista');
+  if (hist.length === 0) {
+    lista.innerHTML = `<div class="empty-msg" style="margin-top:0">Aún no hay pedidos guardados en esta sesión. Los pedidos confirmados aparecerán aquí para que puedas descargar el PDF nuevamente.</div>`;
+    return;
+  }
+  lista.innerHTML = hist.map((r, i) => `
+    <div class="historial-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+        <span class="historial-cliente">👤 ${r.nombre}</span>
+        <span class="historial-total">$${r.total}</span>
+      </div>
+      <div class="historial-meta">📅 ${r.fecha||'-'} &nbsp;|&nbsp; 👷 ${r.empleado} &nbsp;|&nbsp; 💳 ${r.formapago||'-'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">📦 ${r.productos.length} producto${r.productos.length!==1?'s':''}</div>
+      <div class="historial-btns">
+        <button class="btn-hist btn-hist-pdf" onclick="descargarPDFDesde(${i})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Descargar PDF
+        </button>
+        <button class="btn-hist btn-hist-wa" onclick="enviarWhatsappDesde(${i})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp Zoila
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+// NUEVO: descargar PDF desde historial
+function descargarPDFDesde(idx) {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('aqualuan-historial') || '[]'); } catch(e) {}
+  const r = hist[idx]; if (!r) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  _buildPDF(doc, r);
+  doc.save(`Pedido_${r.nombre.replace(/\s+/g,'_')}_${r.fecha||'sin-fecha'}.pdf`);
+}
+
+// NUEVO: enviar WhatsApp desde historial
+function enviarWhatsappDesde(idx) {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('aqualuan-historial') || '[]'); } catch(e) {}
+  const d = hist[idx]; if (!d) return;
+  const lineas = d.productos.map(p => ` - ${p.nombre}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
+  const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${d.gps.url}` : '';
+  const msg = `Estimada Zoila, se envia pedido de cliente:%0A%0A👤 *Cliente:* ${d.nombre}%0A📞 *Telefono:* ${d.telefono||'-'}%0A📍 *Direccion:* ${d.direccion||'-'}%0A📅 *Fecha:* ${d.fecha}%0A👷 *Asesor:* ${d.empleado}%0A💳 *Pago:* ${d.formapago||'-'}%0A%0A📦 *Productos:*%0A${lineas}%0A%0A💰 *TOTAL: $${d.total}*%0A📝 *Notas:* ${d.notas||'-'}` + gpsLinea;
+  window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${msg}`, '_blank');
+}
+
+// NUEVO: limpiar historial
+function limpiarHistorial() {
+  if (!confirm('¿Limpiar todo el historial de pedidos?')) return;
+  try { localStorage.removeItem('aqualuan-historial'); } catch(e) {}
+  cargarHistorial();
 }
 </script>
 </body>
