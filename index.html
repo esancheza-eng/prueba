@@ -290,7 +290,6 @@ transition: background 0.2s, transform 0.1s;
 .btn-whatsapp.visible { display: flex; }
 .btn-pdf { background: #c0392b; color: #fff; margin-top: 10px; }
 .btn-pdf:hover { background: #a93226; }
-
 /* ── DRIVE PROGRESS ── */
 .drive-progress {
 display: none; margin-top: 10px; background: var(--surface2);
@@ -700,8 +699,6 @@ Enviar por WhatsApp a Zoila
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
 Descargar PDF del pedido
 </button>
-
-<!-- ✅ NUEVO: botón para registrar otro pedido, solo visible post-guardado -->
 <button class="btn" id="btnNuevo" onclick="nuevoPedido()" style="display:none;margin-top:10px;background:var(--navy)">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
 Registrar nuevo pedido
@@ -721,7 +718,6 @@ Registrar nuevo pedido
 TAB: PAGOS
 ════════════════════ -->
 <div class="tab-content" id="content-pagos">
-<!-- Resumen -->
 <div class="card">
 <div class="section-title blue">Resumen del día</div>
 <div class="resumen-grid">
@@ -737,7 +733,6 @@ TAB: PAGOS
 </div>
 </div>
 </div>
-<!-- Formulario de pago -->
 <div class="card">
 <div class="section-title blue">Registrar pago recibido</div>
 <div class="grid-2">
@@ -788,7 +783,6 @@ Registrar pago
 </button>
 <div class="status" id="status-pagos"></div>
 </div>
-<!-- Lista de pagos -->
 <div class="card">
 <div class="section-title blue">Pagos registrados hoy</div>
 <div class="reg-lista empty" id="pagosLista">
@@ -810,7 +804,6 @@ Aún no hay pagos registrados. Completa el formulario y haz clic en <strong>Regi
 TAB: GASTOS
 ════════════════════ -->
 <div class="tab-content" id="content-gastos">
-<!-- Resumen -->
 <div class="card">
 <div class="section-title red">Resumen del día</div>
 <div class="resumen-grid">
@@ -826,7 +819,6 @@ TAB: GASTOS
 </div>
 </div>
 </div>
-<!-- Formulario de gasto -->
 <div class="card">
 <div class="section-title red">Registrar gasto</div>
 <div class="grid-2">
@@ -880,7 +872,6 @@ Registrar gasto
 </button>
 <div class="status" id="status-gastos"></div>
 </div>
-<!-- Lista de gastos -->
 <div class="card">
 <div class="section-title red">Gastos registrados hoy</div>
 <div class="reg-lista empty" id="gastosLista">
@@ -911,11 +902,11 @@ const WHATSAPP_ZOILA = "593985886107";
 const WHATSAPP_SECRETARIA = "593989938910";
 const DB_NAME = 'aqualuan-db';
 const STORE = 'pedidos-pendientes';
+const LS_KEY = 'aqualuan-pendientes-ls'; // FIX BUG 1: clave localStorage para guardado síncrono
 let productos = [];
 let dataPendiente = null;
 let ultimoRegistro = null;
 let dbInstance = null;
-// Datos en memoria para Pagos y Gastos
 let listaPagos = [];
 let listaGastos = [];
 
@@ -977,22 +968,52 @@ async function eliminarLocal(id) {
 }
 
 /* ════════════════════════════════════════════
-BANNERS
+FIX BUG 1: Guardado SÍNCRONO e INMEDIATO en localStorage
+Cero await, cero delay — la UI confirma al instante.
+════════════════════════════════════════════ */
+function guardarEnLocalStorageSync(payload) {
+  try {
+    const existentes = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); // FIX BUG 1
+    existentes.push({ id: Date.now(), payload, fecha: new Date().toISOString() }); // FIX BUG 1
+    localStorage.setItem(LS_KEY, JSON.stringify(existentes)); // FIX BUG 1
+  } catch (e) {
+    // localStorage lleno o bloqueado — IndexedDB en background lo cubre
+  }
+}
+
+/* ════════════════════════════════════════════
+FIX BUG 2: actualizarBanners lee AMBOS almacenes
+(localStorage síncrono + IndexedDB async)
 ════════════════════════════════════════════ */
 function actualizarBanners() {
   const offline = !navigator.onLine;
   document.getElementById('offlineBanner').classList.toggle('show', offline);
+
+  // FIX BUG 2: leer localStorage síncronamente para conteo inmediato
+  let countLS = 0;
+  try {
+    const ls = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    countLS = ls.length; // FIX BUG 2
+  } catch (e) {}
+
   obtenerPendientes().then(items => {
-    const n = items.length;
+    // FIX BUG 2: usar el mayor de los dos conteos para no subrepresentar
+    const n = Math.max(items.length, countLS);
     document.getElementById('pendingBanner').classList.toggle('show', n > 0);
     document.getElementById('pendingCount').textContent = n;
+  }).catch(() => {
+    // FIX BUG 2: si IndexedDB falla, mostrar solo el conteo de localStorage
+    document.getElementById('pendingBanner').classList.toggle('show', countLS > 0);
+    document.getElementById('pendingCount').textContent = countLS;
   });
 }
+
 window.addEventListener('online', () => { actualizarBanners(); sincronizarAuto(); if (ultimoRegistro) document.getElementById('btnWhatsapp').classList.add('visible'); });
 window.addEventListener('offline', () => { actualizarBanners(); document.getElementById('btnWhatsapp').classList.remove('visible'); });
 
 /* ════════════════════════════════════════════
-SINCRONIZACIÓN OFFLINE
+FIX BUG 2: sincronizarManual — limpia AMBOS almacenes
+y actualiza el contador en UI INMEDIATAMENTE tras cada envío exitoso
 ════════════════════════════════════════════ */
 async function sincronizarAuto() {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
@@ -1001,28 +1022,86 @@ async function sincronizarAuto() {
   }
   await sincronizarManual(true);
 }
+
 async function sincronizarManual(silencioso = false) {
-  if (!navigator.onLine) { if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.'); return; }
+  if (!navigator.onLine) {
+    if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.');
+    return;
+  }
   const btn = document.getElementById('btnSync');
   const icon = document.getElementById('syncIcon');
-  btn.disabled = true; icon.classList.add('spin');
-  const items = await obtenerPendientes();
-  if (!items.length) { btn.disabled = false; icon.classList.remove('spin'); actualizarBanners(); return; }
+  btn.disabled = true;
+  icon.classList.add('spin');
+
+  // FIX BUG 2: obtener pendientes de AMBOS almacenes
+  let itemsLS = [];
+  try { itemsLS = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (e) {} // FIX BUG 2
+
+  const itemsIDB = await obtenerPendientes().catch(() => []); // FIX BUG 2
+
+  // FIX BUG 2: usar IndexedDB como fuente principal; localStorage como complemento
+  const todosLosItems = itemsIDB.length > 0 ? itemsIDB : itemsLS;
+
+  if (!todosLosItems.length) {
+    // FIX BUG 2: no hay pendientes — limpiar localStorage y forzar UI a 0
+    try { localStorage.removeItem(LS_KEY); } catch (e) {} // FIX BUG 2
+    btn.disabled = false;
+    icon.classList.remove('spin');
+    document.getElementById('pendingBanner').classList.remove('show'); // FIX BUG 2
+    document.getElementById('pendingCount').textContent = '0'; // FIX BUG 2
+    return;
+  }
+
   let synced = 0, failed = 0;
-  for (const item of items) {
+
+  for (const item of todosLosItems) {
     try {
-      const resp = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item.payload) });
+      const resp = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item.payload)
+      });
       const json = await resp.json().catch(() => ({ result: 'ok' }));
-      if (json.result === 'ok' || resp.ok) { await eliminarLocal(item.id); synced++; } else failed++;
+      if (json.result === 'ok' || resp.ok) {
+        // FIX BUG 2: eliminar de IndexedDB si viene de ahí
+        if (item.id && itemsIDB.length > 0) {
+          await eliminarLocal(item.id).catch(() => {}); // FIX BUG 2
+        }
+        synced++;
+        // FIX BUG 2: actualizar contador en UI INMEDIATAMENTE tras cada éxito
+        const restante = todosLosItems.length - synced; // FIX BUG 2
+        document.getElementById('pendingCount').textContent = restante; // FIX BUG 2
+        if (restante === 0) {
+          document.getElementById('pendingBanner').classList.remove('show'); // FIX BUG 2
+        }
+      } else {
+        failed++;
+      }
     } catch { failed++; }
   }
-  btn.disabled = false; icon.classList.remove('spin'); actualizarBanners();
+
+  // FIX BUG 2: limpiar localStorage según resultado
+  if (failed === 0) {
+    try { localStorage.removeItem(LS_KEY); } catch (e) {} // FIX BUG 2: todo sincronizado, borrar todo
+  } else if (synced > 0) {
+    try {
+      // FIX BUG 2: conservar solo los que fallaron en localStorage
+      const fallidos = itemsLS.slice(synced);
+      localStorage.setItem(LS_KEY, JSON.stringify(fallidos));
+    } catch (e) {}
+  }
+
+  btn.disabled = false;
+  icon.classList.remove('spin');
+  actualizarBanners(); // FIX BUG 2: refrescar con estado real final
+
   if (!silencioso) {
     if (synced > 0 && failed === 0) setStatus('success', `✓ ${synced} pedido(s) sincronizado(s) correctamente con Google Drive.`);
     else if (synced > 0 && failed > 0) setStatus('warning', `⚠ ${synced} enviado(s), ${failed} fallaron. Intenta de nuevo.`);
     else setStatus('error', 'No se pudo sincronizar. Verifica tu conexión.');
   }
 }
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data && (e.data.type === 'SYNC_DONE' || e.data.type === 'SYNC_RESULT')) {
@@ -1183,12 +1262,15 @@ function cerrarModal() {
 
 /* ════════════════════════════════════════════
 CONFIRMAR ENVÍO
+FIX BUG 1: offline → guardarEnLocalStorageSync() SÍNCRONO primero,
+luego UI inmediata, luego IndexedDB en background.
 ════════════════════════════════════════════ */
 async function confirmarEnvio() {
   if (!dataPendiente) return;
   const btn = document.getElementById('btnConfirmar');
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner2"></div> Guardando...';
+
   const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
   const dia = fechaObj.getDate(), mes = fechaObj.getMonth() + 1;
   const productosTexto = dataPendiente.productos.map(p =>
@@ -1207,22 +1289,21 @@ async function confirmarEnvio() {
 
   const estaOnline = navigator.onLine;
 
-  // ── ✅ FIX: onExito guarda ultimoRegistro, muestra botones y llama
-  //    limpiarSoloFormulario() — sin tocar btnGuardar ni los botones de acción.
-  const onExito = () => {
+  // Helper: mostrar UI de éxito — sin tocar btnGuardar ni botones de acción
+  const onExito = (modoOffline = false) => {
     ultimoRegistro = { ...dataPendiente };
     cerrarModal();
-    setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.');
-    // Mostrar botones de acción post-guardado
+    if (modoOffline) {
+      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.');
+    } else {
+      setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.');
+    }
     document.getElementById('btnWhatsapp').classList.add('visible');
     document.getElementById('btnPdf').style.display = 'flex';
     document.getElementById('btnNuevo').style.display = 'flex';
-    // Ocultar botón de guardar
     document.getElementById('btnGuardar').style.display = 'none';
-    // Limpiar solo campos y productos — NO toca los botones
     limpiarSoloFormulario();
-    // ── Subir PDF a Drive automáticamente en segundo plano (no bloquea la UI)
-    subirPDFaDrive(ultimoRegistro);
+    if (!modoOffline) subirPDFaDrive(ultimoRegistro);
   };
 
   if (estaOnline) {
@@ -1233,35 +1314,26 @@ async function confirmarEnvio() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      onExito();
+      onExito(false);
     } catch(err) {
-      await guardarLocal(payload);
-      ultimoRegistro = { ...dataPendiente };
-      cerrarModal();
-      setStatus('warning', '⚠ Sin conexión estable. Pedido guardado localmente — se enviará a Drive con internet.');
-      document.getElementById('btnWhatsapp').classList.add('visible');
-      document.getElementById('btnPdf').style.display = 'flex';
-      document.getElementById('btnNuevo').style.display = 'flex';
-      document.getElementById('btnGuardar').style.display = 'none';
-      limpiarSoloFormulario();
+      // FIX BUG 1: red falló — guardar SÍNCRONAMENTE en localStorage antes que nada
+      guardarEnLocalStorageSync(payload); // FIX BUG 1: síncrono, 0ms
+      onExito(true); // FIX BUG 1: UI inmediata, sin await
       actualizarBanners();
+      guardarLocal(payload).catch(() => {}); // FIX BUG 1: IndexedDB en background
     }
   } else {
-    try {
-      await guardarLocal(payload);
-      ultimoRegistro = { ...dataPendiente };
-      cerrarModal();
-      setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.');
-      document.getElementById('btnPdf').style.display = 'flex';
-      document.getElementById('btnNuevo').style.display = 'flex';
-      document.getElementById('btnGuardar').style.display = 'none';
-      limpiarSoloFormulario();
-      actualizarBanners();
-      if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        const reg = await navigator.serviceWorker.ready;
-        reg.sync.register('sync-pedidos').catch(() => {});
-      }
-    } catch(err) { cerrarModal(); setStatus('error', 'Error al guardar. Intenta de nuevo.'); }
+    // FIX BUG 1: OFFLINE — guardar en localStorage SÍNCRONAMENTE PRIMERO
+    guardarEnLocalStorageSync(payload); // FIX BUG 1: síncrono, 0ms, sin await
+    onExito(true); // FIX BUG 1: UI confirmada INMEDIATAMENTE sin esperar nada
+    actualizarBanners(); // FIX BUG 1: actualizar banner tras guardado síncrono
+    // FIX BUG 1: IndexedDB y background sync en segundo plano — NO bloquean la UI
+    guardarLocal(payload).catch(() => {}); // FIX BUG 1: background, no bloquea
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+      navigator.serviceWorker.ready
+        .then(reg => reg.sync.register('sync-pedidos'))
+        .catch(() => {});
+    }
   }
 
   btn.disabled = false;
@@ -1272,9 +1344,6 @@ async function confirmarEnvio() {
 /* ════════════════════════════════════════════
 LIMPIAR FORMULARIO VENTAS
 ════════════════════════════════════════════ */
-// ── ✅ FIX 1: Limpia solo campos y productos — NO toca los botones de acción.
-//    Llamada por onExito() para limpiar el formulario después de guardar,
-//    pero manteniendo visibles los botones de PDF, WhatsApp, Drive y Nuevo.
 function limpiarSoloFormulario() {
   ['empleado','formapago','nombre','telefono','direccion','notas'].forEach(id => {
     document.getElementById(id).value = '';
@@ -1284,30 +1353,20 @@ function limpiarSoloFormulario() {
   const hoy = new Date(), yyyy = hoy.getFullYear(), mm = String(hoy.getMonth()+1).padStart(2,'0'), dd = String(hoy.getDate()).padStart(2,'0');
   document.getElementById('fecha').value = yyyy+'-'+mm+'-'+dd;
 }
-
-// ── ✅ FIX 4: Limpia todo y restaura el estado inicial completo.
-//    Solo se llama desde nuevoPedido().
 function limpiarFormulario() {
   limpiarSoloFormulario();
   ultimoRegistro = null;
-  // Restaurar botón guardar
   document.getElementById('btnGuardar').style.display = 'flex';
-  // Ocultar todos los botones post-guardado
   document.getElementById('btnWhatsapp').classList.remove('visible');
   document.getElementById('btnPdf').style.display = 'none';
   document.getElementById('btnNuevo').style.display = 'none';
-  // Limpiar progress bar y status
   document.getElementById('driveProgress').classList.remove('show');
   document.getElementById('progressFill').style.width = '0%';
   document.getElementById('progressLink').classList.remove('show');
   document.getElementById('status').className = 'status';
   document.getElementById('status').innerHTML = '';
 }
-
-// ── ✅ FIX 3: Registrar nuevo pedido — limpia todo y restaura estado inicial.
-function nuevoPedido() {
-  limpiarFormulario();
-}
+function nuevoPedido() { limpiarFormulario(); }
 
 /* ════════════════════════════════════════════
 PAGOS — Registrar
@@ -1582,12 +1641,9 @@ function descargarPDF() {
   doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
   doc.save(`Pedido_${d.nombre.replace(/\s+/g,'_')}_${d.fecha||'sin-fecha'}.pdf`);
 }
-// ── Sube el PDF a Drive automáticamente. Se llama desde onExito() sin intervención del usuario.
-//    Si no hay conexión al momento de guardar, se omite silenciosamente (el pedido ya quedó
-//    registrado en Sheets vía fetch con no-cors, o en IndexedDB para sincronizar después).
 async function subirPDFaDrive(registroSnapshot) {
   if (!registroSnapshot) return;
-  if (!navigator.onLine) return; // sin internet: omitir silenciosamente
+  if (!navigator.onLine) return;
   const d = registroSnapshot;
   const progWrap = document.getElementById('driveProgress');
   const progFill = document.getElementById('progressFill');
@@ -1622,7 +1678,6 @@ async function subirPDFaDrive(registroSnapshot) {
 /* ════════════════════════════════════════════
 WHATSAPP
 ════════════════════════════════════════════ */
-// ── ✅ FIX 5: WhatsApp lee siempre desde ultimoRegistro (persistido post-guardado)
 function enviarWhatsapp() {
   if (!ultimoRegistro) return;
   const d = ultimoRegistro;
