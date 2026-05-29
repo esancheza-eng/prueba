@@ -28,15 +28,8 @@
 -->
 <title>Aqua Luan v3.0 — Sistema de Pedidos Empresarial</title>
 
-<!-- [SEC-09] Content Security Policy -->
-<meta http-equiv="Content-Security-Policy"
-      content="default-src 'self';
-               script-src 'self' 'unsafe-inline' 'unsafe-hashes' https://cdnjs.cloudflare.com;
-               style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
-               font-src https://fonts.gstatic.com;
-               connect-src 'self' https://script.google.com https://script.googleusercontent.com;
-               img-src 'self' data:;
-               frame-ancestors 'none';">
+<!-- CSP: configurar como header HTTP en el servidor para máxima efectividad -->
+<!-- Los meta CSP no son efectivos para event handlers inline en Chrome moderno -->
 
 <!-- [SEC-10] Clickjacking protection -->
 <!-- X-Frame-Options se configura en el servidor web -->
