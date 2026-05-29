@@ -932,7 +932,10 @@ function iniciarMonitorExpiracion(){
 async function cerrarSesion(){
   if(_monitorId)clearInterval(_monitorId);
   usuarioActual=null; ultimoRegistro=null; productos=[];
-  sessionStorage.clear();
+  // Conservar historial del día — solo limpiar datos de sesión
+  sessionStorage.removeItem('_al_sess');
+  sessionStorage.removeItem('_al_att');
+  sessionStorage.removeItem('aqualuan-historial');
   document.getElementById('loginUser').value='';
   document.getElementById('loginPass').value='';
   document.getElementById('loginOverlay').style.display='flex';
@@ -951,10 +954,33 @@ function restaurarSelectsCompletos(){
 
 async function _generarHash(clave){ if(!clave){console.warn('Ingresa una clave');return;} const h=await hashSHA256(clave); console.log('%cHash SHA-256:','color:#0a7c6e;font-weight:bold'); console.log('%c'+h,'font-family:monospace;background:#e6f4f2;padding:4px 8px;border-radius:4px'); return h; }
 
+function _restaurarHistDia(u){
+  try{
+    const hoy=new Date().toISOString().slice(0,10);
+    let hR=[];
+    if(u.esAdmin){
+      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','admin'].forEach(r=>{
+        hR=hR.concat(JSON.parse(localStorage.getItem(_claveHistDia(r,hoy))||'[]'));
+      });
+      hR.sort((a,b)=>(b.id||0)-(a.id||0));
+      if(hR.length>40)hR=hR.slice(0,40);
+    } else {
+      hR=JSON.parse(localStorage.getItem(_claveHistDia(u.ruta,hoy))||'[]');
+    }
+    if(hR.length>0){
+      const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
+      const ids=new Set(hS.map(r=>r.id));
+      const nuevos=hR.filter(r=>!ids.has(r.id));
+      const combinado=[...hS,...nuevos].sort((a,b)=>(b.id||0)-(a.id||0));
+      sessionStorage.setItem('aqualuan-historial',JSON.stringify(combinado.slice(0,40)));
+    }
+  }catch(e){}
+}
 function aplicarUsuario(){
   const u=usuarioActual; if(!u)return;
   document.getElementById('logoSub').textContent=u.esAdmin?'Administrador':`Bienvenido, ${u.nombre}`;
   document.getElementById('btnLogout').style.display='flex';
+  _restaurarHistDia(u);
   if(u.esAdmin)return;
   const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
   const rs=escHTML(u.ruta);
@@ -1019,7 +1045,7 @@ if('serviceWorker'in navigator){ window.addEventListener('load',()=>{ navigator.
       usuarioActual=sess;
       document.getElementById('loginOverlay').style.display='none';
       aplicarUsuario(); iniciarMonitorExpiracion();
-    } else if(sess){ sessionStorage.clear(); }
+    } else if(sess){ sessionStorage.removeItem('_al_sess'); sessionStorage.removeItem('_al_att'); sessionStorage.removeItem('aqualuan-historial'); }
   }catch{}
 })();
 
@@ -1317,12 +1343,22 @@ function _construirMsgWA(d){
 }
 function enviarWhatsapp(){ if(!ultimoRegistro)return; window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${_construirMsgWA(ultimoRegistro)}`,'_blank','noopener,noreferrer'); }
 
+function _claveHistDia(empleado,fecha){
+  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
+  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
+  return 'al_hist_'+e+'_'+f;
+}
 function guardarEnHistorial(reg){
   try{
-    const hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
     const r={id:Date.now(),nombre:sanitizarTexto(reg.nombre,100),total:reg.total,fecha:reg.fecha,empleado:reg.empleado,formapago:reg.formapago,telefono:sanitizarTexto(reg.telefono,20),direccion:sanitizarTexto(reg.direccion,200),notas:sanitizarTexto(reg.notas,500),productos:reg.productos,gps:null};
-    hist.unshift(r); if(hist.length>20)hist.pop();
-    sessionStorage.setItem('aqualuan-historial',JSON.stringify(hist));
+    // sessionStorage (sesión actual)
+    const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
+    hS.unshift(r); if(hS.length>20)hS.pop();
+    sessionStorage.setItem('aqualuan-historial',JSON.stringify(hS));
+    // localStorage (persiste entre logins del mismo día)
+    const clave=_claveHistDia(reg.empleado,reg.fecha);
+    const hL=JSON.parse(localStorage.getItem(clave)||'[]');
+    if(!hL.find(x=>x.id===r.id)){hL.unshift(r);if(hL.length>20)hL.pop();localStorage.setItem(clave,JSON.stringify(hL));}
   }catch{}
 }
 
@@ -1334,7 +1370,21 @@ function cargarHistorial(){
 }
 function descargarPDFDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; const r=hist[idx]; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,r); const ns=r.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60); const fs=(r.fecha||'sin-fecha').replace(/[^0-9\-]/g,''); doc.save(`Pedido_${ns}_${fs}.pdf`); }
 function enviarWhatsappDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${_construirMsgWA(hist[idx])}`,'_blank','noopener,noreferrer'); }
-function limpiarHistorial(){ if(!confirm('¿Limpiar todo el historial de pedidos?'))return; try{sessionStorage.removeItem('aqualuan-historial');}catch{} cargarHistorial(); }
+function limpiarHistorial(){
+  if(!confirm('¿Limpiar el historial de pedidos de hoy?'))return;
+  try{
+    sessionStorage.removeItem('aqualuan-historial');
+    if(usuarioActual){
+      const hoy=new Date().toISOString().slice(0,10);
+      if(usuarioActual.esAdmin){
+        ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
+      } else {
+        localStorage.removeItem(_claveHistDia(usuarioActual.ruta,hoy));
+      }
+    }
+  }catch{}
+  cargarHistorial();
+}
 
 document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModal(); });
 renderLista();
