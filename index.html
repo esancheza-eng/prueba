@@ -1229,9 +1229,7 @@ async function doLogin() {
        MODO LOCAL:    Apps Script no configurado → AUTH_REGISTRY local
        MODO SERVIDOR: Apps Script configurado    → Google Sheets privada
        ──────────────────────────────────────────────────────────────── */
-    const resultado = servidorConfigurado()
-      ? await authServerLogin(userRaw, passHash)
-      : await authLocalLogin(userRaw, passHash);
+const resultado = await authLocalLogin(userRaw, passHash);
 
     if (resultado.ok && resultado.token) {
       resetearIntentosLocal();
