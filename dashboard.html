@@ -409,6 +409,130 @@ display: inline-block;
 }
 .btn-gps-small:hover { background: var(--teal); color: #fff; }
 .highlight-row { background: var(--teal-light) !important; }
+.btn-cierre-dia {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(78,201,160,0.15); border: 1px solid rgba(78,201,160,0.35);
+  border-radius: 100px; padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--accent); cursor: pointer; transition: background 0.2s;
+}
+.btn-cierre-dia:hover { background: rgba(78,201,160,0.28); }
+
+/* ── MODAL CIERRE DÍA ── */
+.cierre-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,30,60,0.75); z-index: 300;
+  align-items: flex-start; justify-content: center;
+  padding: 2rem 1rem; overflow-y: auto;
+}
+.cierre-overlay.open { display: flex; animation: fadeUp 0.25s ease; }
+.cierre-modal {
+  background: var(--surface); border-radius: var(--radius-lg);
+  width: 100%; max-width: 900px;
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp 0.3s ease;
+}
+.cierre-header {
+  background: var(--navy); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 1.25rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.cierre-header-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem; color: #fff; display: flex; align-items: center; gap: 10px;
+}
+.cierre-fecha-badge {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  color: var(--accent); background: rgba(78,201,160,0.15);
+  border: 1px solid rgba(78,201,160,0.3); border-radius: 100px; padding: 4px 12px;
+}
+.cierre-body { padding: 1.5rem; }
+.btn-cerrar-cierre {
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 100px; padding: 6px 16px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+  color: rgba(255,255,255,0.7); cursor: pointer; transition: background 0.2s;
+}
+.btn-cerrar-cierre:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.cierre-asesor-block {
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; margin-bottom: 1.25rem;
+}
+.cierre-asesor-header {
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.cierre-asesor-nombre {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 800; color: #fff;
+}
+.cierre-asesor-total {
+  font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--accent);
+}
+.cierre-section-label {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); padding: 8px 16px 4px;
+  border-bottom: 1px solid var(--border); background: var(--surface2);
+}
+.cierre-prod-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cierre-prod-table th {
+  background: var(--surface2); padding: 7px 14px;
+  text-align: left; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.cierre-prod-table th:nth-child(2),
+.cierre-prod-table th:nth-child(3) { text-align: right; }
+.cierre-prod-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); font-weight: 500; }
+.cierre-prod-table td:nth-child(2),
+.cierre-prod-table td:nth-child(3) { text-align: right; }
+.cierre-prod-table tr:last-child td { border-bottom: none; }
+.cierre-prod-table tr:nth-child(even) td { background: var(--surface2); }
+.cierre-prod-subtotal td {
+  background: var(--teal-light) !important; font-weight: 700; color: var(--teal-dark);
+  border-top: 2px solid var(--teal) !important;
+}
+.cierre-pago-tags {
+  display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px;
+  border-top: 1px solid var(--border); background: var(--surface);
+}
+.cierre-pago-tag {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: 12px; font-weight: 700; color: var(--text);
+}
+.cierre-pago-tag-valor { color: var(--teal); font-size: 13px; margin-left: 2px; }
+.cierre-total-general {
+  background: var(--navy); border-radius: var(--radius);
+  padding: 16px 20px; margin-top: 1.25rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.cierre-total-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(255,255,255,0.5);
+}
+.cierre-total-value {
+  font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--accent);
+}
+.cierre-resumen-pagos-global {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px; margin-top: 1rem;
+}
+.cierre-resumen-pagos-title {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--teal); margin-bottom: 10px;
+}
+.btn-print-cierre {
+  background: #6d28d9; color: #fff; border: none;
+  border-radius: 8px; padding: 10px 20px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-print-cierre:hover { background: #5b21b6; }
+
 @media (max-width: 768px) {
   .charts-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
@@ -474,6 +598,10 @@ display: inline-block;
     <button class="btn-refresh" onclick="cargarDatos(true)">
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" id="refreshIcon"><path d="M14 8A6 6 0 1 1 8 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 2v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Actualizar
+    </button>
+    <button class="btn-cierre-dia" onclick="abrirCierreDia()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 3V2M11 3V2M1 7h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Cierre del Día
     </button>
     <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
   </div>
@@ -1175,6 +1303,202 @@ function limpiarFecha(fecha) {
   return f;
 }
 
+/* ════════════════════════════════════════
+   CIERRE DEL DÍA
+════════════════════════════════════════ */
+const ICONOS_PAGO = { 'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Efectivo':'💵','Sin especificar':'❓' };
+const COLORES_PAGO = { 'Contado':'#0a7c6e','Crédito':'#1565c0','Transferencia':'#e67e22','Cheque':'#880e4f','Efectivo':'#0a7c6e','Sin especificar':'#888' };
+
+function abrirCierreDia() {
+  const fecha = document.getElementById('filtroFecha').value || fechaHoy();
+  const datos = todosLosDatos.filter(r => {
+    const f = String(r['FECHA']||'');
+    return f.startsWith(fecha) || f.includes(fecha);
+  });
+  const pedidos = datos.filter(r => r['PRODUCTO'] && r['PRODUCTO'] !== '' && parseFloat(r['TOTAL PEDIDO ($)']||0) > 0);
+
+  document.getElementById('cierreFechaBadge').textContent = fecha || 'Todos los registros';
+
+  const body = document.getElementById('cierreBody');
+
+  if (!pedidos.length) {
+    body.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--muted)"><div style="font-size:2.5rem;margin-bottom:10px">📭</div>No hay pedidos registrados para esta fecha.</div>';
+    document.getElementById('cierreOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+
+  // ── Agrupar por asesor
+  const porAsesor = {};
+  pedidos.forEach(r => {
+    const asesor = r['ASESOR / RUTA'] || 'Sin asignar';
+    if (!porAsesor[asesor]) porAsesor[asesor] = { pedidos:[], productos:{}, formasPago:{}, total:0, clientesUnicos:new Set() };
+    const d = porAsesor[asesor];
+    d.clientesUnicos.add(r['CLIENTE']||'');
+    const tot = parseFloat(r['TOTAL PEDIDO ($)']||0);
+
+    // Acumular producto
+    const prod = r['PRODUCTO'] || 'Sin nombre';
+    if (!d.productos[prod]) d.productos[prod] = { cantidad:0, dolares:0 };
+    d.productos[prod].cantidad += parseFloat(r['CANTIDAD']||0);
+    d.productos[prod].dolares  += parseFloat(r['SUBTOTAL']||0);
+
+    // Acumular forma de pago — solo 1 vez por pedido único
+    const keyPedido = `${r['CLIENTE']}-${r['FECHA']}-${asesor}`;
+    if (!d._pedidosVisto) d._pedidosVisto = new Set();
+    if (!d._pedidosVisto.has(keyPedido)) {
+      d._pedidosVisto.add(keyPedido);
+      const forma = r['FORMA DE PAGO'] || 'Sin especificar';
+      d.formasPago[forma] = (d.formasPago[forma]||0) + tot;
+      d.total += tot;
+    }
+    d.pedidos.push(r);
+  });
+
+  // ── Total general
+  let totalGeneral = 0;
+  const formasGlobal = {};
+  Object.values(porAsesor).forEach(d => {
+    totalGeneral += d.total;
+    Object.entries(d.formasPago).forEach(([f,v]) => { formasGlobal[f] = (formasGlobal[f]||0) + v; });
+  });
+
+  // ── Renderizar bloques por asesor
+  let html = '';
+  Object.entries(porAsesor).sort(([,a],[,b]) => b.total - a.total).forEach(([asesor, d]) => {
+    const color  = RUTA_COLORS[asesor] || '#0a7c6e';
+    const nombre = asesor.split(':')[1]?.trim() || asesor;
+    const numClientes = d.clientesUnicos.size;
+    const numPedidos  = d._pedidosVisto ? d._pedidosVisto.size : 0;
+
+    // Filas productos
+    const prodsOrdenados = Object.entries(d.productos).sort(([,a],[,b]) => b.dolares - a.dolares);
+    const totalCantidad  = prodsOrdenados.reduce((s,[,p]) => s + p.cantidad, 0);
+    const totalDolares   = prodsOrdenados.reduce((s,[,p]) => s + p.dolares, 0);
+
+    const filasProductos = prodsOrdenados.map(([nom,p]) => `
+      <tr>
+        <td><span style="font-weight:600;color:var(--navy)">${nom}</span></td>
+        <td style="font-weight:700;color:var(--blue)">${p.cantidad % 1 === 0 ? parseInt(p.cantidad) : p.cantidad.toFixed(1)}</td>
+        <td style="font-weight:700;color:var(--teal)">$${p.dolares.toFixed(2)}</td>
+      </tr>`).join('');
+
+    // Tags formas de pago del asesor
+    const tagsPago = Object.entries(d.formasPago).sort(([,a],[,b]) => b-a).map(([f,v]) => `
+      <div class="cierre-pago-tag">
+        <span>${ICONOS_PAGO[f]||'💳'}</span>
+        <span>${f}</span>
+        <span class="cierre-pago-tag-valor">$${v.toFixed(2)}</span>
+      </div>`).join('');
+
+    html += `
+      <div class="cierre-asesor-block">
+        <div class="cierre-asesor-header" style="background:${color}">
+          <div class="cierre-asesor-nombre">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="white" stroke-width="1.4"/><path d="M2 14c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="white" stroke-width="1.4" stroke-linecap="round"/></svg>
+            ${nombre}
+            <span style="font-size:10px;font-weight:500;opacity:0.6;text-transform:uppercase;letter-spacing:0.06em">${asesor.includes('RUTA') ? asesor.split(':')[0].trim() : ''}</span>
+            <span style="font-size:11px;font-weight:600;opacity:0.75;margin-left:4px">${numClientes} cliente${numClientes!==1?'s':''} · ${numPedidos} pedido${numPedidos!==1?'s':''}</span>
+          </div>
+          <div class="cierre-asesor-total">$${d.total.toFixed(2)}</div>
+        </div>
+
+        <div class="cierre-section-label">📦 Productos vendidos</div>
+        <table class="cierre-prod-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Total ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filasProductos}
+            <tr class="cierre-prod-subtotal">
+              <td style="font-weight:800">SUBTOTAL ASESOR</td>
+              <td style="font-weight:800;text-align:right;color:var(--blue)">${totalCantidad % 1 === 0 ? parseInt(totalCantidad) : totalCantidad.toFixed(1)}</td>
+              <td style="font-weight:800;text-align:right;color:var(--teal)">$${totalDolares.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="cierre-section-label">💳 Formas de pago</div>
+        <div class="cierre-pago-tags">${tagsPago}</div>
+      </div>`;
+  });
+
+  // ── Resumen global de formas de pago
+  const tagsGlobal = Object.entries(formasGlobal).sort(([,a],[,b]) => b-a).map(([f,v]) => `
+    <div class="cierre-pago-tag" style="border-color:var(--teal);background:var(--teal-light)">
+      <span>${ICONOS_PAGO[f]||'💳'}</span>
+      <span style="color:var(--teal-dark)">${f}</span>
+      <span class="cierre-pago-tag-valor" style="font-size:14px">$${v.toFixed(2)}</span>
+    </div>`).join('');
+
+  html += `
+    <div class="cierre-resumen-pagos-global">
+      <div class="cierre-resumen-pagos-title">💳 Resumen global de formas de pago</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${tagsGlobal}</div>
+    </div>
+    <div class="cierre-total-general">
+      <div>
+        <div class="cierre-total-label">Total general del día</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">${pedidos.length} líneas · ${Object.keys(porAsesor).length} asesor${Object.keys(porAsesor).length!==1?'es':''}</div>
+      </div>
+      <div class="cierre-total-value">$${totalGeneral.toFixed(2)}</div>
+    </div>`;
+
+  body.innerHTML = html;
+  document.getElementById('cierreOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarCierreDia() {
+  document.getElementById('cierreOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function imprimirCierre() {
+  const fecha  = document.getElementById('cierreFechaBadge').textContent;
+  const cuerpo = document.getElementById('cierreBody').innerHTML;
+  const v = window.open('','_blank','width=800,height=900');
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Cierre del Día — Aqua Luan — ${fecha}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}
+    .cierre-asesor-block{border:1.5px solid #ddd;border-radius:12px;overflow:hidden;margin-bottom:20px;page-break-inside:avoid;}
+    .cierre-asesor-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    .cierre-asesor-nombre{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:#fff;}
+    .cierre-asesor-total{font-family:'DM Serif Display',serif;font-size:1.3rem;color:#4ec9a0;}
+    .cierre-section-label{font-size:9px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#888;padding:8px 16px 4px;border-bottom:1px solid #eee;background:#f8f8f8;}
+    .cierre-prod-table{width:100%;border-collapse:collapse;font-size:12px;}
+    .cierre-prod-table th{background:#f0f5f8;padding:7px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#888;border-bottom:1px solid #eee;}
+    .cierre-prod-table th:nth-child(2),.cierre-prod-table th:nth-child(3){text-align:right;}
+    .cierre-prod-table td{padding:9px 14px;border-bottom:1px solid #f0f0f0;font-weight:500;}
+    .cierre-prod-table td:nth-child(2),.cierre-prod-table td:nth-child(3){text-align:right;}
+    .cierre-prod-subtotal td{background:#e6f4f2!important;font-weight:800;color:#085f54;border-top:2px solid #0a7c6e!important;}
+    .cierre-pago-tags{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-top:1px solid #eee;}
+    .cierre-pago-tag{display:flex;align-items:center;gap:6px;background:#f0f5f8;border:1.5px solid #ddd;border-radius:100px;padding:5px 14px;font-size:12px;font-weight:700;color:#1a3a5c;}
+    .cierre-pago-tag-valor{color:#0a7c6e;font-size:13px;margin-left:2px;}
+    .cierre-resumen-pagos-global{background:#f0f5f8;border:1.5px solid #ddd;border-radius:12px;padding:14px 16px;margin-top:16px;}
+    .cierre-resumen-pagos-title{font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#0a7c6e;margin-bottom:10px;}
+    .cierre-total-general{background:#1a3a5c;border-radius:12px;padding:16px 20px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;}
+    .cierre-total-label{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);}
+    .cierre-total-value{font-family:'DM Serif Display',serif;font-size:2rem;color:#4ec9a0;}
+    .print-header{text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1a3a5c;}
+    .print-header h1{font-family:'DM Serif Display',serif;font-size:24px;color:#1a3a5c;}
+    .print-header p{font-size:12px;color:#888;margin-top:4px;}
+    .btn-cerrar-cierre,.btn-print-cierre{display:none!important;}
+    @media print{body{padding:16px;} .cierre-asesor-block{page-break-inside:avoid;}}
+  </style></head><body>
+  <div class="print-header"><h1>📅 Cierre del Día — Aqua Luan</h1><p>Fecha: ${fecha} · Generado: ${new Date().toLocaleString('es-EC')}</p></div>
+  ${cuerpo}
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  v.document.close();
+}
+
 function exportarExcel() {
   const datos=datosNotasFiltrados.length>0?datosNotasFiltrados:todosLosDatos.filter(r=>r['PRODUCTO']&&r['PRODUCTO']!=='');
   if(!datos.length){ alert('No hay datos para exportar. Aplica los filtros primero.'); return; }
@@ -1190,5 +1514,28 @@ function exportarExcel() {
   URL.revokeObjectURL(url);
 }
 </script>
+
+<!-- ═══════════════════ MODAL CIERRE DEL DÍA ═══════════════════ -->
+<div class="cierre-overlay" id="cierreOverlay" onclick="if(event.target===this)cerrarCierreDia()">
+  <div class="cierre-modal">
+    <div class="cierre-header">
+      <div class="cierre-header-title">
+        📅 Cierre del Día
+        <span class="cierre-fecha-badge" id="cierreFechaBadge">—</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-print-cierre" onclick="imprimirCierre()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir
+        </button>
+        <button class="btn-cerrar-cierre" onclick="cerrarCierreDia()">✕ Cerrar</button>
+      </div>
+    </div>
+    <div class="cierre-body" id="cierreBody">
+      <!-- Se llena dinámicamente -->
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
