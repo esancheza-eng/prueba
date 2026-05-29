@@ -1,13 +1,12 @@
 /* =====================================================
-   SERVICE WORKER — Aqua Luan v3.1 Enterprise
+   SERVICE WORKER — Aqua Luan v3.2 Enterprise
    ─────────────────────────────────────────────────────
-   Cambios v8 → v9:
-   [SW-11] CACHE_NAME actualizado a v9 — fuerza limpieza
-           de caché anterior y carga del index.html v3.1
-           con fix de autenticación local (FIX-01)
+   Cambios v9 → v10:
+   [SW-12] Sync automático limpia localStorage en cliente
+   [SW-13] Banner se oculta solo tras sync exitoso
    ===================================================== */
 
-const CACHE_NAME = 'aqualuan-v9';
+const CACHE_NAME = 'aqualuan-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +14,6 @@ const ASSETS = [
   'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap'
 ];
 
-/* URL del Apps Script */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
 
 function scriptUrlValida() {
@@ -24,54 +22,38 @@ function scriptUrlValida() {
     SCRIPT_URL.length > 60;
 }
 
-const DB_NAME = 'aqualuan-db';
-const STORE   = 'pedidos-pendientes';
+const DB_NAME        = 'aqualuan-db';
+const STORE          = 'pedidos-pendientes';
 const MAX_REINTENTOS = 3;
-const MAX_EDAD_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_EDAD_MS    = 7 * 24 * 60 * 60 * 1000;
 
-// ── INSTALL ──────────────────────────────────────────
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(ASSETS))
-      .catch(err => {
-        console.warn('[SW] Algunos assets no se pudieron cachear:', err.message);
-      })
+      .catch(err => console.warn('[SW] Cache parcial:', err.message))
   );
   self.skipWaiting();
 });
 
-// ── ACTIVATE ─────────────────────────────────────────
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(k => k !== CACHE_NAME)
-          .map(k => {
-            console.log('[SW] Eliminando caché antigua:', k);
-            return caches.delete(k);
-          })
-      )
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// ── FETCH ─────────────────────────────────────────────
 self.addEventListener('fetch', e => {
   const url = e.request.url;
-
-  /* Nunca interceptar estas URLs — siempre ir a la red */
   if (url.includes('script.google.com'))    return;
   if (url.includes('fonts.googleapis.com')) return;
   if (url.includes('fonts.gstatic.com'))    return;
-  if (url.includes('cdnjs.cloudflare.com')) return;  /* jsPDF y otras librerías */
+  if (url.includes('cdnjs.cloudflare.com')) return;
   if (url.includes('drive.google.com'))     return;
   if (url.includes('wa.me'))                return;
-
-  /* Solo interceptar GET — los POST van siempre a la red */
-  if (e.request.method !== 'GET') return;
+  if (e.request.method !== 'GET')           return;
 
   e.respondWith(
     caches.match(e.request).then(cached => {
@@ -88,46 +70,31 @@ self.addEventListener('fetch', e => {
   );
 });
 
-// ── SYNC (Background Sync API) ────────────────────────
 self.addEventListener('sync', e => {
-  if (e.tag === 'sync-pedidos') {
-    e.waitUntil(syncPendientes());
-  }
+  if (e.tag === 'sync-pedidos') e.waitUntil(syncPendientes());
 });
 
-// ── MENSAJE desde la página ───────────────────────────
 self.addEventListener('message', e => {
   if (!e.data) return;
-  if (e.data.type === 'MANUAL_SYNC') {
-    syncPendientes().then(result => {
-      if (e.source) e.source.postMessage({ type: 'SYNC_RESULT', ...result });
-    });
-  }
-  if (e.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
-// ── SINCRONIZACIÓN ────────────────────────────────────
 async function syncPendientes() {
-  if (!scriptUrlValida()) {
-    console.warn('[SW] SCRIPT_URL no configurada — sync omitido');
-    return { synced: 0, failed: 0, omitido: true };
-  }
+  if (!scriptUrlValida()) return { synced: 0, failed: 0 };
 
   let db;
-  try {
-    db = await abrirDB();
-  } catch (err) {
-    console.error('[SW] No se pudo abrir IndexedDB:', err.message);
+  try { db = await abrirDB(); }
+  catch { return { synced: 0, failed: 0 }; }
+
+  const items = await getAllPendientes(db);
+  if (!items.length) {
+    notificarClientes({ type: 'SYNC_DONE', synced: 0, failed: 0, eliminados: 0, remaining: 0, idsEnviados: [] });
     return { synced: 0, failed: 0 };
   }
 
-  const items = await getAllPendientes(db);
-  if (!items.length) return { synced: 0, failed: 0 };
-
   const ahora = Date.now();
   let synced = 0, failed = 0, eliminados = 0;
+  const idsEnviados = [];
 
   for (const item of items) {
     const edad = ahora - new Date(item.fecha || 0).getTime();
@@ -138,11 +105,7 @@ async function syncPendientes() {
     }
 
     const reintentos = item.reintentos || 0;
-    if (reintentos >= MAX_REINTENTOS) {
-      console.warn('[SW] Item superó máximo de reintentos, omitiendo:', item.id);
-      failed++;
-      continue;
-    }
+    if (reintentos >= MAX_REINTENTOS) { failed++; continue; }
 
     try {
       await fetch(SCRIPT_URL, {
@@ -152,30 +115,23 @@ async function syncPendientes() {
         body:    JSON.stringify(item.payload)
       });
       await deletePendiente(db, item.id).catch(() => {});
+      idsEnviados.push(item.id);
       synced++;
-    } catch (err) {
+    } catch {
       await incrementarReintentos(db, item.id, reintentos).catch(() => {});
       failed++;
     }
   }
 
-  const result = {
-    type:      'SYNC_DONE',
-    synced,
-    failed,
-    eliminados,
-    remaining: items.length - synced - eliminados,
-    timestamp: new Date().toISOString()
-  };
-
-  const clients = await self.clients.matchAll({ includeUncontrolled: true });
-  clients.forEach(c => c.postMessage(result));
-
-  console.log(`[SW] Sync completado — enviados: ${synced}, fallidos: ${failed}, eliminados: ${eliminados}`);
-  return result;
+  notificarClientes({ type: 'SYNC_DONE', synced, failed, eliminados, remaining: items.length - synced - eliminados, idsEnviados });
+  return { synced, failed };
 }
 
-// ── INDEXEDDB HELPERS ─────────────────────────────────
+async function notificarClientes(result) {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true });
+  clients.forEach(c => c.postMessage(result));
+}
+
 function abrirDB() {
   return new Promise((res, rej) => {
     const req = indexedDB.open(DB_NAME, 1);
