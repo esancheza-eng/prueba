@@ -147,7 +147,7 @@ animation: pulse-dot 1.5s ease infinite;
 50% { box-shadow: 0 0 0 6px rgba(255,193,7,0.1); }
 }
 .pending-banner {
-display: none; align-items: center; justify-content: space-between;
+display: none !important; align-items: center; justify-content: space-between;
 gap: 10px; background: #e8f4fd; border: 1.5px solid #90caf9;
 border-radius: var(--radius); padding: 11px 16px; margin-bottom: 1rem;
 font-size: 13px; font-weight: 600; color: #1565c0; animation: fadeUp 0.3s ease;
@@ -442,6 +442,152 @@ body { padding: 1rem 0.75rem 3rem; }
 .modal-handle { display: none; }
 @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
 }
+
+/* ── RESUMEN DEL DÍA POR ASESOR ───────────────────────────── */
+.btn-resumen-dia {
+  background: #6d28d9; color: #fff; margin-top: 10px;
+}
+.btn-resumen-dia:hover { background: #5b21b6; }
+.resumen-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,30,60,0.75); z-index: 200;
+  align-items: flex-end; justify-content: center; padding: 0;
+}
+.resumen-modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+.resumen-modal {
+  background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 1.5rem; width: 100%; max-width: 640px;
+  max-height: 92vh; overflow-y: auto; animation: slideUp 0.3s ease;
+}
+.resumen-modal-handle {
+  width: 36px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 1.25rem;
+}
+.resumen-dia-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(1.1rem,4vw,1.4rem);
+  color: var(--navy); margin-bottom: 0.25rem;
+}
+.resumen-dia-sub {
+  font-size: 12px; color: var(--muted); margin-bottom: 1.25rem;
+}
+.asesor-resumen-block {
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; margin-bottom: 1rem;
+}
+.asesor-resumen-header {
+  background: var(--navy); padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 6px;
+}
+.asesor-resumen-nombre {
+  font-size: 13px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; gap: 8px;
+}
+.asesor-resumen-total {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.2rem; color: #4ec9a0;
+}
+.asesor-meta-row {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  padding: 10px 14px; background: var(--teal-light);
+  border-bottom: 1px solid var(--border);
+}
+.asesor-meta-item { display: flex; flex-direction: column; gap: 2px; }
+.asesor-meta-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--teal);
+}
+.asesor-meta-value {
+  font-size: 14px; font-weight: 700; color: var(--navy);
+}
+.productos-resumen-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+.productos-resumen-table th {
+  background: var(--surface2); padding: 7px 12px;
+  text-align: left; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.productos-resumen-table th:last-child,
+.productos-resumen-table th:nth-child(2) { text-align: right; }
+.productos-resumen-table td {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text); font-weight: 500;
+}
+.productos-resumen-table td:last-child,
+.productos-resumen-table td:nth-child(2) { text-align: right; }
+.productos-resumen-table tr:last-child td { border-bottom: none; }
+.productos-resumen-table tr:nth-child(even) td { background: var(--surface2); }
+.resumen-total-general {
+  background: var(--navy); border-radius: var(--radius);
+  padding: 14px 18px; margin-top: 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.resumen-total-general-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255,255,255,0.6);
+}
+.resumen-total-general-value {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem; color: #4ec9a0;
+}
+.btn-cerrar-resumen {
+  width: 100%; padding: 13px; background: var(--navy); color: #fff;
+  border: none; border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 1rem; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.2s;
+}
+.btn-cerrar-resumen:hover { background: #0f2a45; }
+.btn-imprimir-resumen {
+  width: 100%; padding: 13px; background: #6d28d9; color: #fff;
+  border: none; border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 10px; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.2s;
+}
+.btn-imprimir-resumen:hover { background: #5b21b6; }
+@media (min-width: 768px) {
+  .resumen-modal-overlay { align-items: center; padding: 1rem; }
+  .resumen-modal { border-radius: var(--radius-lg); max-height: 88vh; }
+  .resumen-modal-handle { display: none; }
+}
+
+
+/* ── FORMAS DE PAGO EN RESUMEN ────────────────────────────── */
+.formas-pago-resumen {
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.forma-pago-tag {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; padding: 4px 10px;
+  font-size: 11px; font-weight: 700; color: var(--navy);
+}
+.forma-pago-tag-valor { color: var(--teal); margin-left: 2px; }
+.formas-pago-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+}
+/* ── BOTÓN WHATSAPP RESUMEN ──────────────────────────────── */
+.btn-wa-resumen {
+  width: 100%; padding: 13px; background: #25D366; color: #fff;
+  border: none; border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 10px; display: flex;
+  align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.2s;
+}
+.btn-wa-resumen:hover { background: #1da851; }
+
 </style>
 </head>
 <body>
@@ -535,16 +681,7 @@ body { padding: 1rem 0.75rem 3rem; }
     <div class="offline-dot"></div>
     <span>Sin internet — Los pedidos se guardarán localmente y se sincronizarán automáticamente cuando haya conexión.</span>
   </div>
-  <div class="pending-banner" id="pendingBanner">
-    <div class="pending-left">
-      <span class="pending-count" id="pendingCount">0</span>
-      <span>pedido(s) pendiente(s) por enviar a Google Drive</span>
-    </div>
-    <button class="btn-sync" id="btnSync" onclick="sincronizarManual()">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" id="syncIcon"><path d="M14 8A6 6 0 1 1 8 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 2v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Sincronizar
-    </button>
-  </div>
+
 
   <div class="header">
     <div class="logo-wrap">
@@ -709,6 +846,10 @@ body { padding: 1rem 0.75rem 3rem; }
       <button class="btn" id="btnNuevo" onclick="nuevoPedido()" style="display:none;margin-top:10px;background:var(--navy)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         Registrar nuevo pedido
+      </button>
+      <button class="btn btn-resumen-dia" id="btnResumenDia" onclick="abrirResumenDia()" style="margin-top:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Ver Resumen del Día
       </button>
       <div class="drive-progress" id="driveProgress">
         <div class="progress-label"><span id="progressText">Subiendo PDF a Drive...</span><span id="progressPct">0%</span></div>
@@ -1122,7 +1263,7 @@ function resetearIntentosLocal() { sessionStorage.removeItem('_al_att'); }
    Para cambiar: F12 → Consola → await _generarHash('nueva_clave')
    ────────────────────────────────────────────────────────────────── */
 const AUTH_REGISTRY = Object.freeze({
-  'admin':     { h: '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055', nombre: 'Admin',     rol: 'ADMIN',    ruta: null,                esAdmin: true  },
+  'admin':     { h: 'e7042ac7d09c7bc41c8cfa5749e41858f6980643bc0db1a83cc793d3e24d3f77', nombre: 'Admin',     rol: 'ADMIN',    ruta: null,                esAdmin: true  },
   'jefferson': { h: '4bfc5062667279d31eefd696f24a2f28e5fa203f7c683e4aefa5483947449770', nombre: 'Jefferson', rol: 'OPERADOR', ruta: 'RUTA 1: Jefferson', esAdmin: false },
   'luis':      { h: '5893cd3c3f2b3903c3214bcabcdfa9aee03a3ec0931a4876204046f244cad892', nombre: 'Luis',      rol: 'OPERADOR', ruta: 'RUTA 2: Luis',      esAdmin: false },
   'vicente':   { h: 'f66986a120970c2ab68459132797c4c269b609ea16761f56cdafbae04290f630', nombre: 'Vicente',   rol: 'OPERADOR', ruta: 'RUTA 3: Vicente',    esAdmin: false },
@@ -1229,7 +1370,9 @@ async function doLogin() {
        MODO LOCAL:    Apps Script no configurado → AUTH_REGISTRY local
        MODO SERVIDOR: Apps Script configurado    → Google Sheets privada
        ──────────────────────────────────────────────────────────────── */
-const resultado = await authLocalLogin(userRaw, passHash);
+    const resultado = servidorConfigurado()
+      ? await authServerLogin(userRaw, passHash)
+      : await authLocalLogin(userRaw, passHash);
 
     if (resultado.ok && resultado.token) {
       resetearIntentosLocal();
@@ -1534,6 +1677,8 @@ if ('serviceWorker' in navigator) {
   document.getElementById('fecha').value      = hoyStr;
   document.getElementById('pago-fecha').value = hoyStr;
   document.getElementById('gasto-fecha').value= hoyStr;
+  /* Limpiar pendientes de sesiones anteriores al iniciar */
+  try { localStorage.removeItem('aqualuan-pendientes-ls'); } catch {}
   actualizarBanners();
 
   /* Restaurar sesión si existe (cierre accidental de pestaña) */
@@ -2305,6 +2450,331 @@ document.getElementById('modalOverlay').addEventListener('click', function(e) {
 
 /* Inicializar lista de productos vacía */
 renderLista();
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESUMEN DEL DÍA POR ASESOR
+   Muestra: clientes únicos, productos vendidos, cantidad, valor unitario,
+   valor total por producto y valor total del día — agrupado por asesor.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Variable global para construir el mensaje de WhatsApp del resumen */
+let _resumenDiaData = null;
+
+function abrirResumenDia() {
+  let hist = [];
+  try { hist = JSON.parse(sessionStorage.getItem('aqualuan-historial') || '[]'); } catch {}
+
+  const contenedor = document.getElementById('resumenDiaContenido');
+  const sub        = document.getElementById('resumenDiaSub');
+  const totalBox   = document.getElementById('resumenTotalGeneral');
+  const totalValor = document.getElementById('resumenTotalValor');
+
+  if (!hist.length) {
+    contenedor.innerHTML = `<div class="empty-msg" style="margin-top:0">
+      No hay pedidos registrados en esta sesión.<br>
+      Registra pedidos y vuelve a consultar el resumen.
+    </div>`;
+    totalBox.style.display = 'none';
+    _resumenDiaData = null;
+    document.getElementById('resumenModalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    return;
+  }
+
+  const hoy = new Date().toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  sub.textContent = `📅 ${hoy} — ${hist.length} pedido(s) en esta sesión`;
+
+  // ── Agrupar por asesor ──────────────────────────────────────────────────
+  const porAsesor = {};
+  hist.forEach(pedido => {
+    const asesor = pedido.empleado || 'Sin asignar';
+    if (!porAsesor[asesor]) {
+      porAsesor[asesor] = {
+        clientes:    new Set(),
+        pedidos:     0,
+        productos:   {},  // { nombre: { cantidad, precioUnit, subtotal } }
+        formasPago:  {},  // { forma: total }
+        totalDia:    0
+      };
+    }
+    const datos = porAsesor[asesor];
+    datos.clientes.add(pedido.nombre || '');
+    datos.pedidos++;
+    const tot = parseFloat(pedido.total || 0);
+    datos.totalDia += tot;
+
+    // Acumular por forma de pago
+    const forma = pedido.formapago || 'Sin especificar';
+    datos.formasPago[forma] = (datos.formasPago[forma] || 0) + tot;
+
+    // Agrupar productos
+    (pedido.productos || []).forEach(p => {
+      const nom = p.nombre || 'Sin nombre';
+      if (!datos.productos[nom]) {
+        datos.productos[nom] = { cantidad: 0, precioUnit: p.precio || 0, subtotal: 0 };
+      }
+      datos.productos[nom].cantidad  += parseFloat(p.cantidad  || 0);
+      datos.productos[nom].subtotal  += parseFloat(p.subtotal  || 0);
+      datos.productos[nom].precioUnit = parseFloat(p.precio || datos.productos[nom].precioUnit);
+    });
+  });
+
+  // ── Total general y formas de pago globales ────────────────────────────
+  let totalGeneral = 0;
+  const formasPagoGlobal = {};
+  Object.values(porAsesor).forEach(d => {
+    totalGeneral += d.totalDia;
+    Object.entries(d.formasPago).forEach(([f, v]) => {
+      formasPagoGlobal[f] = (formasPagoGlobal[f] || 0) + v;
+    });
+  });
+
+  // Guardar datos para WhatsApp
+  _resumenDiaData = { porAsesor, totalGeneral, formasPagoGlobal, hoy, totalPedidos: hist.length };
+
+  // ── Iconos por forma de pago ──────────────────────────────────────────
+  const iconoForma = { 'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓' };
+
+  // ── Renderizar ────────────────────────────────────────────────────────
+  let html = '';
+  Object.entries(porAsesor).forEach(([asesor, datos]) => {
+    const nombreCorto     = asesor.includes(':') ? asesor.split(':')[1].trim() : asesor;
+    const clientesArr     = [...datos.clientes].filter(Boolean);
+    const numTipos        = Object.keys(datos.productos).length;
+    const totalUnidades   = Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
+    const prodsOrdenados  = Object.entries(datos.productos).sort(([,a],[,b]) => b.subtotal - a.subtotal);
+
+    // Filas de productos
+    const filasProductos = prodsOrdenados.map(([nom, p]) => `
+      <tr>
+        <td>${escHTML(nom)}</td>
+        <td>${p.cantidad % 1 === 0 ? parseInt(p.cantidad) : p.cantidad.toFixed(1)}</td>
+        <td>$${p.precioUnit.toFixed(2)}</td>
+        <td style="font-weight:700;color:var(--teal)">$${p.subtotal.toFixed(2)}</td>
+      </tr>`).join('');
+
+    // Tags de formas de pago del asesor
+    const tagsPago = Object.entries(datos.formasPago)
+      .sort(([,a],[,b]) => b - a)
+      .map(([f, v]) => `
+        <span class="forma-pago-tag">
+          ${escHTML(iconoForma[f] || '💳')} ${escHTML(f)}
+          <span class="forma-pago-tag-valor">$${v.toFixed(2)}</span>
+        </span>`).join('');
+
+    html += `
+      <div class="asesor-resumen-block">
+        <div class="asesor-resumen-header">
+          <div class="asesor-resumen-nombre">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M2 14c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            ${escHTML(nombreCorto)}
+            <span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.06em">
+              ${escHTML(asesor.includes('RUTA') ? asesor.split(':')[0].trim() : '')}
+            </span>
+          </div>
+          <div class="asesor-resumen-total">$${datos.totalDia.toFixed(2)}</div>
+        </div>
+        <div class="asesor-meta-row">
+          <div class="asesor-meta-item">
+            <span class="asesor-meta-label">Clientes</span>
+            <span class="asesor-meta-value">${clientesArr.length}</span>
+          </div>
+          <div class="asesor-meta-item">
+            <span class="asesor-meta-label">Pedidos</span>
+            <span class="asesor-meta-value">${datos.pedidos}</span>
+          </div>
+          <div class="asesor-meta-item">
+            <span class="asesor-meta-label">Tipos prod.</span>
+            <span class="asesor-meta-value">${numTipos}</span>
+          </div>
+          <div class="asesor-meta-item">
+            <span class="asesor-meta-label">Unidades</span>
+            <span class="asesor-meta-value">${totalUnidades % 1 === 0 ? parseInt(totalUnidades) : totalUnidades.toFixed(1)}</span>
+          </div>
+          <div class="asesor-meta-item">
+            <span class="asesor-meta-label">Total ruta</span>
+            <span class="asesor-meta-value" style="color:var(--teal)">$${datos.totalDia.toFixed(2)}</span>
+          </div>
+        </div>
+        <div class="formas-pago-resumen">
+          <span class="formas-pago-label">Formas de pago:</span>
+          ${tagsPago}
+        </div>
+        <table class="productos-resumen-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cant.</th>
+              <th>Precio U.</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${filasProductos}</tbody>
+        </table>
+      </div>`;
+  });
+
+  // ── Resumen global de formas de pago ──────────────────────────────────
+  const tagsGlobal = Object.entries(formasPagoGlobal)
+    .sort(([,a],[,b]) => b - a)
+    .map(([f,v]) => `
+      <span class="forma-pago-tag" style="background:var(--teal-light);border-color:var(--teal)">
+        ${escHTML(iconoForma[f] || '💳')} ${escHTML(f)}
+        <span class="forma-pago-tag-valor" style="color:var(--teal-dark);font-size:12px">$${v.toFixed(2)}</span>
+      </span>`).join('');
+
+  html += `
+    <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:4px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px">
+        💳 Resumen global de formas de pago
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${tagsGlobal}</div>
+    </div>`;
+
+  contenedor.innerHTML = html;
+  totalValor.textContent = '$' + totalGeneral.toFixed(2);
+  totalBox.style.display = 'flex';
+
+  document.getElementById('resumenModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarResumenModal() {
+  document.getElementById('resumenModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function imprimirResumen() {
+  const contenido = document.getElementById('resumenModal').innerHTML;
+  const ventana = window.open('', '_blank', 'width=700,height=900');
+  ventana.document.write(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Resumen del Día — Aqua Luan</title>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; color: #1a3a5c; padding: 24px; background: #fff; }
+        .resumen-modal-handle, .btn-cerrar-resumen, .btn-imprimir-resumen { display: none !important; }
+        .resumen-dia-title { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 4px; }
+        .resumen-dia-sub { font-size: 12px; color: #888; margin-bottom: 20px; }
+        .asesor-resumen-block { border: 1.5px solid #ddd; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+        .asesor-resumen-header { background: #1a3a5c; padding: 10px 14px; display: flex; justify-content: space-between; }
+        .asesor-resumen-nombre { font-size: 13px; font-weight: 700; color: #fff; display: flex; gap: 8px; align-items: center; }
+        .asesor-resumen-total { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: #4ec9a0; }
+        .asesor-meta-row { display: flex; gap: 16px; padding: 10px 14px; background: #e6f4f2; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+        .asesor-meta-label { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #0a7c6e; display: block; }
+        .asesor-meta-value { font-size: 14px; font-weight: 700; color: #1a3a5c; }
+        .productos-resumen-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .productos-resumen-table th { background: #f0f5f8; padding: 7px 12px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #666; border-bottom: 1px solid #ddd; }
+        .productos-resumen-table th:last-child, .productos-resumen-table th:nth-child(2) { text-align: right; }
+        .productos-resumen-table td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+        .productos-resumen-table td:last-child, .productos-resumen-table td:nth-child(2) { text-align: right; }
+        .productos-resumen-table tr:nth-child(even) td { background: #f9f9f9; }
+        .resumen-total-general { background: #1a3a5c; border-radius: 10px; padding: 14px 18px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .resumen-total-general-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+        .resumen-total-general-value { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: #4ec9a0; }
+        .print-footer { margin-top: 20px; text-align: center; font-size: 11px; color: #aaa; }
+      </style>
+    </head>
+    <body>
+      ${contenido}
+      <div class="print-footer">www.elhyai.com | Aqua Luan — Sistema de Pedidos</div>
+      <script>window.onload = function(){ window.print(); }<\/script>
+    </body>
+    </html>
+  `);
+  ventana.document.close();
+}
+
+/* Cerrar resumen al click fuera */
+document.getElementById('resumenModalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) cerrarResumenModal();
+});
+
+
+/* ── Enviar resumen del día por WhatsApp ─────────────────────────────── */
+function enviarResumenWhatsapp() {
+  if (!_resumenDiaData) { alert('Primero genera el resumen del día.'); return; }
+  const { porAsesor, totalGeneral, formasPagoGlobal, hoy, totalPedidos } = _resumenDiaData;
+  const iconoForma = { 'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓' };
+
+  let msg = `📊 *RESUMEN DEL DÍA — AQUA LUAN*%0A`;
+  msg    += `📅 ${encodeURIComponent(hoy)}%0A`;
+  msg    += `📦 Total pedidos: ${totalPedidos}%0A%0A`;
+
+  // Bloque por asesor
+  Object.entries(porAsesor).forEach(([asesor, datos]) => {
+    const nombre   = asesor.includes(':') ? asesor.split(':')[1].trim() : asesor;
+    const clientes = [...datos.clientes].filter(Boolean).length;
+    const unidades = Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
+
+    msg += `👤 *${encodeURIComponent(nombre)}*%0A`;
+    msg += ` Clientes: ${clientes} | Pedidos: ${datos.pedidos} | Unidades: ${parseInt(unidades)}%0A`;
+    msg += ` 💰 Total: *$${datos.totalDia.toFixed(2)}*%0A`;
+
+    // Formas de pago del asesor
+    const formas = Object.entries(datos.formasPago).sort(([,a],[,b])=>b-a);
+    if (formas.length) {
+      msg += ` 💳 `;
+      msg += formas.map(([f,v]) => `${iconoForma[f]||'💳'} ${encodeURIComponent(f)}: $${v.toFixed(2)}`).join(' | ');
+      msg += '%0A';
+    }
+
+    // Productos top
+    const prods = Object.entries(datos.productos).sort(([,a],[,b])=>b.subtotal-a.subtotal);
+    prods.forEach(([nom, p]) => {
+      const cant = p.cantidad % 1 === 0 ? parseInt(p.cantidad) : p.cantidad.toFixed(1);
+      msg += ` • ${encodeURIComponent(nom)}: ${cant} u = $${p.subtotal.toFixed(2)}%0A`;
+    });
+    msg += '%0A';
+  });
+
+  // Resumen global formas de pago
+  msg += `💳 *FORMAS DE PAGO TOTAL*%0A`;
+  Object.entries(formasPagoGlobal).sort(([,a],[,b])=>b-a).forEach(([f,v]) => {
+    msg += ` ${iconoForma[f]||'💳'} ${encodeURIComponent(f)}: *$${v.toFixed(2)}*%0A`;
+  });
+
+  msg += `%0A💰 *TOTAL GENERAL DEL DÍA: $${totalGeneral.toFixed(2)}*%0A`;
+  msg += `%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
+
+  window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${msg}`, '_blank', 'noopener,noreferrer');
+}
+
 </script>
+
+<!-- ══ MODAL RESUMEN DEL DÍA POR ASESOR ════════════════════════════════ -->
+<div class="resumen-modal-overlay" id="resumenModalOverlay">
+  <div class="resumen-modal" id="resumenModal">
+    <div class="resumen-modal-handle"></div>
+    <div class="resumen-dia-title">📊 Resumen del Día</div>
+    <div class="resumen-dia-sub" id="resumenDiaSub">Detalle por asesor / ruta</div>
+    <div id="resumenDiaContenido">
+      <!-- Se llena dinámicamente -->
+    </div>
+    <div class="resumen-total-general" id="resumenTotalGeneral" style="display:none">
+      <span class="resumen-total-general-label">Total general del día</span>
+      <span class="resumen-total-general-value" id="resumenTotalValor">$0.00</span>
+    </div>
+    <button class="btn-wa-resumen" onclick="enviarResumenWhatsapp()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Enviar Resumen por WhatsApp
+    </button>
+    <button class="btn-imprimir-resumen" onclick="imprimirResumen()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir / Guardar PDF
+    </button>
+    <button class="btn-cerrar-resumen" onclick="cerrarResumenModal()">
+      Cerrar
+    </button>
+  </div>
+</div>
+
 </body>
 </html>
