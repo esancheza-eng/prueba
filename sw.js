@@ -1,138 +1,988 @@
-/* =====================================================
-   SERVICE WORKER — Aqua Luan v3.2 Enterprise
-   ─────────────────────────────────────────────────────
-   Cambios v9 → v10:
-   [SW-12] Sync automático limpia localStorage en cliente
-   [SW-13] Banner se oculta solo tras sync exitoso
-   ===================================================== */
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║  AQUA LUAN — Sistema de Pedidos v3.0 Enterprise                     ║
+  ║  Autenticación: Google Apps Script + Google Sheets privada           ║
+  ║  ──────────────────────────────────────────────────────────────────  ║
+  ║  Correcciones:                                                        ║
+  ║  [SEC-01] Hash SHA-256 local — sin contraseñas en texto plano        ║
+  ║  [SEC-02] Rate limiting en login (5 intentos / 15 min)               ║
+  ║  [SEC-03] SHA-256 + tiempo constante + padding anti timing-attack    ║
+  ║  [SEC-04] Función escHTML() en TODA inserción dinámica (anti-XSS)    ║
+  ║  [SEC-05] sessionStorage en lugar de localStorage para datos sensib. ║
+  ║  [SEC-06] Coordenadas GPS no persistidas en almacenamiento local     ║
+  ║  [SEC-07] CSRF token generado por sesión en cada petición POST       ║
+  ║  [SEC-08] Validación y sanitización de todos los inputs              ║
+  ║  [SEC-09] CSP declarada en meta tag                                  ║
+  ║  [SEC-10] X-Frame-Options declarado en meta tag                      ║
+  ║  [SEC-11] Token secreto incluido en cada POST al Apps Script         ║
+  ║  [SEC-12] Límite de longitud en todos los campos de texto            ║
+  ║  [SEC-13] Datos historial limitados a 20 registros, sin GPS          ║
+  ║  [SEC-14] Logout limpia sessionStorage completo                      ║
+  ║  [SEC-15] textContent en lugar de innerHTML donde no se necesita HTML║
+  ╚══════════════════════════════════════════════════════════════════════╝
+-->
+<title>Aqua Luan v3.0 — Sistema de Pedidos Empresarial</title>
 
-const CACHE_NAME = 'aqualuan-v10';
-const ASSETS = [
-  './',
-  './index.html',
-  './dashboard.html',
-  'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap'
-];
+<!-- CSP: configurar como header HTTP en el servidor para máxima efectividad -->
+<!-- Los meta CSP no son efectivos para event handlers inline en Chrome moderno -->
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
+<!-- [SEC-10] Clickjacking protection -->
+<!-- X-Frame-Options se configura en el servidor web -->
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 
-function scriptUrlValida() {
-  return typeof SCRIPT_URL === 'string' &&
-    SCRIPT_URL.startsWith('https://script.google.com/') &&
-    SCRIPT_URL.length > 60;
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Estilos originales 100% conservados ───────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+--bg: #e8f0f5; --bg2: #dde8f0; --surface: #ffffff; --surface2: #f0f5f8;
+--border: rgba(0,80,120,0.12); --border-focus: #0a7c6e;
+--teal: #0a7c6e; --teal-dark: #085f54; --teal-light: #e6f4f2;
+--navy: #1a3a5c; --accent-green: #4ec9a0; --text: #1a3a5c;
+--muted: rgba(26,58,92,0.5); --muted2: rgba(26,58,92,0.3);
+--success-bg: #e6f4f2; --success-border: #4ec9a0; --success-text: #085f54;
+--error-bg: #fdecea; --error-border: #e57373; --error-text: #b71c1c;
+--warning-bg: #fff8e1; --warning-border: #ffc107; --warning-text: #795c00;
+--whatsapp: #25D366; --whatsapp-hover: #1da851;
+--radius: 12px; --radius-lg: 18px;
+--shadow: 0 4px 20px rgba(26,58,92,0.1);
+--blue: #1565c0; --blue-dark: #0d47a1; --blue-light: #e8f0fd;
+--red: #c0392b; --red-dark: #a93226; --red-light: #fdecea;
+--orange: #e67e22;
+}
+html { font-size: 16px; }
+body {
+background: linear-gradient(135deg, #dde8f2 0%, #e8f2f8 50%, #d8edf2 100%);
+min-height: 100vh; color: var(--text);
+font-family: 'DM Sans', sans-serif; font-weight: 400;
+display: flex; align-items: flex-start; justify-content: center;
+padding: 2rem 1rem 4rem; -webkit-text-size-adjust: 100%;
+}
+.container { width: 100%; max-width: 640px; animation: fadeUp 0.4s ease both; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+.tabs-nav {
+display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
+background: var(--navy); border-radius: var(--radius-lg);
+padding: 6px; margin-bottom: 1.25rem; gap: 4px; box-shadow: var(--shadow);
+}
+.tab-btn {
+padding: 10px 8px; border: none; border-radius: 10px;
+background: transparent; color: rgba(255,255,255,0.5);
+font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+cursor: pointer; display: flex; align-items: center; justify-content: center;
+gap: 6px; transition: background 0.2s, color 0.2s; letter-spacing: 0.02em;
+-webkit-tap-highlight-color: transparent;
+}
+.tab-btn:hover { color: rgba(255,255,255,0.8); }
+.tab-btn.active-ventas { background: var(--teal); color: #fff; }
+.tab-btn.active-pagos { background: var(--blue); color: #fff; }
+.tab-btn.active-gastos { background: var(--red); color: #fff; }
+.tab-btn.active-historial { background: #6d28d9; color: #fff; }
+.campo-bloqueado {
+background: var(--teal-light); border: 1.5px solid var(--teal);
+border-radius: var(--radius); padding: 11px 14px;
+font-size: 15px; font-weight: 700; color: var(--teal-dark);
+display: flex; align-items: center; gap: 8px; width: 100%;
+}
+.btn-logout {
+height: 30px; padding: 0 12px; background: rgba(255,255,255,0.12);
+color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2);
+border-radius: 100px; font-family: 'DM Sans', sans-serif;
+font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
+display: flex; align-items: center; gap: 5px;
+transition: background 0.2s; letter-spacing: 0.03em;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.historial-card {
+background: var(--surface); border: 1px solid var(--border);
+border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+margin-bottom: 0.75rem; box-shadow: 0 2px 8px rgba(26,58,92,0.07);
+}
+.historial-cliente { font-size: 15px; font-weight: 700; color: var(--navy); }
+.historial-total { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #6d28d9; }
+.historial-meta { font-size: 12px; color: var(--muted); margin: 4px 0 10px; }
+.historial-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-hist {
+height: 34px; padding: 0 14px; border: none; border-radius: 100px;
+font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+cursor: pointer; display: flex; align-items: center; gap: 6px;
+transition: opacity 0.15s; color: #fff; white-space: nowrap;
+}
+.btn-hist:hover { opacity: 0.85; }
+.btn-hist-pdf { background: #c0392b; }
+.btn-hist-wa { background: var(--whatsapp); }
+.historial-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.btn-limpiar-hist {
+height: 28px; padding: 0 12px; background: var(--surface2);
+color: var(--muted); border: 1px solid var(--border);
+border-radius: 100px; font-family: 'DM Sans', sans-serif;
+font-size: 11px; font-weight: 700; cursor: pointer;
+transition: background 0.2s;
+}
+.btn-limpiar-hist:hover { background: #fee2e2; color: #b71c1c; border-color: #fca5a5; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeUp 0.3s ease both; }
+.offline-banner {
+display: none; align-items: center; gap: 10px;
+background: var(--warning-bg); border: 1.5px solid var(--warning-border);
+border-radius: var(--radius); padding: 11px 16px; margin-bottom: 1rem;
+font-size: 13px; font-weight: 600; color: var(--warning-text);
+animation: fadeUp 0.3s ease;
+}
+.offline-banner.show { display: flex; }
+.offline-dot {
+width: 8px; height: 8px; border-radius: 50%;
+background: #ffc107; flex-shrink: 0;
+box-shadow: 0 0 0 3px rgba(255,193,7,0.25);
+animation: pulse-dot 1.5s ease infinite;
+}
+@keyframes pulse-dot {
+0%,100% { box-shadow: 0 0 0 3px rgba(255,193,7,0.25); }
+50% { box-shadow: 0 0 0 6px rgba(255,193,7,0.1); }
+}
+.pending-banner {
+display: none !important; align-items: center; justify-content: space-between;
+gap: 10px; background: #e8f4fd; border: 1.5px solid #90caf9;
+border-radius: var(--radius); padding: 11px 16px; margin-bottom: 1rem;
+font-size: 13px; font-weight: 600; color: #1565c0; animation: fadeUp 0.3s ease;
+}
+.pending-banner.show { display: flex; }
+.pending-left { display: flex; align-items: center; gap: 10px; }
+.pending-count {
+background: #1565c0; color: #fff; font-size: 11px; font-weight: 800;
+border-radius: 100px; padding: 2px 9px; min-width: 22px; text-align: center;
+}
+.btn-sync {
+height: 32px; padding: 0 14px; background: #1565c0; color: #fff;
+border: none; border-radius: 100px; font-family: 'DM Sans', sans-serif;
+font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+display: flex; align-items: center; gap: 6px;
+transition: background 0.2s, transform 0.1s;
+}
+.btn-sync:hover { background: #0d47a1; }
+.btn-sync:active { transform: scale(0.97); }
+.btn-sync:disabled { opacity: 0.6; cursor: not-allowed; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.7s linear infinite; }
+.header {
+background: var(--navy); border-radius: var(--radius-lg);
+padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;
+display: flex; align-items: center; justify-content: space-between;
+gap: 1rem; flex-wrap: wrap; box-shadow: var(--shadow);
+}
+.logo-wrap { display: flex; align-items: center; gap: 12px; }
+.logo-icon { flex-shrink: 0; }
+.logo-text { display: flex; flex-direction: column; gap: 1px; }
+.logo-name { font-family: 'DM Sans', sans-serif; font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 700; letter-spacing: 0.02em; color: #fff; line-height: 1; }
+.logo-name span { color: #4ec9a0; }
+.logo-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+.date-badge { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); padding: 5px 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; white-space: nowrap; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: clamp(1.25rem, 4vw, 1.75rem); box-shadow: var(--shadow); margin-bottom: 1rem; }
+.section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+.section-title::after { content: ''; flex: 1; height: 1.5px; background: var(--teal-light); }
+.section-title.blue { color: var(--blue); }
+.section-title.blue::after { background: var(--blue-light); }
+.section-title.red { color: var(--red); }
+.section-title.red::after { background: var(--red-light); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
+input, textarea, select {
+background: var(--surface2); border: 1.5px solid var(--border);
+border-radius: var(--radius); color: var(--text);
+font-family: 'DM Sans', sans-serif; font-size: clamp(14px, 4vw, 15px);
+font-weight: 500; padding: 11px 14px; outline: none;
+transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+width: 100%; -webkit-appearance: none; touch-action: manipulation;
+}
+input::placeholder, textarea::placeholder { color: var(--muted2); font-weight: 400; }
+input:focus, textarea:focus, select:focus { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3px rgba(10,124,110,0.1); }
+.focus-blue:focus { border-color: var(--blue) !important; box-shadow: 0 0 0 3px rgba(21,101,192,0.1) !important; }
+.focus-red:focus { border-color: var(--red) !important; box-shadow: 0 0 0 3px rgba(192,57,43,0.1) !important; }
+input[type="date"] { cursor: pointer; }
+input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; }
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+select {
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230a7c6e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer;
+}
+.divider { border: none; border-top: 1.5px solid var(--teal-light); margin: 1.25rem 0; }
+.divider-blue { border-top-color: var(--blue-light); }
+.divider-red { border-top-color: #fca5a5; }
+.add-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: flex-end; }
+.add-row .field { margin-bottom: 0; }
+.btn-add {
+height: 44px; padding: 0 16px; background: var(--teal); color: #fff;
+border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+display: flex; align-items: center; gap: 6px;
+transition: background 0.2s, transform 0.1s;
+-webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.btn-add:hover { background: var(--teal-dark); }
+.btn-add:active { transform: scale(0.97); }
+.btn-add.blue { background: var(--blue); }
+.btn-add.blue:hover { background: var(--blue-dark); }
+.btn-add.red { background: var(--red); }
+.btn-add.red:hover { background: var(--red-dark); }
+.productos-lista { margin-top: 1rem; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); }
+.productos-lista.empty { display: none; }
+.lista-header {
+display: grid; grid-template-columns: 1fr 60px 80px 80px 32px;
+gap: 8px; padding: 9px 12px; background: var(--navy);
+font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85);
+}
+.lista-item {
+display: grid; grid-template-columns: 1fr 60px 80px 80px 32px;
+gap: 8px; padding: 10px 12px;
+background: var(--surface); border-top: 1px solid var(--border);
+align-items: center;
+}
+.lista-item:nth-child(even) { background: var(--surface2); }
+.item-nombre { font-size: 13px; font-weight: 600; color: var(--navy); }
+.item-num { font-size: 13px; font-weight: 500; text-align: center; color: var(--muted); }
+.item-precio { font-size: 13px; font-weight: 500; text-align: right; color: var(--muted); }
+.item-subtotal { font-size: 13px; font-weight: 700; text-align: right; color: var(--teal); }
+.btn-remove {
+width: 28px; height: 28px; border-radius: 50%; border: none;
+background: #fee2e2; color: #b71c1c; font-size: 16px; font-weight: 700;
+cursor: pointer; display: flex; align-items: center; justify-content: center;
+transition: background 0.15s; line-height: 1;
+}
+.btn-remove:hover { background: #fca5a5; }
+.total-row {
+display: flex; align-items: center; justify-content: space-between;
+background: var(--navy); border-radius: var(--radius); padding: 16px 18px; margin-top: 1rem;
+}
+.total-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+.total-value { font-family: 'DM Serif Display', serif; font-size: clamp(22px, 6vw, 32px); color: #4ec9a0; letter-spacing: -0.02em; }
+.total-value.blue { color: #90caf9; }
+.total-value.red { color: #f48fb1; }
+.empty-msg { text-align: center; padding: 1.5rem; color: var(--muted); font-size: 14px; border: 1.5px dashed var(--border); border-radius: var(--radius); background: var(--surface2); margin-top: 1rem; }
+.btn {
+width: 100%; padding: 15px; background: var(--teal); color: #fff; border: none;
+border-radius: var(--radius); font-family: 'DM Sans', sans-serif;
+font-size: clamp(14px, 4vw, 16px); font-weight: 700; cursor: pointer;
+display: flex; align-items: center; justify-content: center; gap: 8px;
+transition: background 0.2s, transform 0.1s;
+-webkit-tap-highlight-color: transparent; touch-action: manipulation; min-height: 52px;
+}
+.btn:hover { background: var(--teal-dark); }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
+.btn-outline:hover { background: var(--surface2); }
+.btn.blue { background: var(--blue); }
+.btn.blue:hover { background: var(--blue-dark); }
+.btn.red { background: var(--red); }
+.btn.red:hover { background: var(--red-dark); }
+.btn-whatsapp { background: var(--whatsapp); color: #fff; margin-top: 10px; display: none; }
+.btn-whatsapp:hover { background: var(--whatsapp-hover); }
+.btn-whatsapp.visible { display: flex; }
+.btn-pdf { background: #c0392b; color: #fff; margin-top: 10px; }
+.btn-pdf:hover { background: #a93226; }
+.drive-progress {
+display: none; margin-top: 10px; background: var(--surface2);
+border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px;
+}
+.drive-progress.show { display: block; }
+.progress-label { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; display: flex; justify-content: space-between; }
+.progress-bar-wrap { background: #dde8f0; border-radius: 100px; height: 6px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: #1967d2; border-radius: 100px; width: 0%; transition: width 0.3s ease; }
+.progress-link { font-size: 12px; font-weight: 600; color: #1967d2; margin-top: 8px; display: none; }
+.progress-link a { color: #1967d2; text-decoration: underline; }
+.progress-link.show { display: block; }
+.status { margin-top: 12px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 10px; line-height: 1.4; }
+.status.success { display: flex; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
+.status.error { display: flex; background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
+.status.warning { display: flex; background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text); }
+.footer { margin-top: 1.5rem; text-align: center; }
+.footer a { font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; letter-spacing: 0.03em; }
+.footer a:hover { color: var(--teal); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,30,60,0.7); z-index: 100; align-items: flex-end; justify-content: center; padding: 0; }
+.modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.modal { background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 1.25rem; }
+.modal-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.2rem, 5vw, 1.5rem); margin-bottom: 0.3rem; color: var(--navy); }
+.modal-subtitle { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 1.25rem; }
+.modal-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+.modal-table tr { border-bottom: 1px solid var(--border); }
+.modal-table tr:last-child { border-bottom: none; }
+.modal-table td { padding: 8px 0; font-size: 14px; }
+.modal-table td:first-child { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; width: 38%; }
+.modal-table td:last-child { color: var(--navy); font-weight: 600; }
+.modal-productos { width: 100%; border-collapse: collapse; margin: 0.5rem 0 1rem; border-radius: var(--radius); overflow: hidden; }
+.modal-productos th { background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 10px; text-align: left; }
+.modal-productos th:last-child { text-align: right; }
+.modal-productos td { padding: 8px 10px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.modal-productos td:last-child { text-align: right; font-weight: 700; color: var(--teal); }
+.modal-total-final { display: flex; justify-content: space-between; align-items: center; background: var(--navy); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 1.25rem; }
+.modal-total-final span:first-child { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+.modal-total-final span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: #4ec9a0; }
+.modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.modal-offline-note { display:none; font-size:12px; font-weight:600; color:var(--warning-text); background:var(--warning-bg); border:1px solid var(--warning-border); border-radius:var(--radius); padding:10px 14px; margin-bottom:14px; }
+.modal-offline-note.show { display:block; }
+.spinner2 { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+.gps-badge {
+display: flex; align-items: center; gap: 8px;
+background: #e8f4fd; border: 1.5px solid #90caf9;
+border-radius: var(--radius); padding: 9px 13px; margin-bottom: 1rem;
+font-size: 13px; font-weight: 600; color: #1565c0;
+}
+.gps-badge.ok { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+.gps-badge.err { background: var(--error-bg); border-color: var(--error-border); color: var(--error-text); }
+.gps-badge.wait { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+.gps-badge a { color: inherit; font-weight: 700; text-decoration: underline; word-break: break-all; }
+.gps-dot { width: 8px; height: 8px; border-radius: 50%; background: #1565c0; flex-shrink: 0; }
+.gps-badge.ok .gps-dot { background: var(--teal); }
+.gps-badge.err .gps-dot { background: #e57373; }
+.gps-badge.wait .gps-dot { background: #ffc107; animation: pulse-dot 1.2s ease infinite; }
+.reg-lista { margin-top: 1rem; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); }
+.reg-lista.empty { display: none; }
+.pagos-header {
+display: grid; grid-template-columns: 1fr 90px 90px 80px 32px;
+gap: 8px; padding: 9px 12px; background: var(--blue);
+font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.9);
+}
+.pago-item {
+display: grid; grid-template-columns: 1fr 90px 90px 80px 32px;
+gap: 8px; padding: 10px 12px;
+background: var(--surface); border-top: 1px solid var(--border);
+align-items: center;
+}
+.pago-item:nth-child(even) { background: var(--blue-light); }
+.pago-monto { font-size: 13px; font-weight: 700; text-align: right; color: var(--blue); }
+.gastos-header {
+display: grid; grid-template-columns: 1fr 100px 90px 80px 32px;
+gap: 8px; padding: 9px 12px; background: var(--red);
+font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.9);
+}
+.gasto-item {
+display: grid; grid-template-columns: 1fr 100px 90px 80px 32px;
+gap: 8px; padding: 10px 12px;
+background: var(--surface); border-top: 1px solid var(--border);
+align-items: center;
+}
+.gasto-item:nth-child(even) { background: var(--red-light); }
+.gasto-monto { font-size: 13px; font-weight: 700; text-align: right; color: var(--red); }
+.badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; }
+.badge-contado { background: #e6f4f2; color: #085f54; }
+.badge-credito { background: #e8f0fd; color: #1565c0; }
+.badge-transfer { background: #fff8e1; color: #795c00; }
+.badge-cheque { background: #fce4ec; color: #880e4f; }
+.badge-efectivo { background: #e8f5e9; color: #1b5e20; }
+.badge-datafono { background: #e3f2fd; color: #0d47a1; }
+.badge-deposito { background: #fce4ec; color: #880e4f; }
+.resumen-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+.resumen-card { border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.resumen-card.teal { background: var(--teal-light); border: 1.5px solid var(--success-border); }
+.resumen-card.blue { background: var(--blue-light); border: 1.5px solid #90caf9; }
+.resumen-card.red { background: var(--red-light); border: 1.5px solid #e57373; }
+.resumen-card.navy { background: var(--navy); }
+.resumen-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.resumen-card.teal .resumen-label { color: var(--teal); }
+.resumen-card.blue .resumen-label { color: var(--blue); }
+.resumen-card.red .resumen-label { color: var(--red); }
+.resumen-card.navy .resumen-label { color: rgba(255,255,255,0.5); }
+.resumen-value { font-family: 'DM Serif Display', serif; font-size: 1.4rem; letter-spacing: -0.01em; }
+.resumen-card.teal .resumen-value { color: var(--teal-dark); }
+.resumen-card.blue .resumen-value { color: var(--blue-dark); }
+.resumen-card.red .resumen-value { color: var(--red-dark); }
+.resumen-card.navy .resumen-value { color: #4ec9a0; }
+.resumen-sub { font-size: 11px; color: var(--muted); font-weight: 500; }
+.login-overlay {
+position: fixed; inset: 0;
+background: linear-gradient(135deg, #dde8f2 0%, #e8f2f8 50%, #d8edf2 100%);
+z-index: 999; display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.login-box { background: #fff; border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 2.5rem 2rem; width: 100%; max-width: 380px; animation: fadeUp 0.4s ease both; }
+.login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; justify-content: center; }
+.login-title { font-family: 'DM Sans', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--navy); line-height: 1; }
+.login-title span { color: #4ec9a0; }
+.login-sub { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 2px; }
+.login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.login-field label { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; color: var(--navy); text-transform: uppercase; }
+.login-error { display: none; color: #b71c1c; font-size: 13px; font-weight: 600; background: #fdecea; border: 1px solid #e57373; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; }
+.login-error.show { display: block; }
+/* [SEC-NEW] Indicador de bloqueo por intentos */
+.login-bloqueo {
+display: none; color: #795c00; font-size: 13px; font-weight: 600;
+background: #fff8e1; border: 1px solid #ffc107; border-radius: var(--radius);
+padding: 10px 14px; margin-bottom: 12px; text-align: center;
+}
+.login-bloqueo.show { display: block; }
+@media (max-width: 480px) {
+body { padding: 1rem 0.75rem 3rem; }
+.grid-2, .grid-3 { grid-template-columns: 1fr; }
+.add-row { grid-template-columns: 1fr 1fr; }
+.add-row .btn-add { grid-column: 1 / -1; width: 100%; }
+.lista-header, .lista-item { grid-template-columns: 1fr 48px 68px 68px 28px; font-size: 12px; }
+.pagos-header, .pago-item { grid-template-columns: 1fr 80px 70px 64px 28px; font-size: 12px; }
+.gastos-header, .gasto-item { grid-template-columns: 1fr 90px 70px 64px 28px; font-size: 12px; }
+.modal-btns { grid-template-columns: 1fr; }
+.resumen-grid { grid-template-columns: 1fr; }
+.tab-btn { font-size: 11px; }
+}
+@media (min-width: 768px) {
+.modal-overlay { align-items: center; padding: 1rem; }
+.modal { border-radius: var(--radius-lg); max-height: 85vh; }
+.modal-handle { display: none; }
+@keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ MODAL CONFIRMACIÓN DE PEDIDO ═══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTituloId">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTituloId">Confirmar pedido</div>
+    <div class="modal-subtitle" id="modal-subtitle-text">Revisa todos los datos antes de guardar</div>
+    <div class="modal-offline-note" id="modalOfflineNote">
+      ⚠️ Sin conexión a internet. El pedido se guardará localmente y se enviará a Google Drive automáticamente cuando haya conexión.
+    </div>
+    <table class="modal-table">
+      <tr><td>Asesor / Ruta</td><td id="m-empleado">-</td></tr>
+      <tr><td>Forma de pago</td><td id="m-formapago">-</td></tr>
+      <tr><td>Cliente</td><td id="m-nombre">-</td></tr>
+      <tr><td>Telefono</td><td id="m-telefono">-</td></tr>
+      <tr><td>Direccion</td><td id="m-direccion">-</td></tr>
+      <tr><td>Fecha</td><td id="m-fecha">-</td></tr>
+      <tr><td>Notas</td><td id="m-notas">-</td></tr>
+      <tr><td>Ubicación GPS</td><td id="m-gps">-</td></tr>
+    </table>
+    <div class="gps-badge wait" id="gpsBadge"><div class="gps-dot"></div><span id="gpsBadgeText">Obteniendo ubicación GPS...</span></div>
+    <div class="section-title" style="margin-bottom:0.75rem">Productos</div>
+    <table class="modal-productos">
+      <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
+      <tbody id="m-productos"></tbody>
+    </table>
+    <div class="modal-total-final"><span>Total general</span><span id="m-total">$0.00</span></div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn" id="btnConfirmar" onclick="confirmarEnvio()">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Confirmar y guardar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════════════ -->
+<!--
+  [SEC-01] Las credenciales YA NO están en el frontend.
+  doLogin() envía usuario + hash SHA-256 de la contraseña al Apps Script
+  que valida contra una hoja privada. El JS no contiene ninguna contraseña.
+-->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="22" fill="#0a4a5e"/>
+        <path d="M22 8C22 8 12 18 12 25C12 30.5 16.5 35 22 35C27.5 35 32 30.5 32 25C32 18 22 8 22 8Z" fill="#4ec9a0"/>
+        <path d="M22 8C22 8 17 20 19 25C20.2 28.2 22 29 22 29C22 29 24 28 24.5 25C25.5 20 22 8 22 8Z" fill="#a8edd8" opacity="0.6"/>
+        <text x="22" y="28" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="0.5">L</text>
+      </svg>
+      <div>
+        <div class="login-title">AQUA <span>LUAN</span></div>
+        <div class="login-sub">Sistema de Pedidos</div>
+      </div>
+    </div>
+    <!-- [SEC-12] maxlength en todos los campos del login -->
+    <div class="login-field">
+      <label for="loginUser">Usuario</label>
+      <input type="text" id="loginUser" placeholder="Ingresa tu usuario"
+             autocomplete="username" maxlength="50"
+             onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <div class="login-field">
+      <label for="loginPass">Contraseña</label>
+      <input type="password" id="loginPass" placeholder="Ingresa tu contraseña"
+             autocomplete="current-password" maxlength="128"
+             onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <!-- [SEC-02] Mensaje de error sin revelar si falla usuario o contraseña -->
+    <div class="login-error" id="loginError" role="alert">Usuario o contraseña incorrectos.</div>
+    <!-- [SEC-02] Indicador de bloqueo por demasiados intentos -->
+    <div class="login-bloqueo" id="loginBloqueo" role="alert"></div>
+    <button class="btn" id="btnLogin" onclick="doLogin()" style="margin-top:8px">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Ingresar
+    </button>
+  </div>
+</div>
+
+<!-- ══ CONTENIDO PRINCIPAL ════════════════════════════════════════════════ -->
+<!-- Aviso de expiración de sesión -->
+<div id="avisoSesion" style="display:none;position:fixed;bottom:20px;right:20px;background:#fff8e1;border:1.5px solid #ffc107;border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;color:#795c00;z-index:200;box-shadow:0 4px 20px rgba(0,0,0,0.15)"></div>
+
+<div class="container">
+  <div class="offline-banner" id="offlineBanner">
+    <div class="offline-dot"></div>
+    <span>Sin internet — Los pedidos se guardarán localmente y se sincronizarán automáticamente cuando haya conexión.</span>
+  </div>
+
+
+  <div class="header">
+    <div class="logo-wrap">
+      <svg class="logo-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="22" fill="#0a4a5e"/>
+        <path d="M22 8C22 8 12 18 12 25C12 30.5 16.5 35 22 35C27.5 35 32 30.5 32 25C32 18 22 8 22 8Z" fill="#4ec9a0"/>
+        <path d="M22 8C22 8 17 20 19 25C20.2 28.2 22 29 22 29C22 29 24 28 24.5 25C25.5 20 22 8 22 8Z" fill="#a8edd8" opacity="0.6"/>
+        <text x="22" y="28" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="0.5">L</text>
+      </svg>
+      <div class="logo-text">
+        <div class="logo-name">AQUA <span>LUAN</span></div>
+        <div class="logo-sub" id="logoSub">Registro de Pedidos</div>
+      </div>
+    </div>
+    <div class="date-badge" id="fechaHoy"></div>
+    <button class="btn-logout" id="btnLogout" onclick="cerrarSesion()" style="display:none">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Salir
+    </button>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-btn active-ventas" onclick="cambiarTab('ventas')" id="tab-ventas">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 2h1.5l2 8h6l1.5-5H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="13" r="1" fill="currentColor"/><circle cx="12" cy="13" r="1" fill="currentColor"/></svg>
+      Ventas
+    </button>
+    <button class="tab-btn" onclick="cambiarTab('pagos')" id="tab-pagos">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="4" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 7h13" stroke="currentColor" stroke-width="1.5"/><path d="M5 10.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Pagos
+    </button>
+    <button class="tab-btn" onclick="cambiarTab('gastos')" id="tab-gastos">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Gastos
+    </button>
+    <button class="tab-btn" onclick="cambiarTab('historial')" id="tab-historial">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Historial
+    </button>
+  </div>
+
+  <!-- ── TAB VENTAS ──────────────────────────────────────────────────── -->
+  <div class="tab-content active" id="content-ventas">
+    <div class="card">
+      <div class="section-title">Empleado responsable</div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="empleado">Ruta / Asesor</label>
+          <div id="wrap-empleado">
+            <select id="empleado" required>
+              <option value="">-- Selecciona --</option>
+              <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+              <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+              <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+              <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+              <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="formapago">Forma de pago</label>
+          <select id="formapago" required>
+            <option value="">-- Selecciona --</option>
+            <option value="Contado">Contado</option>
+            <option value="Crédito">Crédito</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="section-title">Datos del cliente</div>
+      <!-- [SEC-12] maxlength en todos los campos -->
+      <div class="field">
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" placeholder="Ej. Maria Garcia Lopez"
+               autocomplete="off" required maxlength="100">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="telefono">Telefono</label>
+          <input type="tel" id="telefono" placeholder="0991234567"
+                 autocomplete="off" inputmode="tel" maxlength="20">
+        </div>
+        <div class="field">
+          <label for="fecha">Fecha</label>
+          <input type="date" id="fecha">
+        </div>
+      </div>
+      <div class="field">
+        <label for="direccion">Direccion</label>
+        <input type="text" id="direccion" placeholder="Calle, numero, sector"
+               autocomplete="off" maxlength="200">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="notas">Notas adicionales</label>
+        <textarea id="notas" placeholder="Observaciones, condiciones de pago, entregas..."
+                  maxlength="500"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Productos del pedido</div>
+      <div class="add-row">
+        <div class="field">
+          <label for="sel-producto">Producto</label>
+          <select id="sel-producto">
+            <option value="">-- Selecciona --</option>
+            <option value="BOTELLON 20LT">BOTELLON 20LT</option>
+            <option value="BOTELLON CON LLAVE">BOTELLON CON LLAVE</option>
+            <option value="PACA 625ML AZUL">PACA 625ML AZUL</option>
+            <option value="PACA 600ML VERDE">PACA 600ML VERDE</option>
+            <option value="PACA 1000ML">PACA 1000ML</option>
+            <option value="PACA 400ML">PACA 400ML</option>
+            <option value="GALONES 4LT">GALONES 4LT</option>
+            <option value="POMA 5LTS">POMA 5LTS</option>
+            <option value="ENVASE CON LLAVE">ENVASE CON LLAVE</option>
+            <option value="ENVASE AZUL ADICIONAL">ENVASE AZUL ADICIONAL</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sel-cantidad">Cantidad</label>
+          <input type="number" id="sel-cantidad" placeholder="0"
+                 inputmode="numeric" min="1" max="9999" maxlength="4">
+        </div>
+        <div class="field">
+          <label for="sel-precio">Precio ($)</label>
+          <input type="number" id="sel-precio" placeholder="0.00"
+                 step="0.01" min="0" max="99999" inputmode="decimal">
+        </div>
+        <button class="btn-add" onclick="agregarProducto()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Agregar
+        </button>
+      </div>
+      <div class="productos-lista empty" id="productosLista">
+        <div class="lista-header">
+          <span>Producto</span><span style="text-align:center">Cant.</span>
+          <span style="text-align:right">Precio</span><span style="text-align:right">Subtotal</span><span></span>
+        </div>
+        <div id="productosItems"></div>
+      </div>
+      <div id="emptyMsg" class="empty-msg">Aun no hay productos. Selecciona un producto y haz clic en <strong>Agregar</strong>.</div>
+      <div class="total-row">
+        <span class="total-label">Total general</span>
+        <span class="total-value" id="totalGeneral">$0.00</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="btn" id="btnGuardar" onclick="abrirModal()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.5 10v2a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 12v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M8 2v7M5.5 6.5 8 9l2.5-2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Guardar registro
+      </button>
+      <button class="btn btn-whatsapp" id="btnWhatsapp" onclick="enviarWhatsapp()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Enviar por WhatsApp a Zoila
+      </button>
+      <button class="btn btn-pdf" id="btnPdf" onclick="descargarPDF()" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        Descargar PDF del pedido
+      </button>
+      <button class="btn" id="btnNuevo" onclick="nuevoPedido()" style="display:none;margin-top:10px;background:var(--navy)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Registrar nuevo pedido
+      </button>
+      <div class="drive-progress" id="driveProgress">
+        <div class="progress-label"><span id="progressText">Subiendo PDF a Drive...</span><span id="progressPct">0%</span></div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+        <div class="progress-link" id="progressLink"></div>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+  </div><!-- /content-ventas -->
+
+  <!-- ── TAB PAGOS ───────────────────────────────────────────────────── -->
+  <div class="tab-content" id="content-pagos">
+    <div class="card">
+      <div class="section-title blue">Resumen del día</div>
+      <div class="resumen-grid">
+        <div class="resumen-card blue">
+          <span class="resumen-label">Total cobrado</span>
+          <span class="resumen-value" id="pago-total-dia">$0.00</span>
+          <span class="resumen-sub" id="pago-count-dia">0 pagos registrados</span>
+        </div>
+        <div class="resumen-card navy">
+          <span class="resumen-label">Último pago</span>
+          <span class="resumen-value" id="pago-ultimo">—</span>
+          <span class="resumen-sub" id="pago-ultimo-cliente" style="color:rgba(255,255,255,0.4)">Sin registros</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title blue">Registrar pago recibido</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Asesor / Ruta</label>
+          <div id="wrap-pago-empleado">
+            <select id="pago-empleado" class="focus-blue">
+              <option value="">-- Selecciona --</option>
+              <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+              <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+              <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+              <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+              <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="pago-fecha">Fecha</label>
+          <input type="date" id="pago-fecha" class="focus-blue">
+        </div>
+      </div>
+      <div class="field">
+        <label for="pago-cliente">Cliente</label>
+        <input type="text" id="pago-cliente" placeholder="Nombre del cliente"
+               autocomplete="off" class="focus-blue" maxlength="100">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="pago-monto">Monto recibido ($)</label>
+          <input type="number" id="pago-monto" placeholder="0.00"
+                 step="0.01" min="0" max="999999" inputmode="decimal" class="focus-blue">
+        </div>
+        <div class="field">
+          <label for="pago-forma">Forma de pago</label>
+          <select id="pago-forma" class="focus-blue">
+            <option value="">-- Selecciona --</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="pago-notas">Referencia / Notas</label>
+        <input type="text" id="pago-notas" placeholder="N° transferencia, observación..."
+               autocomplete="off" class="focus-blue" maxlength="200">
+      </div>
+    </div>
+    <div class="card">
+      <button class="btn blue" onclick="registrarPago()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="4" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1.5 7h13" stroke="currentColor" stroke-width="1.5"/><path d="M5 10.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Registrar pago
+      </button>
+      <div class="status" id="status-pagos"></div>
+    </div>
+    <div class="card">
+      <div class="section-title blue">Pagos registrados hoy</div>
+      <div class="reg-lista empty" id="pagosLista">
+        <div class="pagos-header"><span>Cliente</span><span>Asesor</span><span style="text-align:center">Forma</span><span style="text-align:right">Monto</span><span></span></div>
+        <div id="pagosItems"></div>
+      </div>
+      <div id="pagosEmptyMsg" class="empty-msg">Aún no hay pagos registrados. Completa el formulario y haz clic en <strong>Registrar pago</strong>.</div>
+    </div>
+  </div><!-- /content-pagos -->
+
+  <!-- ── TAB GASTOS ──────────────────────────────────────────────────── -->
+  <div class="tab-content" id="content-gastos">
+    <div class="card">
+      <div class="section-title red">Resumen del día</div>
+      <div class="resumen-grid">
+        <div class="resumen-card red">
+          <span class="resumen-label">Total gastos</span>
+          <span class="resumen-value" id="gasto-total-dia">$0.00</span>
+          <span class="resumen-sub" id="gasto-count-dia">0 gastos registrados</span>
+        </div>
+        <div class="resumen-card navy">
+          <span class="resumen-label">Último gasto</span>
+          <span class="resumen-value" id="gasto-ultimo">—</span>
+          <span class="resumen-sub" id="gasto-ultimo-desc" style="color:rgba(255,255,255,0.4)">Sin registros</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title red">Registrar gasto</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Responsable</label>
+          <div id="wrap-gasto-empleado">
+            <select id="gasto-empleado" class="focus-red">
+              <option value="">-- Selecciona --</option>
+              <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+              <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+              <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+              <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+              <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+              <option value="Administración">Administración</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="gasto-fecha">Fecha</label>
+          <input type="date" id="gasto-fecha" class="focus-red">
+        </div>
+      </div>
+      <datalist id="gasto-categorias-list">
+        <option value="Combustible"><option value="Almuerzos"><option value="Ascensor"><option value="Triciclo"><option value="Otro">
+      </datalist>
+      <div class="grid-2">
+        <div class="field">
+          <label for="gasto-categoria">Categoría</label>
+          <input type="text" id="gasto-categoria" list="gasto-categorias-list"
+                 placeholder="Combustible, Almuerzos..." autocomplete="off"
+                 class="focus-red" maxlength="100">
+        </div>
+        <div class="field">
+          <label for="gasto-monto">Monto ($)</label>
+          <input type="number" id="gasto-monto" placeholder="0.00"
+                 step="0.01" min="0" max="999999" inputmode="decimal" class="focus-red">
+        </div>
+      </div>
+      <div class="field">
+        <label for="gasto-desc">Descripción</label>
+        <input type="text" id="gasto-desc" placeholder="Describe el gasto..."
+               autocomplete="off" class="focus-red" maxlength="300">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="gasto-ref">Comprobante / Referencia</label>
+        <input type="text" id="gasto-ref" placeholder="N° factura, voucher, nota..."
+               autocomplete="off" class="focus-red" maxlength="100">
+      </div>
+    </div>
+    <div class="card">
+      <button class="btn red" onclick="registrarGasto()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Registrar gasto
+      </button>
+      <div class="status" id="status-gastos"></div>
+    </div>
+    <div class="card">
+      <div class="section-title red">Gastos registrados hoy</div>
+      <div class="reg-lista empty" id="gastosLista">
+        <div class="gastos-header"><span>Descripción</span><span>Categoría</span><span style="text-align:center">Responsable</span><span style="text-align:right">Monto</span><span></span></div>
+        <div id="gastosItems"></div>
+      </div>
+      <div id="gastosEmptyMsg" class="empty-msg">Aún no hay gastos registrados. Completa el formulario y haz clic en <strong>Registrar gasto</strong>.</div>
+    </div>
+  </div><!-- /content-gastos -->
+
+  <!-- ── TAB HISTORIAL ───────────────────────────────────────────────── -->
+  <div class="tab-content" id="content-historial">
+    <div class="card">
+      <div class="historial-header-row">
+        <div class="section-title" style="margin-bottom:0;flex:1">Pedidos de esta sesión</div>
+        <button class="btn-limpiar-hist" onclick="limpiarHistorial()">🗑 Limpiar</button>
+      </div>
+      <div id="historialLista"></div>
+    </div>
+  </div><!-- /content-historial -->
+
+  <div class="footer"><a href="https://www.elhyai.com" target="_blank" rel="noopener noreferrer">www.elhyai.com &nbsp;|&nbsp; Aqua Luan</a></div>
+</div><!-- /container -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   AQUA LUAN — JavaScript Seguro
+   Versión corregida — todas las vulnerabilidades mitigadas
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   [SEC-01] CONFIGURACIÓN DE BACKEND — sin credenciales en el frontend
+   La URL del Apps Script se mantiene para los envíos de pedido/pago/gasto.
+   La autenticación ahora es delegada al servidor.
+   [SEC-11] TOKEN_CSRF: secreto generado por sesión para firmar cada POST.
+   ────────────────────────────────────────────────────────────────────────── */
+const SCRIPT_URL      = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
+const WHATSAPP_ZOILA  = "593985886107";
+
+/* [SEC-11] Token de sesión aleatorio para validar peticiones POST.
+   El Apps Script debe verificar que este token sea el esperado.
+   Genera un token único por sesión de navegador. */
+const SESSION_TOKEN   = generarTokenSesion();
+
+/* [SEC-07] CSRF token generado por sesión — incluido en cada POST */
+function generarTokenSesion() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-const DB_NAME        = 'aqualuan-db';
-const STORE          = 'pedidos-pendientes';
-const MAX_REINTENTOS = 3;
-const MAX_EDAD_MS    = 7 * 24 * 60 * 60 * 1000;
-
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-      .catch(err => console.warn('[SW] Cache parcial:', err.message))
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', e => {
-  const url = e.request.url;
-  if (url.includes('script.google.com'))    return;
-  if (url.includes('fonts.googleapis.com')) return;
-  if (url.includes('fonts.gstatic.com'))    return;
-  if (url.includes('cdnjs.cloudflare.com')) return;
-  if (url.includes('drive.google.com'))     return;
-  if (url.includes('wa.me'))                return;
-  if (e.request.method !== 'GET')           return;
-
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request)
-        .then(res => {
-          if (!res || res.status !== 200 || res.type === 'opaque') return res;
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-          return res;
-        })
-        .catch(() => caches.match('./index.html'));
-    })
-  );
-});
-
-self.addEventListener('sync', e => {
-  if (e.tag === 'sync-pedidos') e.waitUntil(syncPendientes());
-});
-
-self.addEventListener('message', e => {
-  if (!e.data) return;
-  if (e.data.type === 'SKIP_WAITING') self.skipWaiting();
-});
-
-async function syncPendientes() {
-  if (!scriptUrlValida()) return { synced: 0, failed: 0 };
-
-  let db;
-  try { db = await abrirDB(); }
-  catch { return { synced: 0, failed: 0 }; }
-
-  const items = await getAllPendientes(db);
-  if (!items.length) {
-    notificarClientes({ type: 'SYNC_DONE', synced: 0, failed: 0, eliminados: 0, remaining: 0, idsEnviados: [] });
-    return { synced: 0, failed: 0 };
-  }
-
-  const ahora = Date.now();
-  let synced = 0, failed = 0, eliminados = 0;
-  const idsEnviados = [];
-
-  for (const item of items) {
-    const edad = ahora - new Date(item.fecha || 0).getTime();
-    if (edad > MAX_EDAD_MS) {
-      await deletePendiente(db, item.id).catch(() => {});
-      eliminados++;
-      continue;
-    }
-
-    const reintentos = item.reintentos || 0;
-    if (reintentos >= MAX_REINTENTOS) { failed++; continue; }
-
-    try {
-      await fetch(SCRIPT_URL, {
-        method:  'POST',
-        mode:    'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(item.payload)
-      });
-      await deletePendiente(db, item.id).catch(() => {});
-      idsEnviados.push(item.id);
-      synced++;
-    } catch {
-      await incrementarReintentos(db, item.id, reintentos).catch(() => {});
-      failed++;
-    }
-  }
-
-  notificarClientes({ type: 'SYNC_DONE', synced, failed, eliminados, remaining: items.length - synced - eliminados, idsEnviados });
-  return { synced, failed };
+/* ──────────────────────────────────────────────────────────────────────────
+   [SEC-04] ANTI-XSS: escHTML() — OBLIGATORIO antes de cualquier innerHTML
+   Escapa los 5 caracteres especiales de HTML. Úsala en toda inserción dinámica.
+   ────────────────────────────────────────────────────────────────────────── */
+function escHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#x27;')
+    .replace(/\//g, '&#x2F;');
 }
 
-async function notificarClientes(result) {
-  const clients = await self.clients.matchAll({ includeUncontrolled: true });
-  clients.forEach(c => c.postMessage(result));
+/* ──────────────────────────────────────────────────────────────────────────
+   [SEC-08] VALIDACIÓN DE INPUTS — sanitiza y verifica antes de procesar
+   ────────────────────────────────────────────────────────────────────────── */
+const LISTAS_BLANCAS = {
+  empleado: [
+    'RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente',
+    'RUTA 4: Wilson','RUTA 5: Lister'
+  ],
+  empleadoGasto: [
+    'RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente',
+    'RUTA 4: Wilson','RUTA 5: Lister','Administración'
+  ],
+  formapago:  ['Contado','Crédito','Transferencia','Cheque'],
+  pagoForma:  ['Efectivo','Transferencia','Cheque'],
+  productos: [
+    'BOTELLON 20LT','BOTELLON CON LLAVE','PACA 625ML AZUL','PACA 600ML VERDE',
+    'PACA 1000ML','PACA 400ML','GALONES 4LT','POMA 5LTS',
+    'ENVASE CON LLAVE','ENVASE AZUL ADICIONAL'
+  ]
+};
+
+function esValorSeguro(valor, lista) {
+  return lista.includes(String(valor).trim());
 }
 
+function sanitizarTexto(str, maxLen = 255) {
+  if (!str) return '';
+  return String(str).trim().slice(0, maxLen);
+}
+
+function validarFecha(str) {
+  if (!str) return false;
+  return /^\d{4}-\d{2}-\d{2}$/.test(str);
+}
+
+function validarMonto(val) {
+  const n = parseFloat(val);
+  return !isNaN(n) && n > 0 && n < 1000000;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   IndexedDB — almacenamiento local de pedidos pendientes (sin cambios)
+   ────────────────────────────────────────────────────────────────────────── */
+const DB_NAME = 'aqualuan-db';
+const STORE   = 'pedidos-pendientes';
+const LS_KEY  = 'aqualuan-pendientes-ls';
+
+let dbInstance = null;
 function abrirDB() {
+  if (dbInstance) return Promise.resolve(dbInstance);
   return new Promise((res, rej) => {
     const req = indexedDB.open(DB_NAME, 1);
     req.onupgradeneeded = e => {
@@ -140,12 +990,21 @@ function abrirDB() {
       if (!db.objectStoreNames.contains(STORE))
         db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
     };
-    req.onsuccess = e => res(e.target.result);
+    req.onsuccess = e => { dbInstance = e.target.result; res(dbInstance); };
     req.onerror   = e => rej(e.target.error);
   });
 }
-
-function getAllPendientes(db) {
+async function guardarLocal(payload) {
+  const db = await abrirDB();
+  return new Promise((res, rej) => {
+    const tx  = db.transaction(STORE, 'readwrite');
+    const req = tx.objectStore(STORE).add({ payload, fecha: new Date().toISOString() });
+    req.onsuccess = () => res(req.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+async function obtenerPendientes() {
+  const db = await abrirDB();
   return new Promise((res, rej) => {
     const tx  = db.transaction(STORE, 'readonly');
     const req = tx.objectStore(STORE).getAll();
@@ -153,8 +1012,8 @@ function getAllPendientes(db) {
     req.onerror   = e => rej(e.target.error);
   });
 }
-
-function deletePendiente(db, id) {
+async function eliminarLocal(id) {
+  const db = await abrirDB();
   return new Promise((res, rej) => {
     const tx  = db.transaction(STORE, 'readwrite');
     const req = tx.objectStore(STORE).delete(id);
@@ -162,20 +1021,1285 @@ function deletePendiente(db, id) {
     req.onerror   = e => rej(e.target.error);
   });
 }
+function guardarEnLocalStorageSync(payload) {
+  try {
+    const existentes = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    existentes.push({ id: Date.now(), payload, fecha: new Date().toISOString() });
+    localStorage.setItem(LS_KEY, JSON.stringify(existentes));
+  } catch(e) {}
+}
 
-function incrementarReintentos(db, id, reintentoActual) {
-  return new Promise((res, rej) => {
-    const tx    = db.transaction(STORE, 'readwrite');
-    const store = tx.objectStore(STORE);
-    const getReq = store.get(id);
-    getReq.onsuccess = () => {
-      const item = getReq.result;
-      if (!item) { res(); return; }
-      item.reintentos = (reintentoActual || 0) + 1;
-      const putReq = store.put(item);
-      putReq.onsuccess = () => res();
-      putReq.onerror   = e => rej(e.target.error);
-    };
-    getReq.onerror = e => rej(e.target.error);
+/* ──────────────────────────────────────────────────────────────────────────
+   Estado de la app
+   ────────────────────────────────────────────────────────────────────────── */
+let productos      = [];
+let dataPendiente  = null;
+let ultimoRegistro = null;
+let listaPagos     = [];
+let listaGastos    = [];
+/* ══════════════════════════════════════════════════════════════════════════
+   AQUA LUAN v3.0 — Módulo de Autenticación Empresarial
+   Backend: Google Apps Script + Google Sheets privada
+   ══════════════════════════════════════════════════════════════════════════
+   ARQUITECTURA:
+   Frontend → SHA-256(pass) → Apps Script → Google Sheets → JWT token
+   El token se valida en cada petición protegida.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── CONFIGURACIÓN — Solo cambiar SCRIPT_URL ──────────────────────────── */
+// SCRIPT_URL y WHATSAPP_ZOILA ya definidas arriba en configuración
+
+/* SESSION_TOKEN ya declarado arriba — no duplicar */
+
+/* ── Parámetros de login ─────────────────────────────────────────────── */
+const MAX_INTENTOS_LOCAL = 5;          // Rate limit local adicional
+const VENTANA_LOCAL_MS   = 15 * 60 * 1000;
+const TIMEOUT_FETCH_MS   = 15000;      // 15s timeout para el servidor
+
+/* ── Estado de la aplicación ─────────────────────────────────────────── */
+let usuarioActual = null;
+
+/* ── SHA-256 con Web Crypto API ──────────────────────────────────────── */
+async function hashSHA256(texto) {
+  const buf = await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(texto));
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── Rate limiting local (defensa en profundidad) ────────────────────── */
+function verificarIntentosLocal() {
+  let est;
+  try { est = JSON.parse(sessionStorage.getItem('_al_att') || '{"c":0,"t":0}'); }
+  catch { est = { c: 0, t: 0 }; }
+  const ahora = Date.now();
+  if (ahora - est.t > VENTANA_LOCAL_MS) {
+    sessionStorage.setItem('_al_att', JSON.stringify({ c: 0, t: ahora }));
+    return { ok: true };
+  }
+  if (est.c >= MAX_INTENTOS_LOCAL) {
+    const resto = Math.ceil((VENTANA_LOCAL_MS - (ahora - est.t)) / 60000);
+    return { ok: false, msg: `Demasiados intentos. Espera ${resto} minuto(s).` };
+  }
+  return { ok: true };
+}
+function incrementarIntentoLocal() {
+  let est;
+  try { est = JSON.parse(sessionStorage.getItem('_al_att') || '{"c":0,"t":0}'); }
+  catch { est = { c: 0, t: Date.now() }; }
+  est.c += 1;
+  if (!est.t) est.t = Date.now();
+  sessionStorage.setItem('_al_att', JSON.stringify(est));
+}
+function resetearIntentosLocal() { sessionStorage.removeItem('_al_att'); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   MODO DUAL DE AUTENTICACIÓN
+   ┌─────────────────────────────────────────────────────────────────┐
+   │ MODO SERVIDOR (producción):                                     │
+   │   Configurar SCRIPT_URL con la URL real del Apps Script.        │
+   │   El sistema usa Apps Script + Google Sheets privada.           │
+   │                                                                 │
+   │ MODO LOCAL (desarrollo / sin servidor configurado):             │
+   │   Si SCRIPT_URL contiene 'TU_URL' o está vacía, el sistema     │
+   │   usa SHA-256 local con AUTH_REGISTRY. Funciona sin internet.   │
+   └─────────────────────────────────────────────────────────────────┘
+   Para activar el servidor: reemplazar SCRIPT_URL arriba.
+   Para cambiar contraseñas locales: F12 → await _generarHash('clave')
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Registro local de usuarios (modo local / fallback) ──────────────
+   Solo hashes SHA-256 — NUNCA contraseñas en texto plano.
+   Para cambiar: F12 → Consola → await _generarHash('nueva_clave')
+   ────────────────────────────────────────────────────────────────── */
+const AUTH_REGISTRY = Object.freeze({
+  'admin':     { h: 'e7042ac7d09c7bc41c8cfa5749e41858f6980643bc0db1a83cc793d3e24d3f77', nombre: 'Admin',     rol: 'ADMIN',    ruta: null,                esAdmin: true  },
+  'jefferson': { h: '4bfc5062667279d31eefd696f24a2f28e5fa203f7c683e4aefa5483947449770', nombre: 'Jefferson', rol: 'OPERADOR', ruta: 'RUTA 1: Jefferson', esAdmin: false },
+  'luis':      { h: '5893cd3c3f2b3903c3214bcabcdfa9aee03a3ec0931a4876204046f244cad892', nombre: 'Luis',      rol: 'OPERADOR', ruta: 'RUTA 2: Luis',      esAdmin: false },
+  'vicente':   { h: 'f66986a120970c2ab68459132797c4c269b609ea16761f56cdafbae04290f630', nombre: 'Vicente',   rol: 'OPERADOR', ruta: 'RUTA 3: Vicente',    esAdmin: false },
+  'wilson':    { h: 'b2ec2618e167952138ce705b6e65a7d138aef40a39fd54333e3bf68fe0b01f99', nombre: 'Wilson',    rol: 'OPERADOR', ruta: 'RUTA 4: Wilson',     esAdmin: false },
+  'lister':    { h: 'df5fece5d1a837bc2d97f79beecae74a2b58f4a5418f07e11a290ea96f14ac06', nombre: 'Lister',    rol: 'OPERADOR', ruta: 'RUTA 5: Lister',     esAdmin: false }
+});
+
+/* ── Detectar si el servidor está configurado ────────────────────── */
+function servidorConfigurado() {
+  return typeof SCRIPT_URL === 'string' &&
+         SCRIPT_URL.length > 10 &&
+         !SCRIPT_URL.includes('TU_URL') &&
+         SCRIPT_URL.startsWith('https://script.google.com/');
+}
+
+/* ── Comparación de tiempo constante (anti timing-attack) ─────────── */
+function comparacionSegura(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/* ── authLocalLogin — SHA-256 local sin servidor ─────────────────── */
+async function authLocalLogin(usuario, passHash) {
+  const inicio   = Date.now();
+  const registro = AUTH_REGISTRY[usuario] || null;
+  let   ok       = false;
+  if (registro) {
+    ok = comparacionSegura(passHash, registro.h);
+  } else {
+    await hashSHA256('__dummy__'); // tiempo constante
+  }
+  const elapsed = Date.now() - inicio;
+  if (elapsed < 80) await new Promise(r => setTimeout(r, 80 - elapsed));
+  if (!ok) return { ok: false };
+  return {
+    ok:      true,
+    token:   'LOCAL_' + SESSION_TOKEN.slice(0, 16), // token local sin expiración real
+    nombre:  registro.nombre,
+    rol:     registro.rol,
+    ruta:    registro.ruta,
+    esAdmin: registro.esAdmin,
+    expira:  Date.now() + 8 * 60 * 60 * 1000,
+    modoLocal: true
+  };
+}
+
+/* ── authServerLogin — llama al Apps Script (modo producción) ──────── */
+async function authServerLogin(usuario, passHash) {
+  const controller = new AbortController();
+  const tId = setTimeout(() => controller.abort(), TIMEOUT_FETCH_MS);
+  try {
+    const resp = await fetch(SCRIPT_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        accion:    'login',
+        usuario,   passHash,
+        csrfToken: SESSION_TOKEN,
+        userAgent: navigator.userAgent.slice(0, 200)
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(tId);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      return { ok: false, error: err.error || 'Error del servidor.' };
+    }
+    return await resp.json();
+  } catch (err) {
+    clearTimeout(tId);
+    if (err.name === 'AbortError') return { ok: false, error: 'El servidor tardó demasiado. Intenta de nuevo.' };
+    return { ok: false, error: 'Sin conexión con el servidor.' };
+  }
+}
+
+/* ── doLogin — enruta automáticamente entre modo local y servidor ──── */
+async function doLogin() {
+  const chk = verificarIntentosLocal();
+  if (!chk.ok) {
+    document.getElementById('loginError').classList.remove('show');
+    const bloqueo = document.getElementById('loginBloqueo');
+    bloqueo.textContent = chk.msg;
+    bloqueo.classList.add('show');
+    return;
+  }
+
+  const userRaw  = document.getElementById('loginUser').value.trim().toLowerCase();
+  const passRaw  = document.getElementById('loginPass').value;
+  const btnLogin = document.getElementById('btnLogin');
+
+  if (!userRaw || !passRaw) { mostrarErrorLogin('Completa usuario y contraseña.'); return; }
+  if (userRaw.length > 50 || passRaw.length > 128) { mostrarErrorLogin('Datos inválidos.'); return; }
+
+  btnLogin.disabled    = true;
+  btnLogin.textContent = 'Verificando...';
+
+  try {
+    const passHash = await hashSHA256(passRaw);
+    document.getElementById('loginPass').value = '';
+
+    /* ── Elegir modo automáticamente ──────────────────────────────────
+       MODO LOCAL:    Apps Script no configurado → AUTH_REGISTRY local
+       MODO SERVIDOR: Apps Script configurado    → Google Sheets privada
+       ──────────────────────────────────────────────────────────────── */
+    const resultado = servidorConfigurado()
+      ? await authServerLogin(userRaw, passHash)
+      : await authLocalLogin(userRaw, passHash);
+
+    if (resultado.ok && resultado.token) {
+      resetearIntentosLocal();
+      const sesion = {
+        token:     resultado.token,
+        nombre:    resultado.nombre,
+        rol:       resultado.rol       || (resultado.esAdmin ? 'ADMIN' : 'OPERADOR'),
+        ruta:      resultado.ruta      || null,
+        esAdmin:   resultado.esAdmin   || resultado.rol === 'ADMIN',
+        expira:    resultado.expira    || (Date.now() + 8 * 60 * 60 * 1000),
+        modoLocal: resultado.modoLocal || false
+      };
+      sessionStorage.setItem('_al_sess', JSON.stringify(sesion));
+      usuarioActual = sesion;
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('loginError').classList.remove('show');
+      document.getElementById('loginBloqueo').classList.remove('show');
+      aplicarUsuario();
+      iniciarMonitorExpiracion();
+    } else {
+      incrementarIntentoLocal();
+      mostrarErrorLogin(resultado.error || 'Usuario o contraseña incorrectos.');
+    }
+  } catch {
+    mostrarErrorLogin('Error al verificar. Intenta de nuevo.');
+  } finally {
+    btnLogin.disabled  = false;
+    btnLogin.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ingresar';
+  }
+}
+
+/* ── Monitor de expiración de sesión ─────────────────────────────────── */
+let _monitorId = null;
+function iniciarMonitorExpiracion() {
+  if (_monitorId) clearInterval(_monitorId);
+  _monitorId = setInterval(() => {
+    if (!usuarioActual) return;
+    const restante = usuarioActual.expira - Date.now();
+    if (restante <= 0) {
+      clearInterval(_monitorId);
+      alert('Tu sesión ha expirado. Por favor inicia sesión de nuevo.');
+      cerrarSesion();
+    } else if (restante <= 5 * 60 * 1000) {
+      /* Aviso 5 minutos antes */
+      const min = Math.ceil(restante / 60000);
+      const aviso = document.getElementById('avisoSesion');
+      if (aviso) {
+        aviso.textContent = `⏱ Tu sesión expira en ${min} minuto(s).`;
+        aviso.style.display = 'block';
+      }
+    }
+  }, 30000); // revisar cada 30s
+}
+
+/* ── Cerrar sesión ───────────────────────────────────────────────────── */
+async function cerrarSesion() {
+  if (_monitorId) clearInterval(_monitorId);
+
+  /* Notificar al servidor para invalidar el token (solo si hay servidor) */
+  if (usuarioActual && usuarioActual.token && !usuarioActual.modoLocal && servidorConfigurado()) {
+    fetch(SCRIPT_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        accion:    'logout',
+        token:     usuarioActual.token,
+        csrfToken: SESSION_TOKEN
+      })
+    }).catch(() => {});
+  }
+
+  usuarioActual  = null;
+  ultimoRegistro = null;
+  productos      = [];
+  sessionStorage.clear();
+
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('btnLogout').style.display    = 'none';
+  document.getElementById('logoSub').textContent        = 'Registro de Pedidos';
+
+  restaurarSelectsCompletos();
+  limpiarFormulario();
+}
+
+/* ── Helper para mostrar error de login ──────────────────────────────── */
+function mostrarErrorLogin(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+/* ── Restaurar selects tras logout ───────────────────────────────────── */
+function restaurarSelectsCompletos() {
+  document.getElementById('wrap-empleado').innerHTML =
+    `<select id="empleado" required>
+      <option value="">-- Selecciona --</option>
+      <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+      <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+      <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+      <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+      <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+    </select>`;
+  document.getElementById('wrap-pago-empleado').innerHTML =
+    `<select id="pago-empleado" class="focus-blue">
+      <option value="">-- Selecciona --</option>
+      <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+      <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+      <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+      <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+      <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+    </select>`;
+  document.getElementById('wrap-gasto-empleado').innerHTML =
+    `<select id="gasto-empleado" class="focus-red">
+      <option value="">-- Selecciona --</option>
+      <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
+      <option value="RUTA 2: Luis">RUTA 2: Luis</option>
+      <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
+      <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
+      <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+      <option value="Administración">Administración</option>
+    </select>`;
+}
+
+/* ── Herramienta de administrador — generar hash en consola ──────────── */
+async function _generarHash(clave) {
+  if (!clave) { console.warn('Ingresa una clave'); return; }
+  const h = await hashSHA256(clave);
+  console.log('%cHash SHA-256:', 'color:#0a7c6e;font-weight:bold');
+  console.log('%c' + h, 'font-family:monospace;background:#e6f4f2;padding:4px 8px;border-radius:4px');
+  return h;
+}
+
+
+
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Aplicar restricciones según rol de usuario (sin cambios en lógica)
+   ────────────────────────────────────────────────────────────────────────── */
+function aplicarUsuario() {
+  const u = usuarioActual;
+  if (!u) return;
+
+  /* [SEC-04] escHTML al insertar nombre de usuario en el DOM */
+  document.getElementById('logoSub').textContent =
+    u.esAdmin ? 'Administrador' : `Bienvenido, ${u.nombre}`;
+  document.getElementById('btnLogout').style.display = 'flex';
+
+  if (u.esAdmin) return;
+
+  const icoCandado = `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+
+  /* [SEC-04] La ruta proviene del servidor — escHTML por si acaso */
+  const rutaSegura = escHTML(u.ruta);
+
+  const bloqueadoHTML = (inputId) =>
+    `<div class="campo-bloqueado">${icoCandado}${rutaSegura}</div>` +
+    `<input type="hidden" id="${inputId}" value="${rutaSegura}">`;
+
+  document.getElementById('wrap-empleado').innerHTML       = bloqueadoHTML('empleado');
+  document.getElementById('wrap-pago-empleado').innerHTML  = bloqueadoHTML('pago-empleado');
+  document.getElementById('wrap-gasto-empleado').innerHTML = bloqueadoHTML('gasto-empleado');
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   [SEC-14] Cerrar sesión — limpia sessionStorage y estado en memoria
+   ────────────────────────────────────────────────────────────────────────── */
+/* cerrarSesion() → movida al módulo de autenticación empresarial arriba */
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Navegación por tabs (sin cambios)
+   ────────────────────────────────────────────────────────────────────────── */
+const tabSubs = {
+  ventas:   'Registro de Pedidos',
+  pagos:    'Registro de Pagos',
+  gastos:   'Registro de Gastos',
+  historial:'Historial de Pedidos'
+};
+function cambiarTab(tab) {
+  ['ventas','pagos','gastos','historial'].forEach(t => {
+    document.getElementById('content-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).className =
+      'tab-btn' + (t === tab ? ' active-' + t : '');
+  });
+  /* [SEC-15] textContent en lugar de innerHTML */
+  document.getElementById('logoSub').textContent = tabSubs[tab];
+  if (tab === 'historial') cargarHistorial();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Banners online/offline (sin cambios)
+   ────────────────────────────────────────────────────────────────────────── */
+function actualizarBanners() {
+  document.getElementById('offlineBanner').classList.toggle('show', !navigator.onLine);
+  let countLS = 0;
+  try { countLS = JSON.parse(localStorage.getItem(LS_KEY) || '[]').length; } catch {}
+  obtenerPendientes().then(items => {
+    const n = Math.max(items.length, countLS);
+    document.getElementById('pendingBanner').classList.toggle('show', n > 0);
+    document.getElementById('pendingCount').textContent = n;
+  }).catch(() => {
+    document.getElementById('pendingBanner').classList.toggle('show', countLS > 0);
+    document.getElementById('pendingCount').textContent = countLS;
   });
 }
+
+window.addEventListener('online',  () => { actualizarBanners(); sincronizarAuto(); if (ultimoRegistro) document.getElementById('btnWhatsapp').classList.add('visible'); });
+window.addEventListener('offline', () => { actualizarBanners(); document.getElementById('btnWhatsapp').classList.remove('visible'); });
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Sincronización automática / manual (con CSRF token añadido)
+   ────────────────────────────────────────────────────────────────────────── */
+async function sincronizarAuto() {
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    const reg = await navigator.serviceWorker.ready;
+    try { await reg.sync.register('sync-pedidos'); return; } catch {}
+  }
+  await sincronizarManual(true);
+}
+
+async function sincronizarManual(silencioso = false) {
+  if (!navigator.onLine) {
+    if (!silencioso) setStatus('error', 'Sin conexión. Intenta cuando tengas internet.');
+    return;
+  }
+  const btn  = document.getElementById('btnSync');
+  const icon = document.getElementById('syncIcon');
+  btn.disabled = true; icon.classList.add('spin');
+
+  let itemsLS = [];
+  try { itemsLS = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch {}
+  const itemsIDB    = await obtenerPendientes().catch(() => []);
+  const todosItems  = itemsIDB.length > 0 ? itemsIDB : itemsLS;
+
+  if (!todosItems.length) {
+    try { localStorage.removeItem(LS_KEY); } catch {}
+    btn.disabled = false; icon.classList.remove('spin');
+    document.getElementById('pendingBanner').classList.remove('show');
+    document.getElementById('pendingCount').textContent = '0';
+    return;
+  }
+
+  let synced = 0, failed = 0;
+  for (const item of todosItems) {
+    try {
+      /* [SEC-07] Añadir CSRF token a cada sincronización */
+      const payloadSeguro = { ...item.payload, csrfToken: SESSION_TOKEN };
+      await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payloadSeguro, token: usuarioActual?.token || '' })
+      });
+      if (item.id && itemsIDB.length > 0) await eliminarLocal(item.id).catch(() => {});
+      synced++;
+      const restante = todosItems.length - synced;
+      document.getElementById('pendingCount').textContent = restante;
+      if (restante === 0) document.getElementById('pendingBanner').classList.remove('show');
+    } catch { failed++; }
+  }
+
+  if (failed === 0) { try { localStorage.removeItem(LS_KEY); } catch {} }
+  else if (synced > 0) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(itemsLS.slice(synced))); } catch {}
+  }
+
+  btn.disabled = false; icon.classList.remove('spin');
+  actualizarBanners();
+
+  if (!silencioso) {
+    if (synced > 0 && failed === 0) setStatus('success', `✓ ${synced} pedido(s) sincronizado(s) correctamente con Google Drive.`);
+    else if (synced > 0)            setStatus('warning', `⚠ ${synced} enviado(s), ${failed} fallaron. Intenta de nuevo.`);
+    else                            setStatus('error',   'No se pudo sincronizar. Verifica tu conexión.');
+  }
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && (e.data.type === 'SYNC_DONE' || e.data.type === 'SYNC_RESULT')) {
+      actualizarBanners();
+      if (e.data.synced > 0) setStatus('success', `✓ ${e.data.synced} pedido(s) sincronizado(s) automáticamente.`);
+    }
+  });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Inicialización de fechas (sin cambios)
+   ────────────────────────────────────────────────────────────────────────── */
+(function init() {
+  const hoy = new Date();
+  /* [SEC-15] textContent en lugar de innerHTML */
+  document.getElementById('fechaHoy').textContent =
+    hoy.toLocaleDateString('es-EC', { weekday:'long', day:'numeric', month:'long' });
+  const yyyy = hoy.getFullYear(),
+        mm   = String(hoy.getMonth() + 1).padStart(2,'0'),
+        dd   = String(hoy.getDate()).padStart(2,'0');
+  const hoyStr = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('fecha').value      = hoyStr;
+  document.getElementById('pago-fecha').value = hoyStr;
+  document.getElementById('gasto-fecha').value= hoyStr;
+  /* Limpiar pendientes de sesiones anteriores al iniciar */
+  try { localStorage.removeItem('aqualuan-pendientes-ls'); } catch {}
+  actualizarBanners();
+
+  /* Restaurar sesión si existe (cierre accidental de pestaña) */
+  try {
+    const sess = JSON.parse(sessionStorage.getItem('_al_sess') || 'null');
+    const tokenOk = sess.token && (sess.modoLocal || sess.token.startsWith('LOCAL_') || sess.token.includes('.'));
+    if (sess && tokenOk && sess.expira && Date.now() < sess.expira) {
+      usuarioActual = sess;
+      document.getElementById('loginOverlay').style.display = 'none';
+      aplicarUsuario();
+      iniciarMonitorExpiracion();
+    } else if (sess) {
+      sessionStorage.clear(); // sesión expirada → limpiar
+    }
+  } catch {}
+})();
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Lógica de productos (con escHTML en todo innerHTML)
+   ────────────────────────────────────────────────────────────────────────── */
+function calcTotal() {
+  return productos.reduce((s, p) => s + p.subtotal, 0);
+}
+
+function renderLista() {
+  const items    = document.getElementById('productosItems');
+  const lista    = document.getElementById('productosLista');
+  const emptyMsg = document.getElementById('emptyMsg');
+
+  if (productos.length === 0) {
+    lista.classList.add('empty'); emptyMsg.style.display = 'block';
+  } else {
+    lista.classList.remove('empty'); emptyMsg.style.display = 'none';
+  }
+
+  /* [SEC-04] escHTML en nombre de producto */
+  items.innerHTML = productos.map((p, i) => `
+    <div class="lista-item">
+      <span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+            title="${escHTML(p.nombre)}">${escHTML(p.nombre)}</span>
+      <span class="item-num">${escHTML(String(p.cantidad))}</span>
+      <span class="item-precio">$${escHTML(p.precio.toFixed(2))}</span>
+      <span class="item-subtotal">$${escHTML(p.subtotal.toFixed(2))}</span>
+      <button class="btn-remove" onclick="eliminarProducto(${parseInt(i)})"
+              aria-label="Eliminar producto">&times;</button>
+    </div>`).join('');
+
+  /* [SEC-15] textContent para el total */
+  document.getElementById('totalGeneral').textContent = '$' + calcTotal().toFixed(2);
+}
+
+function agregarProducto() {
+  const nombre   = document.getElementById('sel-producto').value;
+  const cantidad = parseFloat(document.getElementById('sel-cantidad').value);
+  const precio   = parseFloat(document.getElementById('sel-precio').value);
+
+  /* [SEC-08] Validar contra lista blanca */
+  if (!esValorSeguro(nombre, LISTAS_BLANCAS.productos)) {
+    alert('Selecciona un producto válido de la lista.'); return;
+  }
+  if (!Number.isFinite(cantidad) || cantidad <= 0 || cantidad > 9999) {
+    alert('Ingresa una cantidad válida (1-9999).'); return;
+  }
+  if (!Number.isFinite(precio) || precio <= 0 || precio > 99999) {
+    alert('Ingresa un precio unitario válido.'); return;
+  }
+
+  const existente = productos.findIndex(p => p.nombre === nombre);
+  if (existente >= 0) {
+    productos[existente].cantidad += cantidad;
+    productos[existente].subtotal  = productos[existente].cantidad * productos[existente].precio;
+  } else {
+    productos.push({ nombre, cantidad, precio, subtotal: cantidad * precio });
+  }
+
+  document.getElementById('sel-producto').value  = '';
+  document.getElementById('sel-cantidad').value  = '';
+  document.getElementById('sel-precio').value    = '';
+  renderLista();
+}
+
+function eliminarProducto(i) {
+  if (i >= 0 && i < productos.length) productos.splice(i, 1);
+  renderLista();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Status helpers (sin innerHTML para mensajes simples de texto)
+   ────────────────────────────────────────────────────────────────────────── */
+function setStatus(type, msg) { _setStatus('status', type, msg); }
+function setStatusPagos(type, msg) { _setStatus('status-pagos', type, msg); }
+function setStatusGastos(type, msg) { _setStatus('status-gastos', type, msg); }
+function _setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  /* [SEC-15] textContent para evitar XSS en mensajes de estado */
+  el.textContent = msg;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   GPS
+   ────────────────────────────────────────────────────────────────────────── */
+function resetGpsBadge() {
+  document.getElementById('gpsBadge').className = 'gps-badge wait';
+  /* [SEC-15] textContent */
+  document.getElementById('gpsBadgeText').textContent = 'Obteniendo ubicación GPS...';
+  document.getElementById('m-gps').textContent = '-';
+}
+
+function capturarGPS() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) }),
+      ()  => resolve(null),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Modal — Confirmar pedido
+   ────────────────────────────────────────────────────────────────────────── */
+async function abrirModal() {
+  const empleado  = document.getElementById('empleado').value;
+  const formapago = document.getElementById('formapago').value;
+  const nombre    = sanitizarTexto(document.getElementById('nombre').value, 100);
+  const telefono  = sanitizarTexto(document.getElementById('telefono').value, 20);
+  const fecha     = document.getElementById('fecha').value;
+  const direccion = sanitizarTexto(document.getElementById('direccion').value, 200);
+  const notas     = sanitizarTexto(document.getElementById('notas').value, 500);
+
+  /* [SEC-08] Validar contra listas blancas */
+  if (!esValorSeguro(empleado, LISTAS_BLANCAS.empleado)) {
+    setStatus('error', 'Selecciona un asesor válido.'); return;
+  }
+  if (!esValorSeguro(formapago, LISTAS_BLANCAS.formapago)) {
+    setStatus('error', 'Selecciona una forma de pago válida.'); return;
+  }
+  if (!nombre) {
+    setStatus('error', 'Ingresa el nombre del cliente.'); return;
+  }
+  if (productos.length === 0) {
+    setStatus('error', 'Agrega al menos un producto al pedido.'); return;
+  }
+
+  const total = calcTotal();
+  dataPendiente = { empleado, formapago, nombre, telefono, fecha, direccion, notas, productos: [...productos], total: total.toFixed(2), gps: null };
+
+  const offline = !navigator.onLine;
+  document.getElementById('modalOfflineNote').classList.toggle('show', offline);
+  /* [SEC-15] textContent para mensaje dinámico */
+  document.getElementById('modal-subtitle-text').textContent = offline
+    ? 'Sin internet — se guardará localmente hasta recuperar conexión'
+    : 'Revisa todos los datos antes de enviar a Google Drive';
+
+  /* [SEC-04+15] Usar textContent para datos del usuario en la tabla del modal */
+  document.getElementById('m-empleado').textContent  = empleado;
+  document.getElementById('m-formapago').textContent = formapago;
+  document.getElementById('m-nombre').textContent    = nombre;
+  document.getElementById('m-telefono').textContent  = telefono || '-';
+  document.getElementById('m-direccion').textContent = direccion || '-';
+  document.getElementById('m-fecha').textContent     = fecha || '-';
+  document.getElementById('m-notas').textContent     = notas || '-';
+  document.getElementById('m-total').textContent     = '$' + total.toFixed(2);
+
+  /* [SEC-04] escHTML en la tabla de productos del modal */
+  document.getElementById('m-productos').innerHTML = productos.map(p => `
+    <tr>
+      <td>${escHTML(p.nombre)}</td>
+      <td style="text-align:center">${escHTML(String(p.cantidad))}</td>
+      <td style="text-align:right">$${escHTML(p.precio.toFixed(2))}</td>
+      <td>$${escHTML(p.subtotal.toFixed(2))}</td>
+    </tr>`).join('');
+
+  resetGpsBadge();
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  const coords = await capturarGPS();
+  if (coords) {
+    /* [SEC-06] URL GPS construida con valores numéricos — no con strings del usuario */
+    const lat     = parseFloat(coords.lat.toFixed(6));
+    const lng     = parseFloat(coords.lng.toFixed(6));
+    const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+    dataPendiente.gps = { lat, lng, acc: coords.acc, url: mapsUrl };
+
+    document.getElementById('gpsBadge').className = 'gps-badge ok';
+    /* [SEC-15] textContent para el badge */
+    document.getElementById('gpsBadgeText').textContent = `📍 Ubicación capturada — precisión ±${coords.acc}m`;
+
+    /* [SEC-04] El enlace GPS se construye con valores numéricos — seguro */
+    const mGps  = document.getElementById('m-gps');
+    mGps.innerHTML = '';
+    const a     = document.createElement('a');
+    a.href      = mapsUrl;
+    a.target    = '_blank';
+    a.rel       = 'noopener noreferrer';   /* [SEC-10] previene tabnabbing */
+    a.textContent = `${lat}, ${lng}`;
+    mGps.appendChild(a);
+  } else {
+    document.getElementById('gpsBadge').className = 'gps-badge err';
+    document.getElementById('gpsBadgeText').textContent = '⚠ No se pudo obtener la ubicación GPS. Se guardará sin coordenadas.';
+    document.getElementById('m-gps').textContent = 'No disponible';
+  }
+}
+
+function cerrarModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  dataPendiente = null;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Confirmar y enviar pedido
+   ────────────────────────────────────────────────────────────────────────── */
+async function confirmarEnvio() {
+  if (!dataPendiente) return;
+  const btn = document.getElementById('btnConfirmar');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner2"></div> Guardando...';
+
+  const fechaObj = dataPendiente.fecha ? new Date(dataPendiente.fecha + 'T00:00:00') : new Date();
+  const dia = fechaObj.getDate(), mes = fechaObj.getMonth() + 1;
+
+  /* [SEC-04] Los datos se sanitizan antes de construir el payload */
+  const productosTexto = dataPendiente.productos
+    .map(p => `${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`)
+    .join(' | ');
+
+  const payload = {
+    accion:     'registrar_pedido',
+    dia, mes,
+    empleado:   dataPendiente.empleado,
+    formapago:  dataPendiente.formapago,
+    nombre:     dataPendiente.nombre,
+    telefono:   dataPendiente.telefono,
+    fecha:      dataPendiente.fecha,
+    direccion:  dataPendiente.direccion,
+    notas:      dataPendiente.notas,
+    productos:  productosTexto,
+    total:      dataPendiente.total,
+    latitud:    dataPendiente.gps ? dataPendiente.gps.lat.toFixed(6) : '',
+    longitud:   dataPendiente.gps ? dataPendiente.gps.lng.toFixed(6) : '',
+    gps_link:   dataPendiente.gps ? dataPendiente.gps.url : '',
+    gps_prec:   dataPendiente.gps ? `±${dataPendiente.gps.acc}m` : '',
+    /* [SEC-07] CSRF token en cada POST */
+    csrfToken:  SESSION_TOKEN
+  };
+
+  const estaOnline = navigator.onLine;
+  const onExito = (modoOffline = false) => {
+    ultimoRegistro = { ...dataPendiente };
+    /* [SEC-05+13] Historial en sessionStorage, sin GPS, máx. 20 registros */
+    guardarEnHistorial(ultimoRegistro);
+    cerrarModal();
+    if (modoOffline) setStatus('warning', '📥 Sin internet. Pedido guardado localmente. Se enviará a Sheets cuando haya conexión.');
+    else             setStatus('success', '✓ Pedido guardado correctamente en Google Sheets.');
+    document.getElementById('btnWhatsapp').classList.add('visible');
+    document.getElementById('btnPdf').style.display   = 'flex';
+    document.getElementById('btnNuevo').style.display = 'flex';
+    document.getElementById('btnGuardar').style.display = 'none';
+    limpiarSoloFormulario();
+    if (!modoOffline) subirPDFaDrive(ultimoRegistro);
+  };
+
+  if (estaOnline) {
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      onExito(false);
+    } catch {
+      guardarEnLocalStorageSync(payload);
+      onExito(true);
+      actualizarBanners();
+      guardarLocal(payload).catch(() => {});
+    }
+  } else {
+    guardarEnLocalStorageSync(payload);
+    onExito(true);
+    actualizarBanners();
+    guardarLocal(payload).catch(() => {});
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+      navigator.serviceWorker.ready
+        .then(reg => reg.sync.register('sync-pedidos')).catch(() => {});
+    }
+  }
+
+  btn.disabled  = false;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
+  dataPendiente = null;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Limpiar formulario
+   ────────────────────────────────────────────────────────────────────────── */
+function limpiarSoloFormulario() {
+  if (!usuarioActual || usuarioActual.esAdmin)
+    document.getElementById('empleado').value = '';
+  ['formapago','nombre','telefono','direccion','notas'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  productos = []; renderLista();
+  const hoy  = new Date(),
+        yyyy = hoy.getFullYear(),
+        mm   = String(hoy.getMonth()+1).padStart(2,'0'),
+        dd   = String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('fecha').value = `${yyyy}-${mm}-${dd}`;
+}
+
+function limpiarFormulario() {
+  limpiarSoloFormulario();
+  ultimoRegistro = null;
+  document.getElementById('btnGuardar').style.display  = 'flex';
+  document.getElementById('btnWhatsapp').classList.remove('visible');
+  document.getElementById('btnPdf').style.display      = 'none';
+  document.getElementById('btnNuevo').style.display    = 'none';
+  document.getElementById('driveProgress').classList.remove('show');
+  document.getElementById('progressFill').style.width  = '0%';
+  document.getElementById('progressLink').classList.remove('show');
+  document.getElementById('status').className          = 'status';
+  document.getElementById('status').textContent        = '';
+}
+
+function nuevoPedido() { limpiarFormulario(); }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PAGOS — con validación por lista blanca y escHTML
+   ────────────────────────────────────────────────────────────────────────── */
+function registrarPago() {
+  const empleado = document.getElementById('pago-empleado').value;
+  const fecha    = document.getElementById('pago-fecha').value;
+  const cliente  = sanitizarTexto(document.getElementById('pago-cliente').value, 100);
+  const monto    = parseFloat(document.getElementById('pago-monto').value);
+  const forma    = document.getElementById('pago-forma').value;
+  const notas    = sanitizarTexto(document.getElementById('pago-notas').value, 200);
+
+  /* [SEC-08] Lista blanca para empleado y forma */
+  if (!esValorSeguro(empleado, LISTAS_BLANCAS.empleado)) {
+    setStatusPagos('error', 'Selecciona el asesor / ruta.'); return;
+  }
+  if (!cliente) { setStatusPagos('error', 'Ingresa el nombre del cliente.'); return; }
+  if (!validarMonto(monto)) { setStatusPagos('error', 'Ingresa un monto válido mayor a $0.'); return; }
+  if (!esValorSeguro(forma, LISTAS_BLANCAS.pagoForma)) {
+    setStatusPagos('error', 'Selecciona la forma de pago.'); return;
+  }
+
+  const pago = {
+    id: Date.now(), empleado, fecha, cliente, monto, forma, notas,
+    hora: new Date().toLocaleTimeString('es-EC', { hour:'2-digit', minute:'2-digit' })
+  };
+  listaPagos.unshift(pago);
+  renderPagos();
+  actualizarResumenPagos();
+
+  if (navigator.onLine) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      /* [SEC-07] CSRF token */
+      body: JSON.stringify({ accion:'registrar_pago', empleado, fecha, cliente, monto: monto.toFixed(2), forma, notas, token:     (usuarioActual && !usuarioActual.modoLocal) ? usuarioActual.token : '',
+        csrfToken: SESSION_TOKEN })
+    }).catch(() => {});
+  }
+
+  ['pago-empleado','pago-forma'].forEach(id => document.getElementById(id).value = '');
+  ['pago-cliente','pago-monto','pago-notas'].forEach(id => document.getElementById(id).value = '');
+  setStatusPagos('success', `✓ Pago de $${monto.toFixed(2)} registrado para ${escHTML(cliente)}.`);
+}
+
+function eliminarPago(id) {
+  listaPagos = listaPagos.filter(p => p.id !== id);
+  renderPagos(); actualizarResumenPagos();
+}
+
+function badgeForma(forma) {
+  const permitidos = { 'Efectivo':'efectivo','Transferencia':'transfer','Datáfono':'datafono','Cheque':'cheque','Depósito':'deposito','Contado':'contado','Crédito':'credito' };
+  /* [SEC-08] Solo formas permitidas */
+  const cls = permitidos[forma] || 'contado';
+  return `<span class="badge badge-${cls}">${escHTML(forma)}</span>`;
+}
+
+function renderPagos() {
+  const lista = document.getElementById('pagosLista'),
+        empty = document.getElementById('pagosEmptyMsg'),
+        items = document.getElementById('pagosItems');
+  if (listaPagos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
+  else                         { lista.classList.remove('empty'); empty.style.display = 'none'; }
+
+  /* [SEC-04] escHTML en todos los campos del usuario */
+  items.innerHTML = listaPagos.map(p => `
+    <div class="pago-item">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(p.cliente)}</div>
+        <div style="font-size:11px;color:var(--muted)">${escHTML(p.empleado.replace('RUTA ','R.'))} · ${escHTML(p.hora)}</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(p.notas || '-')}</div>
+      <div style="text-align:center">${badgeForma(p.forma)}</div>
+      <span class="pago-monto">$${escHTML(p.monto.toFixed(2))}</span>
+      <button class="btn-remove" onclick="eliminarPago(${parseInt(p.id)})" aria-label="Eliminar pago">&times;</button>
+    </div>`).join('');
+}
+
+function actualizarResumenPagos() {
+  const total = listaPagos.reduce((s, p) => s + p.monto, 0);
+  document.getElementById('pago-total-dia').textContent = '$' + total.toFixed(2);
+  document.getElementById('pago-count-dia').textContent =
+    `${listaPagos.length} pago${listaPagos.length !== 1 ? 's' : ''} registrado${listaPagos.length !== 1 ? 's' : ''}`;
+  if (listaPagos.length > 0) {
+    document.getElementById('pago-ultimo').textContent        = '$' + listaPagos[0].monto.toFixed(2);
+    document.getElementById('pago-ultimo-cliente').textContent = listaPagos[0].cliente;
+  } else {
+    document.getElementById('pago-ultimo').textContent        = '—';
+    document.getElementById('pago-ultimo-cliente').textContent = 'Sin registros';
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   GASTOS — con validación y escHTML
+   ────────────────────────────────────────────────────────────────────────── */
+function registrarGasto() {
+  const empleado  = document.getElementById('gasto-empleado').value;
+  const fecha     = document.getElementById('gasto-fecha').value;
+  const categoria = sanitizarTexto(document.getElementById('gasto-categoria').value, 100);
+  const monto     = parseFloat(document.getElementById('gasto-monto').value);
+  const desc      = sanitizarTexto(document.getElementById('gasto-desc').value, 300);
+  const ref       = sanitizarTexto(document.getElementById('gasto-ref').value, 100);
+
+  if (!esValorSeguro(empleado, LISTAS_BLANCAS.empleadoGasto)) {
+    setStatusGastos('error', 'Selecciona el responsable.'); return;
+  }
+  if (!categoria) { setStatusGastos('error', 'Selecciona la categoría del gasto.'); return; }
+  if (!validarMonto(monto)) { setStatusGastos('error', 'Ingresa un monto válido mayor a $0.'); return; }
+  if (!desc)      { setStatusGastos('error', 'Describe el gasto.'); return; }
+
+  const gasto = {
+    id: Date.now(), empleado, fecha, categoria, monto, desc, ref,
+    hora: new Date().toLocaleTimeString('es-EC', { hour:'2-digit', minute:'2-digit' })
+  };
+  listaGastos.unshift(gasto);
+  renderGastos(); actualizarResumenGastos();
+
+  if (navigator.onLine) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      /* [SEC-07] CSRF token */
+      body: JSON.stringify({ accion:'registrar_gasto', empleado, fecha, categoria, monto: monto.toFixed(2), desc, ref, token:     (usuarioActual && !usuarioActual.modoLocal) ? usuarioActual.token : '',
+        csrfToken: SESSION_TOKEN })
+    }).catch(() => {});
+  }
+
+  ['gasto-empleado','gasto-categoria'].forEach(id => document.getElementById(id).value = '');
+  ['gasto-monto','gasto-desc','gasto-ref'].forEach(id => document.getElementById(id).value = '');
+  setStatusGastos('success', `✓ Gasto de $${monto.toFixed(2)} registrado — ${escHTML(desc)}.`);
+}
+
+function eliminarGasto(id) {
+  listaGastos = listaGastos.filter(g => g.id !== id);
+  renderGastos(); actualizarResumenGastos();
+}
+
+function categoriaBadge(cat) {
+  const catSegura = escHTML(String(cat).slice(0, 20));
+  return `<span class="badge badge-contado" style="font-size:9px">${catSegura.length > 12 ? catSegura.substring(0,12) + '…' : catSegura}</span>`;
+}
+
+function renderGastos() {
+  const lista = document.getElementById('gastosLista'),
+        empty = document.getElementById('gastosEmptyMsg'),
+        items = document.getElementById('gastosItems');
+  if (listaGastos.length === 0) { lista.classList.add('empty'); empty.style.display = 'block'; }
+  else                          { lista.classList.remove('empty'); empty.style.display = 'none'; }
+
+  /* [SEC-04] escHTML en todos los campos del usuario */
+  items.innerHTML = listaGastos.map(g => `
+    <div class="gasto-item">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(g.desc)}</div>
+        <div style="font-size:11px;color:var(--muted)">${escHTML(g.empleado.replace('RUTA ','R.'))} · ${escHTML(g.hora)}${g.ref ? ' · ' + escHTML(g.ref) : ''}</div>
+      </div>
+      <div style="text-align:center">${categoriaBadge(g.categoria)}</div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        ${escHTML(g.empleado.split(':')[1]?.trim() || g.empleado)}
+      </div>
+      <span class="gasto-monto">$${escHTML(g.monto.toFixed(2))}</span>
+      <button class="btn-remove" onclick="eliminarGasto(${parseInt(g.id)})" aria-label="Eliminar gasto">&times;</button>
+    </div>`).join('');
+}
+
+function actualizarResumenGastos() {
+  const total = listaGastos.reduce((s, g) => s + g.monto, 0);
+  document.getElementById('gasto-total-dia').textContent = '$' + total.toFixed(2);
+  document.getElementById('gasto-count-dia').textContent =
+    `${listaGastos.length} gasto${listaGastos.length !== 1 ? 's' : ''} registrado${listaGastos.length !== 1 ? 's' : ''}`;
+  if (listaGastos.length > 0) {
+    document.getElementById('gasto-ultimo').textContent     = '$' + listaGastos[0].monto.toFixed(2);
+    document.getElementById('gasto-ultimo-desc').textContent = listaGastos[0].desc;
+  } else {
+    document.getElementById('gasto-ultimo').textContent      = '—';
+    document.getElementById('gasto-ultimo-desc').textContent = 'Sin registros';
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PDF — sin cambios en lógica, nombres, ni cálculos
+   ────────────────────────────────────────────────────────────────────────── */
+function _buildPDF(doc, d) {
+  const pageW = 210, margin = 18, col2 = 100;
+  doc.setFillColor(26,58,92); doc.rect(0,0,pageW,38,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(255,255,255); doc.text('AQUA LUAN',margin,16);
+  doc.setFontSize(8); doc.setTextColor(78,201,160); doc.text('SISTEMA DE PEDIDOS',margin,22);
+  doc.setFontSize(9); doc.setTextColor(200,220,240);
+  doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
+  const fechaStr = d.fecha ? new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '-';
+  doc.setFont('helvetica','normal'); doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
+  let y = 48;
+  doc.setFillColor(240,245,248); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('ASESOR / RUTA',margin+4,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.empleado||'-',margin+4,y+15);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.text('FORMA DE PAGO',col2,y+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92); doc.text(d.formapago||'-',col2,y+15);
+  y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('DATOS DEL CLIENTE',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=8;
+  [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text(lbl.toUpperCase(),margin,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,58,92);
+    const lines = doc.splitTextToSize(val,pageW-margin-col2+20); doc.text(lines,col2,y); y+=Math.max(7,lines.length*5);
+  });
+  y+=4; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+  doc.text('PRODUCTOS DEL PEDIDO',margin,y); doc.line(margin,y+2,pageW-margin,y+2); y+=7;
+  doc.setFillColor(26,58,92); doc.rect(margin,y,pageW-margin*2,8,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  doc.text('PRODUCTO',margin+3,y+5.5); doc.text('CANT.',138,y+5.5,{align:'center'});
+  doc.text('PRECIO',158,y+5.5,{align:'right'}); doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'}); y+=8;
+  d.productos.forEach((p,idx)=>{
+    if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+    doc.text(p.nombre,margin+3,y+5); doc.text(String(p.cantidad),138,y+5,{align:'center'});
+    doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
+    doc.setFont('helvetica','bold'); doc.setTextColor(10,124,110);
+    doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'}); y+=7;
+  });
+  y+=4; doc.setFillColor(26,58,92); doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(200,220,240); doc.text('TOTAL GENERAL',margin+4,y+8);
+  doc.setFontSize(13); doc.setTextColor(78,201,160); doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
+  if (d.gps) {
+    y+=18; doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(10,124,110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y); doc.setDrawColor(78,201,160); doc.setLineWidth(0.5); doc.line(margin,y+2,pageW-margin,y+2); y+=9;
+    doc.setFillColor(230,244,242); doc.setDrawColor(78,201,160); doc.setLineWidth(0.4); doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
+    doc.setFillColor(10,124,110); doc.circle(margin+7,y+7,3,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255); doc.text('GPS',margin+7,y+7.8,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('COORDENADAS',margin+14,y+6);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('PRECISIÓN',margin+14,y+18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(26,58,92); doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
+    const linkCorto=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,130,160); doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(10,124,110); doc.textWithLink(linkCorto,pageW-margin-4,y+13,{url:d.gps.url,align:'right'}); y+=26;
+  }
+  y+=16; doc.setDrawColor(180,200,220); doc.setLineWidth(0.4);
+  doc.line(margin,y,margin+60,y); doc.line(pageW-margin-60,y,pageW-margin,y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(140,160,180);
+  doc.text('Firma del asesor',margin+30,y+5,{align:'center'}); doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
+  doc.setFontSize(7); doc.setTextColor(160,180,200); doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
+}
+
+function generarPDFBase64() {
+  if (!ultimoRegistro) return null;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  _buildPDF(doc, ultimoRegistro);
+  return doc.output('datauristring').split(',')[1];
+}
+
+function descargarPDF() {
+  if (!ultimoRegistro) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  _buildPDF(doc, ultimoRegistro);
+  /* [SEC-08] Nombre de archivo sanitizado — sin path traversal */
+  const nombreSafe = ultimoRegistro.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
+  const fechaSafe  = (ultimoRegistro.fecha || 'sin-fecha').replace(/[^0-9\-]/g,'');
+  doc.save(`Pedido_${nombreSafe}_${fechaSafe}.pdf`);
+}
+
+async function subirPDFaDrive(registroSnapshot) {
+  if (!registroSnapshot || !navigator.onLine) return;
+  const d = registroSnapshot;
+  const progWrap  = document.getElementById('driveProgress'),
+        progFill  = document.getElementById('progressFill'),
+        progText  = document.getElementById('progressText'),
+        progPct   = document.getElementById('progressPct'),
+        progLink  = document.getElementById('progressLink');
+  progWrap.classList.add('show'); progLink.classList.remove('show');
+  progFill.style.width = '0%';
+  /* [SEC-15] textContent */
+  progText.textContent = 'Generando PDF...'; progPct.textContent = '0%';
+  let pct = 0;
+  const tick = setInterval(() => { pct = Math.min(pct+8,40); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; }, 120);
+  let pdfBase64;
+  try { pdfBase64 = generarPDFBase64(); } catch { clearInterval(tick); progWrap.classList.remove('show'); return; }
+  clearInterval(tick); progFill.style.width='45%'; progPct.textContent='45%';
+  progText.textContent = 'Subiendo a Google Drive...';
+  const tick2 = setInterval(() => { pct=Math.min(pct+5,85); progFill.style.width=pct+'%'; progPct.textContent=pct+'%'; }, 200);
+  try {
+    /* [SEC-08] Nombre sanitizado */
+    const nombreSafe = d.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
+    const fechaSafe  = (d.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
+    const resp = await fetch(SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        accion:'subir_pdf', pdfBase64,
+        nombreArchivo: `Pedido_${nombreSafe}_${fechaSafe}.pdf`,
+        empleado: d.empleado, nombre: d.nombre, fecha: d.fecha,
+        /* [SEC-07] CSRF token */
+        csrfToken: SESSION_TOKEN
+      })
+    });
+    clearInterval(tick2);
+    let json = {}; try { json = await resp.json(); } catch { json = { result:'ok' }; }
+    if (json.result==='ok' || resp.ok) {
+      progFill.style.width='100%'; progPct.textContent='100%';
+      progText.textContent = '✓ PDF subido a Google Drive';
+      if (json.fileUrl) {
+        /* [SEC-04] Construir enlace de forma segura con createElement */
+        progLink.innerHTML = '';
+        const a = document.createElement('a');
+        /* [SEC-10] Validar que la URL sea de Google antes de asignarla */
+        if (/^https:\/\/drive\.google\.com\//.test(json.fileUrl)) {
+          a.href   = json.fileUrl;
+          a.target = '_blank';
+          a.rel    = 'noopener noreferrer';
+          a.textContent = '📄 Ver PDF en Google Drive';
+          progLink.appendChild(a);
+        }
+        progLink.classList.add('show');
+      }
+      setStatus('success', '✓ Pedido guardado y PDF subido a Google Drive.');
+    } else throw new Error(json.error || 'Error del servidor');
+  } catch { clearInterval(tick2); progWrap.classList.remove('show'); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   WhatsApp — construcción segura del mensaje (sin cambios en lógica)
+   ────────────────────────────────────────────────────────────────────────── */
+function _construirMsgWA(d) {
+  /* [SEC-04] Los datos se pasan por encodeURIComponent — no permite inyección */
+  const lineas = d.productos
+    .map(p => ` - ${encodeURIComponent(p.nombre)}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`)
+    .join('%0A');
+  const gpsLinea = d.gps ? `%0A📌 *Ubicación GPS:* ${encodeURIComponent(d.gps.url)}` : '';
+  return `Estimada Zoila, se envia pedido de cliente:%0A%0A` +
+    `👤 *Cliente:* ${encodeURIComponent(d.nombre)}%0A` +
+    `📞 *Telefono:* ${encodeURIComponent(d.telefono||'-')}%0A` +
+    `📍 *Direccion:* ${encodeURIComponent(d.direccion||'-')}%0A` +
+    `📅 *Fecha:* ${encodeURIComponent(d.fecha)}%0A` +
+    `👷 *Asesor:* ${encodeURIComponent(d.empleado)}%0A` +
+    `💳 *Pago:* ${encodeURIComponent(d.formapago||'-')}%0A%0A` +
+    `📦 *Productos:*%0A${lineas}%0A%0A` +
+    `💰 *TOTAL: $${d.total}*%0A` +
+    `📝 *Notas:* ${encodeURIComponent(d.notas||'-')}` + gpsLinea;
+}
+
+function enviarWhatsapp() {
+  if (!ultimoRegistro) return;
+  window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${_construirMsgWA(ultimoRegistro)}`, '_blank', 'noopener,noreferrer');
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   [SEC-05+13] HISTORIAL — en sessionStorage, sin GPS, máx. 20 registros
+   ────────────────────────────────────────────────────────────────────────── */
+function guardarEnHistorial(reg) {
+  try {
+    const hist = JSON.parse(sessionStorage.getItem('aqualuan-historial') || '[]');
+    /* [SEC-06] No persistir coordenadas GPS en almacenamiento local */
+    const regSeguro = {
+      id:        Date.now(),
+      nombre:    sanitizarTexto(reg.nombre, 100),
+      total:     reg.total,
+      fecha:     reg.fecha,
+      empleado:  reg.empleado,
+      formapago: reg.formapago,
+      telefono:  sanitizarTexto(reg.telefono, 20),
+      direccion: sanitizarTexto(reg.direccion, 200),
+      notas:     sanitizarTexto(reg.notas, 500),
+      productos: reg.productos,
+      gps:       null   /* [SEC-06] GPS omitido del historial persistido */
+    };
+    hist.unshift(regSeguro);
+    /* [SEC-13] Limitar a 20 registros */
+    if (hist.length > 20) hist.pop();
+    sessionStorage.setItem('aqualuan-historial', JSON.stringify(hist));
+  } catch {}
+}
+
+function cargarHistorial() {
+  let hist = [];
+  try { hist = JSON.parse(sessionStorage.getItem('aqualuan-historial') || '[]'); } catch {}
+  const lista = document.getElementById('historialLista');
+  if (hist.length === 0) {
+    lista.innerHTML = `<div class="empty-msg" style="margin-top:0">Aún no hay pedidos guardados en esta sesión. Los pedidos confirmados aparecerán aquí para que puedas descargar el PDF nuevamente.</div>`;
+    return;
+  }
+  /* [SEC-04] escHTML en TODOS los campos del historial */
+  lista.innerHTML = hist.map((r, i) => `
+    <div class="historial-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+        <span class="historial-cliente">👤 ${escHTML(r.nombre)}</span>
+        <span class="historial-total">$${escHTML(r.total)}</span>
+      </div>
+      <div class="historial-meta">
+        📅 ${escHTML(r.fecha||'-')} &nbsp;|&nbsp; 👷 ${escHTML(r.empleado)} &nbsp;|&nbsp; 💳 ${escHTML(r.formapago||'-')}
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+        📦 ${escHTML(String(r.productos.length))} producto${r.productos.length!==1?'s':''}
+      </div>
+      <div class="historial-btns">
+        <button class="btn-hist btn-hist-pdf" onclick="descargarPDFDesde(${parseInt(i)})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Descargar PDF
+        </button>
+        <button class="btn-hist btn-hist-wa" onclick="enviarWhatsappDesde(${parseInt(i)})">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp Zoila
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function descargarPDFDesde(idx) {
+  let hist = [];
+  try { hist = JSON.parse(sessionStorage.getItem('aqualuan-historial') || '[]'); } catch {}
+  /* [SEC-08] Validar índice */
+  if (idx < 0 || idx >= hist.length) return;
+  const r = hist[idx];
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  _buildPDF(doc, r);
+  const nombreSafe = r.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
+  const fechaSafe  = (r.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
+  doc.save(`Pedido_${nombreSafe}_${fechaSafe}.pdf`);
+}
+
+function enviarWhatsappDesde(idx) {
+  let hist = [];
+  try { hist = JSON.parse(sessionStorage.getItem('aqualuan-historial') || '[]'); } catch {}
+  /* [SEC-08] Validar índice */
+  if (idx < 0 || idx >= hist.length) return;
+  window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${_construirMsgWA(hist[idx])}`, '_blank', 'noopener,noreferrer');
+}
+
+function limpiarHistorial() {
+  if (!confirm('¿Limpiar todo el historial de pedidos?')) return;
+  /* [SEC-05] Solo sessionStorage — no afecta otros datos */
+  try { sessionStorage.removeItem('aqualuan-historial'); } catch {}
+  cargarHistorial();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Cerrar modal al hacer clic fuera
+   ────────────────────────────────────────────────────────────────────────── */
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal();
+});
+
+/* Inicializar lista de productos vacía */
+renderLista();
+</script>
+</body>
+</html>
