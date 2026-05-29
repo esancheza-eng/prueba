@@ -23,7 +23,7 @@ const ASSETS = [
 ];
 
 /* [SW-02] URL del Apps Script — actualizar cuando se migre al servidor */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-AimadRlsKD3mKqOWq9gmTybPkvqdd-K6-Tlxo4cdguqFt11hF9RO2N27-t68_uQT/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
 
 /* [SW-05] Verificar que la URL sea válida antes de hacer fetch */
 function scriptUrlValida() {
