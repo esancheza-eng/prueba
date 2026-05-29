@@ -775,9 +775,9 @@ border: 2.5px solid rgba(255,255,255,0.8);
 /* ════════════════════════════════════════
    CONFIG
 ════════════════════════════════════════ */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-AimadRlsKD3mKqOWq9gmTybPkvqdd-K6-Tlxo4cdguqFt11hF9RO2N27-t68_uQT/exec";
-const USUARIO = 'supervisor';
-const CLAVE   = 'aqua2026';
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
+const USUARIO = 'admin';
+const CLAVE_HASH = '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055';
 
 const RUTA_COLORS = {
   'RUTA 1: Jefferson': '#1565c0',
@@ -823,10 +823,12 @@ function switchTab(tab) {
 /* ════════════════════════════════════════
    LOGIN
 ════════════════════════════════════════ */
-function doLogin() {
+async function doLogin() {
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
-  if (user === USUARIO && pass === CLAVE) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
+  const passHash = Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  if (user === USUARIO && passHash === CLAVE_HASH) {
     document.getElementById('loginOverlay').classList.add('hidden');
     document.getElementById('loginError').classList.remove('show');
     iniciar();
