@@ -27,7 +27,6 @@
 --radius-lg: 20px;
 --shadow: 0 4px 24px rgba(26,58,92,0.10);
 --shadow-lg: 0 8px 40px rgba(26,58,92,0.15);
-/* Colores por asesor */
 --r1: #1565c0;
 --r2: #0a7c6e;
 --r3: #e67e22;
@@ -42,8 +41,6 @@ font-family: 'DM Sans', sans-serif;
 color: var(--text);
 -webkit-text-size-adjust: 100%;
 }
-
-/* ── LOGIN ── */
 .login-overlay {
 position: fixed; inset: 0;
 background: linear-gradient(135deg, #1a3a5c 0%, #0a4a5e 50%, #085f54 100%);
@@ -84,8 +81,6 @@ transition: background 0.2s, transform 0.1s; margin-top: 8px;
 }
 .btn-login:hover { background: #3db88a; }
 .btn-login:active { transform: scale(0.98); }
-
-/* ── HEADER ── */
 .header {
 background: var(--navy);
 padding: 0 1.5rem;
@@ -140,15 +135,9 @@ font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
 color: #f48fb1; cursor: pointer; transition: background 0.2s;
 }
 .btn-logout:hover { background: rgba(192,57,43,0.35); }
-
-/* ── VIEWS ── */
 .view { display: none; }
 .view.active { display: block; }
-
-/* ── MAIN ── */
 .main { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-
-/* ── FECHA FILTER ── */
 .filter-bar {
 display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
 background: var(--surface); border: 1px solid var(--border);
@@ -180,8 +169,6 @@ cursor: pointer; transition: background 0.2s;
 .btn-hoy { background: var(--navy); }
 .btn-hoy:hover { background: #0f2a45; }
 .last-update { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 500; }
-
-/* ── KPI GRID ── */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
 .kpi-card {
 background: var(--surface); border: 1px solid var(--border);
@@ -205,8 +192,6 @@ animation: fadeUp 0.4s ease both;
 .kpi-card.orange .kpi-value { color: var(--orange); }
 .kpi-card.accent .kpi-value { color: var(--teal); }
 .kpi-sub { font-size: 11px; color: var(--muted); font-weight: 500; margin-top: 4px; }
-
-/* ── CHARTS GRID ── */
 .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
 .chart-card {
 background: var(--surface); border: 1px solid var(--border);
@@ -217,8 +202,6 @@ box-shadow: var(--shadow); animation: fadeUp 0.5s ease both;
 .chart-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
 .chart-title::after { content: ''; flex: 1; height: 1.5px; background: var(--teal-light); }
 .chart-wrap { position: relative; height: 220px; }
-
-/* ── TABLE ── */
 .table-card {
 background: var(--surface); border: 1px solid var(--border);
 border-radius: var(--radius); box-shadow: var(--shadow);
@@ -239,8 +222,6 @@ tbody td { padding: 10px 14px; color: var(--text); font-weight: 500; }
 .badge-blue { background: #e8f0fd; color: var(--blue); }
 .badge-red { background: #fdecea; color: var(--red); }
 .badge-navy { background: #e8eef5; color: var(--navy); }
-
-/* ── GPS POINTS CARD (vista dashboard) ── */
 .map-card {
 background: var(--surface); border: 1px solid var(--border);
 border-radius: var(--radius); box-shadow: var(--shadow);
@@ -258,8 +239,6 @@ cursor: pointer; transition: background 0.15s; text-decoration: none; color: var
 .map-point:hover { background: var(--teal-light); border-color: var(--teal); }
 .map-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
 .map-empty { padding: 2rem; text-align: center; color: var(--muted); font-size: 14px; }
-
-/* ── LOADING ── */
 .loading {
 display: flex; flex-direction: column; align-items: center; justify-content: center;
 padding: 3rem; gap: 12px; color: var(--muted);
@@ -273,15 +252,9 @@ animation: spin 0.8s linear infinite;
 @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes spin-icon { to { transform: rotate(360deg); } }
 .spin-icon { animation: spin-icon 0.7s linear infinite; display: inline-block; }
-
-/* ── EMPTY ── */
 .empty-state { text-align: center; padding: 2.5rem; color: var(--muted); }
 .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; opacity: 0.4; }
-
-/* ── LAYOUT CON SIDEBAR ── */
 .layout { display: flex; gap: 0; min-height: calc(100vh - 64px); }
-
-/* ── SIDEBAR ── */
 .sidebar {
 width: 300px; min-width: 300px;
 background: var(--navy);
@@ -358,14 +331,8 @@ padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
 display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
 }
 .notas-table-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
-
-/* ══════════════════════════════════════
-   VISTA RUTAS DEL DÍA
-══════════════════════════════════════ */
 #viewRutas { background: linear-gradient(135deg, #d8e8f2 0%, #e8f2f8 50%, #d0e8f0 100%); min-height: calc(100vh - 64px); }
 .rutas-main { padding: 1.5rem; max-width: 100%; }
-
-/* Filtros rutas */
 .rutas-filter-bar {
 display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 background: var(--surface); border: 1px solid var(--border);
@@ -380,8 +347,6 @@ font-size: 13px; font-weight: 600; padding: 7px 12px; outline: none; cursor: poi
 }
 .rutas-filter-bar input[type="date"]:focus,
 .rutas-filter-bar select:focus { border-color: var(--teal); }
-
-/* Mapa Leaflet */
 .rutas-map-card {
 background: var(--surface); border: 1px solid var(--border);
 border-radius: var(--radius); box-shadow: var(--shadow);
@@ -392,10 +357,7 @@ padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
 display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
 }
 .rutas-map-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
-#leafletMap {
-height: 520px;
-border-radius: 0 0 var(--radius) var(--radius);
-}
+#leafletMap { height: 520px; border-radius: 0 0 var(--radius) var(--radius); }
 .btn-centrar {
 background: var(--navy); color: #fff; border: none;
 border-radius: 8px; padding: 7px 16px;
@@ -404,22 +366,9 @@ cursor: pointer; transition: background 0.2s;
 display: flex; align-items: center; gap: 6px;
 }
 .btn-centrar:hover { background: #0f2a45; }
-
-/* Leyenda mapa */
-.map-legend {
-display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-}
-.legend-item {
-display: flex; align-items: center; gap: 5px;
-font-size: 11px; font-weight: 700; color: var(--text);
-}
-.legend-dot {
-width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-border: 2px solid rgba(255,255,255,0.5);
-box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-}
-
-/* Cards resumen asesor */
+.map-legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--text); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
 .asesor-cards-grid {
 display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 gap: 12px; margin-bottom: 1.25rem;
@@ -435,37 +384,20 @@ border-left: 4px solid transparent;
 .asesor-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .asesor-nombre { font-size: 13px; font-weight: 800; color: var(--text); }
 .asesor-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.asesor-stat { }
 .asesor-stat-label { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .asesor-stat-value { font-family: 'DM Serif Display', serif; font-size: 1.15rem; letter-spacing: -0.02em; line-height: 1.2; }
-.asesor-horario {
-margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
-display: flex; justify-content: space-between; align-items: center;
-}
+.asesor-horario { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .asesor-horario-label { font-size: 10px; color: var(--muted); font-weight: 600; }
 .asesor-horario-value { font-size: 11px; font-weight: 700; color: var(--text); }
-.asesor-km {
-margin-top: 6px;
-font-size: 11px; font-weight: 700; color: var(--muted);
-display: flex; align-items: center; gap: 4px;
-}
-
-/* Tabla detalle ruta */
+.asesor-km { margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 4px; }
 .ruta-detail-card {
 background: var(--surface); border: 1px solid var(--border);
 border-radius: var(--radius); box-shadow: var(--shadow);
 margin-bottom: 1.25rem; overflow: hidden; animation: fadeUp 0.5s ease both;
 }
-.ruta-detail-header {
-padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
-display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-}
+.ruta-detail-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 .ruta-detail-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
-.ruta-count-badge {
-background: var(--teal-light); color: var(--teal-dark);
-font-size: 11px; font-weight: 700; border-radius: 100px;
-padding: 3px 10px;
-}
+.ruta-count-badge { background: var(--teal-light); color: var(--teal-dark); font-size: 11px; font-weight: 700; border-radius: 100px; padding: 3px 10px; }
 tbody tr.clickable-row { cursor: pointer; }
 tbody tr.clickable-row:hover { background: var(--teal-light) !important; }
 .btn-gps-small {
@@ -476,25 +408,7 @@ cursor: pointer; transition: background 0.15s; text-decoration: none;
 display: inline-block;
 }
 .btn-gps-small:hover { background: var(--teal); color: #fff; }
-.asesor-color-bar {
-width: 8px; border-radius: 4px; min-height: 30px;
-flex-shrink: 0; display: inline-block; vertical-align: middle;
-margin-right: 4px;
-}
-
-/* Leaflet custom marker */
-.custom-marker {
-width: 28px; height: 28px; border-radius: 50%;
-display: flex; align-items: center; justify-content: center;
-color: #fff; font-size: 11px; font-weight: 800;
-box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-border: 2.5px solid rgba(255,255,255,0.8);
-}
-.precision-circle { stroke-dasharray: none; }
-
-/* Ruta table row click highlight */
 .highlight-row { background: var(--teal-light) !important; }
-
 @media (max-width: 768px) {
   .charts-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
@@ -527,11 +441,11 @@ border: 2.5px solid rgba(255,255,255,0.8);
     </div>
     <div class="login-field">
       <label>Usuario</label>
-      <input type="text" id="loginUser" placeholder="supervisor" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="login-field">
       <label>Contraseña</label>
-      <input type="password" id="loginPass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="loginPass" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
     <button class="btn-login" onclick="doLogin()">Ingresar al Dashboard</button>
@@ -552,18 +466,11 @@ border: 2.5px solid rgba(255,255,255,0.8);
     </div>
   </div>
   <div class="header-center">
-    <button class="tab-btn active" id="tabDashboard" onclick="switchTab('dashboard')">
-      📊 Dashboard
-    </button>
-    <button class="tab-btn" id="tabRutas" onclick="switchTab('rutas')">
-      🗺️ Rutas del Día
-    </button>
+    <button class="tab-btn active" id="tabDashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" id="tabRutas" onclick="switchTab('rutas')">🗺️ Rutas del Día</button>
   </div>
   <div class="header-right">
-    <div class="update-badge">
-      <div class="pulse-dot"></div>
-      <span>Auto-actualiza cada minuto</span>
-    </div>
+    <div class="update-badge"><div class="pulse-dot"></div><span>Auto-actualiza cada minuto</span></div>
     <button class="btn-refresh" onclick="cargarDatos(true)">
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" id="refreshIcon"><path d="M14 8A6 6 0 1 1 8 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 2v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Actualizar
@@ -572,19 +479,12 @@ border: 2.5px solid rgba(255,255,255,0.8);
   </div>
 </div>
 
-<!-- ═══════════════════════ VIEW: DASHBOARD ═══════════════════════ -->
+<!-- VIEW DASHBOARD -->
 <div class="view active" id="viewDashboard">
   <div class="layout">
-    <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-title">
-        📋 Notas de Ventas
-        <span class="notas-count" id="notasCount">0</span>
-      </div>
-      <div>
-        <div class="sidebar-label">Filtro Día</div>
-        <input type="date" id="notasFecha">
-      </div>
+      <div class="sidebar-title">📋 Notas de Ventas <span class="notas-count" id="notasCount">0</span></div>
+      <div><div class="sidebar-label">Filtro Día</div><input type="date" id="notasFecha"></div>
       <div>
         <div class="sidebar-label">Filtro Asesor / Ruta</div>
         <select id="notasAsesor">
@@ -608,26 +508,15 @@ border: 2.5px solid rgba(255,255,255,0.8);
       </div>
       <button class="btn-aplicar-notas" onclick="aplicarNotasFiltros()">🔍 Aplicar filtros</button>
       <div class="notas-resumen" id="notasResumen">
-        <div class="notas-resumen-item">
-          <span class="notas-resumen-label">Pedidos</span>
-          <span class="notas-resumen-value" id="notasTotalPedidos">0</span>
-        </div>
-        <div class="notas-resumen-item">
-          <span class="notas-resumen-label">Total ventas</span>
-          <span class="notas-resumen-value" id="notasTotalVentas">$0.00</span>
-        </div>
-        <div class="notas-resumen-item">
-          <span class="notas-resumen-label">Unidades</span>
-          <span class="notas-resumen-value" id="notasTotalUnidades">0</span>
-        </div>
+        <div class="notas-resumen-item"><span class="notas-resumen-label">Pedidos</span><span class="notas-resumen-value" id="notasTotalPedidos">0</span></div>
+        <div class="notas-resumen-item"><span class="notas-resumen-label">Total ventas</span><span class="notas-resumen-value" id="notasTotalVentas">$0.00</span></div>
+        <div class="notas-resumen-item"><span class="notas-resumen-label">Unidades</span><span class="notas-resumen-value" id="notasTotalUnidades">0</span></div>
       </div>
       <button class="btn-excel" onclick="exportarExcel()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17.5l2.5-3.5L8 10.5h1.5L11 12.8l1.5-2.3H14l-2.5 3.5 2.5 3.5H12.5L11 15.2l-1.5 2.3H8z"/></svg>
         Exportar a Excel
       </button>
     </div>
-
-    <!-- CONTENT -->
     <div class="content">
       <div class="main">
         <div class="filter-bar">
@@ -638,59 +527,30 @@ border: 2.5px solid rgba(255,255,255,0.8);
           <button class="btn-filter" style="background:var(--muted)" onclick="limpiarFiltro()">Todo</button>
           <span class="last-update" id="lastUpdate">—</span>
         </div>
-        <div class="kpi-grid" id="kpiGrid">
-          <div class="loading"><div class="spinner"></div><span>Cargando...</span></div>
-        </div>
+        <div class="kpi-grid" id="kpiGrid"><div class="loading"><div class="spinner"></div><span>Cargando...</span></div></div>
         <div class="charts-grid" id="chartsGrid" style="display:none">
-          <div class="chart-card">
-            <div class="chart-title">Ventas por Ruta / Asesor</div>
-            <div class="chart-wrap"><canvas id="chartRutas"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">Productos más vendidos</div>
-            <div class="chart-wrap"><canvas id="chartProductos"></canvas></div>
-          </div>
-          <div class="chart-card full">
-            <div class="chart-title">Ventas por hora del día</div>
-            <div class="chart-wrap"><canvas id="chartHoras"></canvas></div>
-          </div>
+          <div class="chart-card"><div class="chart-title">Ventas por Ruta / Asesor</div><div class="chart-wrap"><canvas id="chartRutas"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Productos más vendidos</div><div class="chart-wrap"><canvas id="chartProductos"></canvas></div></div>
+          <div class="chart-card full"><div class="chart-title">Ventas por hora del día</div><div class="chart-wrap"><canvas id="chartHoras"></canvas></div></div>
         </div>
         <div class="map-card" id="mapCard" style="display:none">
-          <div class="map-header">
-            <div class="map-title">📍 Ubicaciones GPS de pedidos</div>
-          </div>
+          <div class="map-header"><div class="map-title">📍 Ubicaciones GPS de pedidos</div></div>
           <div class="map-points" id="mapPoints"></div>
         </div>
         <div class="table-card" id="tableCard" style="display:none">
-          <div class="table-header">
-            <div class="table-title">📋 Detalle de pedidos</div>
-          </div>
+          <div class="table-header"><div class="table-title">📋 Detalle de pedidos</div></div>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Teléfono</th>
-                  <th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Total</th>
-                  <th>Pago</th><th>GPS</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Teléfono</th><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Total</th><th>Pago</th><th>GPS</th></tr></thead>
               <tbody id="tablaPedidos"></tbody>
             </table>
           </div>
         </div>
         <div class="notas-table-card" id="notasCard" style="display:none">
-          <div class="notas-table-header">
-            <div class="notas-table-title">📋 Notas de Ventas — Resultados</div>
-          </div>
+          <div class="notas-table-header"><div class="notas-table-title">📋 Notas de Ventas — Resultados</div></div>
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Asesor / Ruta</th><th>Cliente</th><th>Envase / Producto</th>
-                  <th>Precio Unit.</th><th>Cantidad</th><th>Subtotal</th>
-                  <th>Total Pedido</th><th>Forma Pago</th><th>Fecha</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Asesor / Ruta</th><th>Cliente</th><th>Envase / Producto</th><th>Precio Unit.</th><th>Cantidad</th><th>Subtotal</th><th>Total Pedido</th><th>Forma Pago</th><th>Fecha</th></tr></thead>
               <tbody id="tablaNotas"></tbody>
             </table>
           </div>
@@ -700,11 +560,9 @@ border: 2.5px solid rgba(255,255,255,0.8);
   </div>
 </div>
 
-<!-- ═══════════════════════ VIEW: RUTAS DEL DÍA ═══════════════════════ -->
+<!-- VIEW RUTAS -->
 <div class="view" id="viewRutas">
   <div class="rutas-main">
-
-    <!-- FILTROS -->
     <div class="rutas-filter-bar">
       <span class="filter-label">📅 Fecha</span>
       <input type="date" id="rutasFecha">
@@ -721,14 +579,10 @@ border: 2.5px solid rgba(255,255,255,0.8);
       <button class="btn-filter" onclick="aplicarRutas()">🗺️ Ver rutas</button>
       <span class="last-update" id="rutasLastUpdate">—</span>
     </div>
-
-    <!-- DIAGNÓSTICO GPS -->
     <div id="gpsDiagBox" style="display:none;background:#fffbe6;border:1.5px solid #f0c040;border-radius:var(--radius);padding:12px 16px;margin-bottom:1rem;font-size:12px;color:#7a5700;font-family:'DM Sans',sans-serif">
       <strong>⚠️ Diagnóstico GPS</strong>
       <div id="gpsDiagContent" style="margin-top:6px;line-height:1.7"></div>
     </div>
-
-    <!-- MAPA LEAFLET -->
     <div class="rutas-map-card">
       <div class="rutas-map-header">
         <div class="rutas-map-title">📍 Mapa de recorridos por asesor</div>
@@ -742,13 +596,7 @@ border: 2.5px solid rgba(255,255,255,0.8);
       </div>
       <div id="leafletMap"></div>
     </div>
-
-    <!-- CARDS RESUMEN ASESORES -->
-    <div class="asesor-cards-grid" id="asesorCardsGrid">
-      <div class="loading"><div class="spinner"></div><span>Aplica filtros para ver rutas</span></div>
-    </div>
-
-    <!-- TABLA DETALLE -->
+    <div class="asesor-cards-grid" id="asesorCardsGrid"><div class="loading"><div class="spinner"></div><span>Aplica filtros para ver rutas</span></div></div>
     <div class="ruta-detail-card" id="rutaDetailCard" style="display:none">
       <div class="ruta-detail-header">
         <div class="ruta-detail-title">📋 Detalle de ruta — cronológico</div>
@@ -756,18 +604,12 @@ border: 2.5px solid rgba(255,255,255,0.8);
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>#</th><th>Asesor</th><th>Hora</th><th>Cliente</th><th>Dirección</th>
-              <th>Producto</th><th>Cant.</th><th>Total</th><th>Pago</th><th>Notas</th><th>GPS</th>
-            </tr>
-          </thead>
+          <thead><tr><th>#</th><th>Asesor</th><th>Hora</th><th>Cliente</th><th>Dirección</th><th>Producto</th><th>Cant.</th><th>Total</th><th>Pago</th><th>Notas</th><th>GPS</th></tr></thead>
           <tbody id="tablaRutaDetalle"></tbody>
         </table>
       </div>
       <div style="padding:10px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)" id="rutaTableNote"></div>
     </div>
-
   </div>
 </div>
 
@@ -775,9 +617,9 @@ border: 2.5px solid rgba(255,255,255,0.8);
 /* ════════════════════════════════════════
    CONFIG
 ════════════════════════════════════════ */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
-const USUARIO = 'admin';
-const CLAVE_HASH = '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055';
+const SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
+const USUARIO     = 'admin';
+const CLAVE_HASH  = '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055';
 
 const RUTA_COLORS = {
   'RUTA 1: Jefferson': '#1565c0',
@@ -810,7 +652,6 @@ function switchTab(tab) {
   document.getElementById('viewRutas').classList.toggle('active', tab === 'rutas');
   document.getElementById('tabDashboard').classList.toggle('active', tab === 'dashboard');
   document.getElementById('tabRutas').classList.toggle('active', tab === 'rutas');
-
   if (tab === 'rutas') {
     cargarLeaflet(() => {
       if (!leafletMap) initLeafletMap();
@@ -821,23 +662,25 @@ function switchTab(tab) {
 }
 
 /* ════════════════════════════════════════
-   LOGIN
+   LOGIN — [FIX] .toLowerCase() para aceptar Admin/ADMIN/admin
 ════════════════════════════════════════ */
 async function doLogin() {
-  const user = document.getElementById('loginUser').value.trim();
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
+  if (!user || !pass) { document.getElementById('loginError').classList.add('show'); return; }
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
   const passHash = Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  document.getElementById('loginPass').value = '';
   if (user === USUARIO && passHash === CLAVE_HASH) {
     document.getElementById('loginOverlay').classList.add('hidden');
     document.getElementById('loginError').classList.remove('show');
     iniciar();
   } else {
     document.getElementById('loginError').classList.add('show');
-    document.getElementById('loginPass').value = '';
     document.getElementById('loginPass').focus();
   }
 }
+
 function cerrarSesion() {
   clearInterval(autoRefreshInterval);
   document.getElementById('loginOverlay').classList.remove('hidden');
@@ -891,21 +734,12 @@ async function cargarDatos(mostrarSpinner = true) {
 /* ════════════════════════════════════════
    FILTROS DASHBOARD
 ════════════════════════════════════════ */
-function filtrarHoy() {
-  document.getElementById('filtroFecha').value = fechaHoy();
-  renderDashboard();
-}
-function limpiarFiltro() {
-  document.getElementById('filtroFecha').value = '';
-  renderDashboard();
-}
+function filtrarHoy() { document.getElementById('filtroFecha').value = fechaHoy(); renderDashboard(); }
+function limpiarFiltro() { document.getElementById('filtroFecha').value = ''; renderDashboard(); }
 function getDatosFiltrados() {
   const filtro = document.getElementById('filtroFecha').value;
   if (!filtro) return todosLosDatos;
-  return todosLosDatos.filter(r => {
-    const fecha = r['FECHA'] || r['fecha'] || '';
-    return String(fecha).includes(filtro);
-  });
+  return todosLosDatos.filter(r => { const fecha = r['FECHA'] || r['fecha'] || ''; return String(fecha).includes(filtro); });
 }
 
 /* ════════════════════════════════════════
@@ -923,12 +757,8 @@ function renderDashboard() {
   const clientesUnicos = new Set(pedidos.map(r => r['CLIENTE'])).size;
   const pedidosUnicos  = new Set(pedidos.map(r => `${r['CLIENTE']}-${r['FECHA']}-${r['ASESOR / RUTA']}`)).size;
   const ventasPorAsesor = {};
-  pedidosConTotal.forEach(r => {
-    const a = r['ASESOR / RUTA'] || 'Sin asignar';
-    ventasPorAsesor[a] = (ventasPorAsesor[a]||0) + (parseFloat(r['TOTAL PEDIDO ($)'])||0);
-  });
+  pedidosConTotal.forEach(r => { const a = r['ASESOR / RUTA'] || 'Sin asignar'; ventasPorAsesor[a] = (ventasPorAsesor[a]||0) + (parseFloat(r['TOTAL PEDIDO ($)'])||0); });
   const asesorTop = Object.entries(ventasPorAsesor).sort((a,b) => b[1]-a[1])[0];
-
   document.getElementById('kpiGrid').innerHTML = `
     <div class="kpi-card teal"><div class="kpi-icon">💰</div><div class="kpi-label">Total ventas</div><div class="kpi-value">$${totalReal.toFixed(2)}</div><div class="kpi-sub">${pedidosUnicos} pedido(s)</div></div>
     <div class="kpi-card blue"><div class="kpi-icon">💳</div><div class="kpi-label">Total cobrado</div><div class="kpi-value">$${totalPagos.toFixed(2)}</div><div class="kpi-sub">${pagos.length} pago(s)</div></div>
@@ -950,10 +780,7 @@ function renderDashboard() {
 ════════════════════════════════════════ */
 function renderCharts(pedidos, pedidosConTotal) {
   const ventasPorRuta = {};
-  pedidosConTotal.forEach(r => {
-    const ruta = (r['ASESOR / RUTA']||'Sin asignar').split(':')[1]?.trim() || r['ASESOR / RUTA'];
-    ventasPorRuta[ruta] = (ventasPorRuta[ruta]||0) + (parseFloat(r['TOTAL PEDIDO ($)'])||0);
-  });
+  pedidosConTotal.forEach(r => { const ruta = (r['ASESOR / RUTA']||'Sin asignar').split(':')[1]?.trim() || r['ASESOR / RUTA']; ventasPorRuta[ruta] = (ventasPorRuta[ruta]||0) + (parseFloat(r['TOTAL PEDIDO ($)'])||0); });
   if (charts.rutas) charts.rutas.destroy();
   charts.rutas = new Chart(document.getElementById('chartRutas').getContext('2d'), {
     type: 'bar',
@@ -1034,7 +861,6 @@ function aplicarNotasFiltros() {
   if (asesor) datos = datos.filter(r => (r['ASESOR / RUTA']||'') === asesor);
   if (pago)   datos = datos.filter(r => (r['FORMA DE PAGO']||'') === pago);
   datosNotasFiltrados = datos;
-
   const pedidosUnicos = new Set(datos.map(r=>`${r['CLIENTE']}-${r['FECHA']}-${r['ASESOR / RUTA']}`)).size;
   const totalVentas   = datos.filter(r=>r['TOTAL PEDIDO ($)']&&parseFloat(r['TOTAL PEDIDO ($)'])>0).reduce((s,r)=>s+(parseFloat(r['TOTAL PEDIDO ($)'])||0),0);
   const totalUnidades = datos.reduce((s,r)=>s+(parseFloat(r['CANTIDAD'])||0),0);
@@ -1042,7 +868,6 @@ function aplicarNotasFiltros() {
   document.getElementById('notasTotalPedidos').textContent = pedidosUnicos;
   document.getElementById('notasTotalVentas').textContent = '$'+totalVentas.toFixed(2);
   document.getElementById('notasTotalUnidades').textContent = totalUnidades;
-
   const tbody = document.getElementById('tablaNotas');
   const card  = document.getElementById('notasCard');
   if (!datos.length) { tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="icon">📋</div>No hay resultados con estos filtros</div></td></tr>`; card.style.display='block'; return; }
@@ -1061,7 +886,6 @@ function aplicarNotasFiltros() {
     </tr>`;
   }).join('');
   card.style.display = 'block';
-
   const pedidosConTotal = datos.filter(r=>r['TOTAL PEDIDO ($)']&&parseFloat(r['TOTAL PEDIDO ($)'])>0);
   const totalReal = pedidosConTotal.reduce((s,r)=>s+(parseFloat(r['TOTAL PEDIDO ($)'])||0),0);
   const clientesUnicos2 = new Set(datos.map(r=>r['CLIENTE'])).size;
@@ -1079,8 +903,6 @@ function aplicarNotasFiltros() {
   `;
   renderCharts(datos, pedidosConTotal);
   renderGPS(pedidosConTotal);
-  document.getElementById('chartsGrid').style.display = 'grid';
-  document.getElementById('mapCard').style.display = 'block';
   actualizarTablaCentral(datos);
   card.scrollIntoView({ behavior:'smooth', block:'start' });
 }
@@ -1110,471 +932,217 @@ function actualizarTablaCentral(datos) {
 }
 
 /* ════════════════════════════════════════
-   LEAFLET — CARGA DINÁMICA
+   LEAFLET
 ════════════════════════════════════════ */
 function cargarLeaflet(callback) {
   if (leafletLoaded) { callback(); return; }
-  const css = document.createElement('link');
-  css.rel = 'stylesheet';
-  css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-  document.head.appendChild(css);
-
-  const js = document.createElement('script');
-  js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-  js.onload = () => { leafletLoaded = true; callback(); };
-  document.head.appendChild(js);
+  const css = document.createElement('link'); css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(css);
+  const js = document.createElement('script'); js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; js.onload=()=>{ leafletLoaded=true; callback(); }; document.head.appendChild(js);
 }
 
-/* ════════════════════════════════════════
-   HELPER — oscurecer color hex
-════════════════════════════════════════ */
 function shadeColor(color, percent) {
-  let R = parseInt(color.substring(1,3), 16);
-  let G = parseInt(color.substring(3,5), 16);
-  let B = parseInt(color.substring(5,7), 16);
-  R = Math.min(255, Math.max(0, R + percent));
-  G = Math.min(255, Math.max(0, G + percent));
-  B = Math.min(255, Math.max(0, B + percent));
-  return '#' + [R,G,B].map(v => v.toString(16).padStart(2,'0')).join('');
+  let R=parseInt(color.substring(1,3),16), G=parseInt(color.substring(3,5),16), B=parseInt(color.substring(5,7),16);
+  R=Math.min(255,Math.max(0,R+percent)); G=Math.min(255,Math.max(0,G+percent)); B=Math.min(255,Math.max(0,B+percent));
+  return '#'+[R,G,B].map(v=>v.toString(16).padStart(2,'0')).join('');
 }
 
-/* ════════════════════════════════════════
-   INIT MAPA LEAFLET
-════════════════════════════════════════ */
 function initLeafletMap() {
-  leafletMap = L.map('leafletMap', { zoomControl: true, scrollWheelZoom: true });
-
-  const tileCalles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  });
-  const tileSatelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 19,
-    attribution: '© Esri — Earthstar Geographics'
-  });
-
+  leafletMap = L.map('leafletMap', { zoomControl:true, scrollWheelZoom:true });
+  const tileCalles   = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' });
+  const tileSatelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'© Esri' });
   tileCalles.addTo(leafletMap);
-
-  // Control Mapa / Satélite estilo Google Maps
   const MapaCtrl = L.Control.extend({
-    options: { position: 'topleft' },
+    options: { position:'topleft' },
     onAdd: function() {
-      const div = L.DomUtil.create('div', '');
-      div.innerHTML = `
-        <div id="tileToggle" style="background:#fff;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,0.25);overflow:hidden;display:flex;font-family:'DM Sans',sans-serif">
-          <button id="btnMapa"    onclick="setTile('mapa')"    style="padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#1a3a5c;color:#fff;cursor:pointer">Mapa</button>
-          <button id="btnSateli" onclick="setTile('satelite')" style="padding:6px 14px;font-size:12px;font-weight:600;border:none;background:#fff;color:#555;cursor:pointer;border-left:1px solid #ddd">Satélite</button>
-        </div>`;
-      L.DomEvent.disableClickPropagation(div);
-      return div;
+      const div = L.DomUtil.create('div','');
+      div.innerHTML=`<div style="background:#fff;border-radius:4px;box-shadow:0 1px 5px rgba(0,0,0,0.25);overflow:hidden;display:flex;font-family:'DM Sans',sans-serif"><button id="btnMapa" onclick="setTile('mapa')" style="padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#1a3a5c;color:#fff;cursor:pointer">Mapa</button><button id="btnSateli" onclick="setTile('satelite')" style="padding:6px 14px;font-size:12px;font-weight:600;border:none;background:#fff;color:#555;cursor:pointer;border-left:1px solid #ddd">Satélite</button></div>`;
+      L.DomEvent.disableClickPropagation(div); return div;
     }
   });
   new MapaCtrl().addTo(leafletMap);
-
-  window._tileCalles   = tileCalles;
-  window._tileSatelite = tileSatelite;
-
-  leafletMap.setView([-2.134, -79.587], 13); // Milagro, Ecuador
+  window._tileCalles=tileCalles; window._tileSatelite=tileSatelite;
+  leafletMap.setView([-2.134,-79.587],13);
 }
 
 function setTile(tipo) {
-  if (tipo === 'mapa') {
-    leafletMap.removeLayer(window._tileSatelite);
-    window._tileCalles.addTo(leafletMap);
-    document.getElementById('btnMapa').style.cssText   = 'padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#1a3a5c;color:#fff;cursor:pointer';
-    document.getElementById('btnSateli').style.cssText = 'padding:6px 14px;font-size:12px;font-weight:600;border:none;background:#fff;color:#555;cursor:pointer;border-left:1px solid #ddd';
+  if(tipo==='mapa'){
+    leafletMap.removeLayer(window._tileSatelite); window._tileCalles.addTo(leafletMap);
+    document.getElementById('btnMapa').style.cssText='padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#1a3a5c;color:#fff;cursor:pointer';
+    document.getElementById('btnSateli').style.cssText='padding:6px 14px;font-size:12px;font-weight:600;border:none;background:#fff;color:#555;cursor:pointer;border-left:1px solid #ddd';
   } else {
-    leafletMap.removeLayer(window._tileCalles);
-    window._tileSatelite.addTo(leafletMap);
-    document.getElementById('btnSateli').style.cssText = 'padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#1a3a5c;color:#fff;cursor:pointer;border-left:1px solid #ddd';
-    document.getElementById('btnMapa').style.cssText   = 'padding:6px 14px;font-size:12px;font-weight:600;border:none;background:#fff;color:#555;cursor:pointer';
+    leafletMap.removeLayer(window._tileCalles); window._tileSatelite.addTo(leafletMap);
+    document.getElementById('btnSateli').style.cssText='padding:6px 14px;font-size:12px;font-weight:700;border:none;background:#1a3a5c;color:#fff;cursor:pointer;border-left:1px solid #ddd';
+    document.getElementById('btnMapa').style.cssText='padding:6px 14px;font-size:12px;font-weight:600;border:none;background:#fff;color:#555;cursor:pointer';
   }
 }
 
 /* ════════════════════════════════════════
-   VISTA RUTAS — FILTROS Y RENDER
+   RUTAS DEL DÍA
 ════════════════════════════════════════ */
-function rutasHoy() {
-  document.getElementById('rutasFecha').value = fechaHoy();
-}
-
+function rutasHoy() { document.getElementById('rutasFecha').value = fechaHoy(); }
 function aplicarRutas() {
   const fecha  = document.getElementById('rutasFecha').value;
   const asesor = document.getElementById('rutasAsesor').value;
-  document.getElementById('rutasLastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-EC', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('rutasLastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'});
   renderRutasDia(fecha, asesor);
 }
 
-/* Parseo robusto de coordenada: acepta coma decimal, enteros × 1e6, espacios */
 function parseCoordenada(val) {
-  if (val === null || val === undefined || val === '') return NaN;
-  // reemplazar coma decimal por punto
-  const s = String(val).trim().replace(',', '.');
-  let n = parseFloat(s);
-  if (isNaN(n)) return NaN;
-  // Si el valor absoluto es mayor a 1000, asumimos que viene multiplicado × 1,000,000
-  // Ej: -2140556 → -2.140556 | -79588627 → -79.588627
-  if (Math.abs(n) > 1000) n = n / 1000000;
+  if (val===null||val===undefined||val==='') return NaN;
+  const s=String(val).trim().replace(',','.');
+  let n=parseFloat(s);
+  if(isNaN(n)) return NaN;
+  if(Math.abs(n)>1000) n=n/1000000;
   return n;
 }
 
-/* Verifica que lat/lng sean válidas para Ecuador y zonas cercanas
-   Ecuador: lat ~ -5 a +2 | lng ~ -81 a -75 */
-function coordValida(lat, lng) {
-  if (isNaN(lat) || isNaN(lng)) return false;
-  if (lat === 0 && lng === 0) return false;
-  // Rango amplio América del Sur para no ser restrictivo
-  if (lat < -60 || lat > 15) return false;
-  if (lng < -82 || lng > -60) return false;
+function coordValida(lat,lng) {
+  if(isNaN(lat)||isNaN(lng)) return false;
+  if(lat===0&&lng===0) return false;
+  if(lat<-60||lat>15) return false;
+  if(lng<-82||lng>-60) return false;
   return true;
 }
 
 function renderRutasDia(fecha, asesorFiltro) {
   if (!leafletMap) return;
-
-  const diagBox  = document.getElementById('gpsDiagBox');
-  const diagContent = document.getElementById('gpsDiagContent');
-
-  // 1. Filtrar datos — incluir TODOS (con y sin producto) para GPS
-  let datos = todosLosDatos;
-  if (fecha) datos = datos.filter(r => { const f=String(r['FECHA']||''); return f.startsWith(fecha)||f.includes(fecha); });
-  if (asesorFiltro) datos = datos.filter(r => (r['ASESOR / RUTA']||'') === asesorFiltro);
-
-  // Detectar qué claves de coordenadas existen en los datos
-  const sampleKeys = datos.length > 0 ? Object.keys(datos[0]) : [];
-  const latKey = sampleKeys.find(k => /latitud/i.test(k)) || 'LATITUD';
-  const lngKey = sampleKeys.find(k => /longitud/i.test(k)) || 'LONGITUD';
-
-  // Muestra de diagnóstico: primeras 3 filas con GPS
-  const conCoordsRaw = datos.filter(r => r[latKey] !== undefined && r[latKey] !== '');
-  const sinCoords    = datos.filter(r => !r[latKey] || r[latKey] === '');
-
-  // 2. Parsear y filtrar GPS válido
-  const datosGPS = datos.filter(r => {
-    const lat = parseCoordenada(r[latKey]);
-    const lng = parseCoordenada(r[lngKey]);
-    return coordValida(lat, lng);
-  }).map(r => ({
-    ...r,
-    _lat: parseCoordenada(r[latKey]),
-    _lng: parseCoordenada(r[lngKey])
-  }));
-
-  // DIAGNÓSTICO
-  const diagLines = [];
+  const diagBox=document.getElementById('gpsDiagBox'), diagContent=document.getElementById('gpsDiagContent');
+  let datos=todosLosDatos;
+  if(fecha) datos=datos.filter(r=>{ const f=String(r['FECHA']||''); return f.startsWith(fecha)||f.includes(fecha); });
+  if(asesorFiltro) datos=datos.filter(r=>(r['ASESOR / RUTA']||'')===asesorFiltro);
+  const sampleKeys=datos.length>0?Object.keys(datos[0]):[];
+  const latKey=sampleKeys.find(k=>/latitud/i.test(k))||'LATITUD';
+  const lngKey=sampleKeys.find(k=>/longitud/i.test(k))||'LONGITUD';
+  const conCoordsRaw=datos.filter(r=>r[latKey]!==undefined&&r[latKey]!=='');
+  const sinCoords=datos.filter(r=>!r[latKey]||r[latKey]==='');
+  const datosGPS=datos.filter(r=>{ const lat=parseCoordenada(r[latKey]); const lng=parseCoordenada(r[lngKey]); return coordValida(lat,lng); }).map(r=>({...r,_lat:parseCoordenada(r[latKey]),_lng:parseCoordenada(r[lngKey])}));
+  const diagLines=[];
   diagLines.push(`📋 Total registros filtrados: <b>${datos.length}</b>`);
   diagLines.push(`🔑 Clave LATITUD detectada: <b>"${latKey}"</b> | LONGITUD: <b>"${lngKey}"</b>`);
   diagLines.push(`📍 Con coordenadas en sheet: <b>${conCoordsRaw.length}</b> | Sin coordenadas: <b>${sinCoords.length}</b>`);
   diagLines.push(`✅ Coordenadas válidas para Ecuador: <b>${datosGPS.length}</b>`);
-  if (conCoordsRaw.length > 0 && datosGPS.length === 0) {
-    const ej = conCoordsRaw[0];
+  if(conCoordsRaw.length>0&&datosGPS.length===0){
+    const ej=conCoordsRaw[0];
     diagLines.push(`⚠️ Ejemplo de valor recibido → lat: <b>"${ej[latKey]}"</b> | lng: <b>"${ej[lngKey]}"</b>`);
-    diagLines.push(`💡 <b>Posible causa:</b> Las coordenadas no están en rango Ecuador (-5 a +2 lat, -82 a -75 lng). Verifica que el campo GPS del sheet devuelva coordenadas reales.`);
-  } else if (datosGPS.length > 0) {
-    const ej = datosGPS[0];
+    diagLines.push(`💡 <b>Posible causa:</b> Las coordenadas no están en rango Ecuador (-5 a +2 lat, -82 a -75 lng).`);
+  } else if(datosGPS.length>0){
+    const ej=datosGPS[0];
     diagLines.push(`📌 Ejemplo OK → lat: <b>${ej._lat}</b> | lng: <b>${ej._lng}</b> (${ej['CLIENTE']||''})`);
   }
-
-  if (datosGPS.length === 0 || conCoordsRaw.length === 0) {
-    diagBox.style.display = 'block';
-  } else {
-    diagBox.style.display = 'none';
-  }
-  diagContent.innerHTML = diagLines.join('<br>');
-
-  // 3. Solo pedidos para tabla y cards (con producto)
-  const pedidosDatos = datos.filter(r => r['PRODUCTO'] && r['PRODUCTO'] !== '');
-
-  // 4. Ordenar cronológicamente por HORA REGISTRO
-  const datosOrdenados    = [...pedidosDatos].sort((a,b) => String(a['HORA REGISTRO']||'').localeCompare(String(b['HORA REGISTRO']||'')));
-  const datosGPSOrdenados = [...datosGPS].sort((a,b) => String(a['HORA REGISTRO']||'').localeCompare(String(b['HORA REGISTRO']||'')));
-
-  // 4. Limpiar mapa anterior
-  mapMarkers.forEach(m => m.remove());
-  mapPolylines.forEach(p => p.remove());
-  mapMarkers = []; mapPolylines = [];
-
-  // 5. Agrupar por asesor
-  const rutasMap = {};
-  datosGPSOrdenados.forEach(r => {
-    const a = r['ASESOR / RUTA'] || 'Sin asignar';
-    if (!rutasMap[a]) rutasMap[a] = [];
-    rutasMap[a].push(r);
-  });
-
-  // 6. Añadir markers y polilíneas
-  let allBounds = [];
-  const markerRefs = {}; // para click desde tabla
-
-  Object.entries(rutasMap).forEach(([asesorKey, filas]) => {
-    const color = RUTA_COLORS[asesorKey] || '#e67e22';
-    const coords = [];
-
-    filas.forEach((r, idx) => {
-      const lat = r._lat;
-      const lng = r._lng;
-      const precision = parseCoordenada(r['PRECISIÓN GPS']) || 0;
-      const esInicio = idx === 0;
-      const num = idx + 1;
-
-      // Icono estilo "persona con número" igual al de la imagen
-      // Forma: gota/pin con ícono SVG de persona y número superpuesto
-      const pinColor   = color;
-      const borderClr  = shadeColor(color, -25);
-      const labelColor = '#fff';
-
-      const personaSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white">
-        <circle cx="12" cy="7" r="4"/>
-        <path d="M5.5 20c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5H5.5z"/>
-      </svg>`;
-
-      const iconHtml = `
-        <div style="position:relative;width:42px;height:52px;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.4))">
-          <!-- Pin shape -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="42" height="52" viewBox="0 0 42 52" style="position:absolute;top:0;left:0">
-            <path d="M21 1C10.5 1 2 9.5 2 20c0 14 19 31 19 31s19-17 19-31C40 9.5 31.5 1 21 1z"
-              fill="${pinColor}" stroke="${borderClr}" stroke-width="2"/>
-            <!-- Círculo interior blanco -->
-            <circle cx="21" cy="19" r="13" fill="rgba(255,255,255,0.18)"/>
-          </svg>
-          <!-- Ícono persona centrado -->
-          <div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);width:18px;height:18px">
-            ${personaSVG}
-          </div>
-          <!-- Número badge en esquina superior derecha -->
-          <div style="position:absolute;top:-4px;right:-4px;background:#fff;color:${pinColor};border:2px solid ${pinColor};border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;line-height:1;font-family:'DM Sans',sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.3)">
-            ${num}
-          </div>
-        </div>
-      `;
-
-      const icon = L.divIcon({ className:'', html: iconHtml, iconSize:[42,52], iconAnchor:[21,52], popupAnchor:[0,-54] });
-      const marker = L.marker([lat, lng], { icon }).addTo(leafletMap);
-
-      // Popup
-      const nombreAsesor = asesorKey.split(':')[1]?.trim() || asesorKey;
-      const prod   = r['PRODUCTO']   ? `<b>${r['PRODUCTO']}</b> × ${r['CANTIDAD']||0}` : '—';
-      const total  = r['TOTAL PEDIDO ($)'] ? `<span style="color:#0a7c6e;font-weight:700">$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}</span>` : '—';
-      const notas  = r['NOTAS'] ? `<div style="margin-top:6px;font-style:italic;color:#555;font-size:11px">📝 ${r['NOTAS']}</div>` : '';
-      const linkgps = r['LINK GPS'] ? `<a href="${r['LINK GPS']}" target="_blank" style="display:inline-block;margin-top:8px;background:#0a7c6e;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none">📍 Abrir GPS</a>` : '';
-      const precStr = precision > 0 ? `<div style="font-size:10px;color:#999;margin-top:2px">Precisión: ${precision}m${precision>50?' ⚠️':''}</div>` : '';
-
-      marker.bindPopup(`
-        <div style="font-family:'DM Sans',sans-serif;min-width:200px;max-width:240px">
-          <div style="background:${color};color:#fff;padding:8px 12px;margin:-13px -20px 10px;border-radius:4px 4px 0 0;font-size:12px;font-weight:700">${nombreAsesor} — Parada #${idx+1}</div>
-          <div style="font-size:13px;font-weight:700;color:#1a3a5c">${r['CLIENTE']||'-'}</div>
-          <div style="font-size:11px;color:#666;margin-top:2px">🕐 ${r['HORA REGISTRO']||'-'}</div>
-          ${precStr}
-          <div style="margin-top:8px;font-size:12px">${prod}</div>
-          <div style="margin-top:2px;font-size:12px">Total: ${total}</div>
-          <div style="margin-top:4px;font-size:11px;color:#888">💳 ${r['FORMA DE PAGO']||'—'}</div>
-          ${notas}
-          ${linkgps}
-        </div>
-      `, { maxWidth: 260 });
-
-      // Círculo de precisión si > 50m
-      if (precision > 50) {
-        const circle = L.circle([lat,lng], { radius: precision, color, fillColor: color, fillOpacity: 0.08, weight: 1, dashArray:'4,4' }).addTo(leafletMap);
-        mapMarkers.push(circle);
-      }
-
-      mapMarkers.push(marker);
-      coords.push([lat,lng]);
-      allBounds.push([lat,lng]);
-
-      // Guardar referencia para click desde tabla
-      const key = `${r['CLIENTE']}-${r['HORA REGISTRO']}-${asesorKey}`;
-      markerRefs[key] = marker;
+  diagBox.style.display=(datosGPS.length===0||conCoordsRaw.length===0)?'block':'none';
+  diagContent.innerHTML=diagLines.join('<br>');
+  const pedidosDatos=datos.filter(r=>r['PRODUCTO']&&r['PRODUCTO']!=='');
+  const datosOrdenados=[...pedidosDatos].sort((a,b)=>String(a['HORA REGISTRO']||'').localeCompare(String(b['HORA REGISTRO']||'')));
+  const datosGPSOrdenados=[...datosGPS].sort((a,b)=>String(a['HORA REGISTRO']||'').localeCompare(String(b['HORA REGISTRO']||'')));
+  mapMarkers.forEach(m=>m.remove()); mapPolylines.forEach(p=>p.remove()); mapMarkers=[]; mapPolylines=[];
+  const rutasMap={};
+  datosGPSOrdenados.forEach(r=>{ const a=r['ASESOR / RUTA']||'Sin asignar'; if(!rutasMap[a])rutasMap[a]=[]; rutasMap[a].push(r); });
+  let allBounds=[];
+  const markerRefs={};
+  Object.entries(rutasMap).forEach(([asesorKey,filas])=>{
+    const color=RUTA_COLORS[asesorKey]||'#e67e22';
+    const coords=[];
+    filas.forEach((r,idx)=>{
+      const lat=r._lat, lng=r._lng;
+      const precision=parseCoordenada(r['PRECISIÓN GPS'])||0;
+      const num=idx+1;
+      const borderClr=shadeColor(color,-25);
+      const personaSVG=`<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><circle cx="12" cy="7" r="4"/><path d="M5.5 20c0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5H5.5z"/></svg>`;
+      const iconHtml=`<div style="position:relative;width:42px;height:52px;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.4))"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="52" viewBox="0 0 42 52" style="position:absolute;top:0;left:0"><path d="M21 1C10.5 1 2 9.5 2 20c0 14 19 31 19 31s19-17 19-31C40 9.5 31.5 1 21 1z" fill="${color}" stroke="${borderClr}" stroke-width="2"/><circle cx="21" cy="19" r="13" fill="rgba(255,255,255,0.18)"/></svg><div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);width:18px;height:18px">${personaSVG}</div><div style="position:absolute;top:-4px;right:-4px;background:#fff;color:${color};border:2px solid ${color};border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;line-height:1;font-family:'DM Sans',sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.3)">${num}</div></div>`;
+      const icon=L.divIcon({className:'',html:iconHtml,iconSize:[42,52],iconAnchor:[21,52],popupAnchor:[0,-54]});
+      const marker=L.marker([lat,lng],{icon}).addTo(leafletMap);
+      const nombreAsesor=asesorKey.split(':')[1]?.trim()||asesorKey;
+      const prod=r['PRODUCTO']?`<b>${r['PRODUCTO']}</b> × ${r['CANTIDAD']||0}`:'—';
+      const total=r['TOTAL PEDIDO ($)']?`<span style="color:#0a7c6e;font-weight:700">$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}</span>`:'—';
+      const notas=r['NOTAS']?`<div style="margin-top:6px;font-style:italic;color:#555;font-size:11px">📝 ${r['NOTAS']}</div>`:'';
+      const linkgps=r['LINK GPS']?`<a href="${r['LINK GPS']}" target="_blank" style="display:inline-block;margin-top:8px;background:#0a7c6e;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none">📍 Abrir GPS</a>`:'';
+      const precStr=precision>0?`<div style="font-size:10px;color:#999;margin-top:2px">Precisión: ${precision}m${precision>50?' ⚠️':''}</div>`:'';
+      marker.bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:200px;max-width:240px"><div style="background:${color};color:#fff;padding:8px 12px;margin:-13px -20px 10px;border-radius:4px 4px 0 0;font-size:12px;font-weight:700">${nombreAsesor} — Parada #${idx+1}</div><div style="font-size:13px;font-weight:700;color:#1a3a5c">${r['CLIENTE']||'-'}</div><div style="font-size:11px;color:#666;margin-top:2px">🕐 ${r['HORA REGISTRO']||'-'}</div>${precStr}<div style="margin-top:8px;font-size:12px">${prod}</div><div style="margin-top:2px;font-size:12px">Total: ${total}</div><div style="margin-top:4px;font-size:11px;color:#888">💳 ${r['FORMA DE PAGO']||'—'}</div>${notas}${linkgps}</div>`,{maxWidth:260});
+      if(precision>50){ const circle=L.circle([lat,lng],{radius:precision,color,fillColor:color,fillOpacity:0.08,weight:1,dashArray:'4,4'}).addTo(leafletMap); mapMarkers.push(circle); }
+      mapMarkers.push(marker); coords.push([lat,lng]); allBounds.push([lat,lng]);
+      const key=`${r['CLIENTE']}-${r['HORA REGISTRO']}-${asesorKey}`;
+      markerRefs[key]=marker;
     });
-
-    // Polilínea de ruta — azul sólida gruesa igual al ejemplo de la imagen
-    if (coords.length > 1) {
-      const poly = L.polyline(coords, {
-        color: '#1a6fd4',
-        weight: 3.5,
-        opacity: 0.88,
-        lineJoin: 'round',
-        lineCap: 'round'
-      }).addTo(leafletMap);
-      mapPolylines.push(poly);
-    }
+    if(coords.length>1){ const poly=L.polyline(coords,{color:'#1a6fd4',weight:3.5,opacity:0.88,lineJoin:'round',lineCap:'round'}).addTo(leafletMap); mapPolylines.push(poly); }
   });
-
-  // 7. Ajustar bounds
-  if (allBounds.length > 0) {
-    leafletMap.fitBounds(allBounds, { padding: [40,40] });
-  }
-
-  // 8. Leyenda
+  if(allBounds.length>0) leafletMap.fitBounds(allBounds,{padding:[40,40]});
   renderMapLegend(Object.keys(rutasMap));
-
-  // 9. Cards resumen asesores
-  renderAsesorCards(datosOrdenados, datosGPSOrdenados);
-
-  // 10. Tabla detalle
-  renderRutaTabla(datosOrdenados, markerRefs);
+  renderAsesorCards(datosOrdenados,datosGPSOrdenados);
+  renderRutaTabla(datosOrdenados,markerRefs);
 }
 
-/* ════════════════════════════════════════
-   LEYENDA MAPA
-════════════════════════════════════════ */
 function renderMapLegend(asesores) {
-  const el = document.getElementById('mapLegend');
-  if (!asesores.length) { el.innerHTML = '<span style="font-size:11px;color:var(--muted)">Sin datos GPS</span>'; return; }
-  el.innerHTML = asesores.map(a => {
-    const color = RUTA_COLORS[a] || '#555';
-    const nombre = a.split(':')[1]?.trim() || a;
-    return `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>${nombre}</div>`;
-  }).join('');
+  const el=document.getElementById('mapLegend');
+  if(!asesores.length){ el.innerHTML='<span style="font-size:11px;color:var(--muted)">Sin datos GPS</span>'; return; }
+  el.innerHTML=asesores.map(a=>{ const color=RUTA_COLORS[a]||'#555'; const nombre=a.split(':')[1]?.trim()||a; return `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>${nombre}</div>`; }).join('');
 }
 
-/* ════════════════════════════════════════
-   CENTRAR MAPA
-════════════════════════════════════════ */
 function centrarMapa() {
-  if (!leafletMap) return;
-  const fecha  = document.getElementById('rutasFecha').value;
-  const asesor = document.getElementById('rutasAsesor').value;
-  let datos = todosLosDatos;
-  if (fecha)  datos = datos.filter(r => String(r['FECHA']||'').startsWith(fecha));
-  if (asesor) datos = datos.filter(r => (r['ASESOR / RUTA']||'') === asesor);
-  const sampleKeys = datos.length > 0 ? Object.keys(datos[0]) : [];
-  const latKey = sampleKeys.find(k => /latitud/i.test(k)) || 'LATITUD';
-  const lngKey = sampleKeys.find(k => /longitud/i.test(k)) || 'LONGITUD';
-  const bounds = datos
-    .map(r => [parseCoordenada(r[latKey]), parseCoordenada(r[lngKey])])
-    .filter(([lat,lng]) => coordValida(lat, lng));
-  if (bounds.length) leafletMap.fitBounds(bounds, { padding:[40,40] });
-  else leafletMap.setView([-2.134, -79.587], 13);
+  if(!leafletMap) return;
+  const fecha=document.getElementById('rutasFecha').value, asesor=document.getElementById('rutasAsesor').value;
+  let datos=todosLosDatos;
+  if(fecha) datos=datos.filter(r=>String(r['FECHA']||'').startsWith(fecha));
+  if(asesor) datos=datos.filter(r=>(r['ASESOR / RUTA']||'')===asesor);
+  const sampleKeys=datos.length>0?Object.keys(datos[0]):[];
+  const latKey=sampleKeys.find(k=>/latitud/i.test(k))||'LATITUD';
+  const lngKey=sampleKeys.find(k=>/longitud/i.test(k))||'LONGITUD';
+  const bounds=datos.map(r=>[parseCoordenada(r[latKey]),parseCoordenada(r[lngKey])]).filter(([lat,lng])=>coordValida(lat,lng));
+  if(bounds.length) leafletMap.fitBounds(bounds,{padding:[40,40]});
+  else leafletMap.setView([-2.134,-79.587],13);
 }
 
-/* ════════════════════════════════════════
-   CARDS RESUMEN ASESOR
-════════════════════════════════════════ */
-function haversineKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2-lat1)*Math.PI/180;
-  const dLon = (lon2-lon1)*Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversineKm(lat1,lon1,lat2,lon2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-function renderAsesorCards(datosAll, datosGPS) {
-  const grid = document.getElementById('asesorCardsGrid');
-  // Agrupar todos por asesor
-  const asesorMap = {};
-  datosAll.forEach(r => {
-    const a = r['ASESOR / RUTA'] || 'Sin asignar';
-    if (!asesorMap[a]) asesorMap[a] = { filas:[], gps:[] };
-    asesorMap[a].filas.push(r);
-  });
-  datosGPS.forEach(r => {
-    const a = r['ASESOR / RUTA'] || 'Sin asignar';
-    if (!asesorMap[a]) asesorMap[a] = { filas:[], gps:[] };
-    asesorMap[a].gps.push(r);
-  });
-
-  if (!Object.keys(asesorMap).length) {
-    grid.innerHTML = '<div class="loading"><span style="color:var(--muted)">📭 Sin datos para el filtro seleccionado</span></div>';
-    return;
-  }
-
-  grid.innerHTML = Object.entries(asesorMap).map(([asesorKey, data]) => {
-    const color  = RUTA_COLORS[asesorKey] || '#555';
-    const nombre = asesorKey.split(':')[1]?.trim() || asesorKey;
-    const filas  = data.filas;
-    const gps    = data.gps;
-
-    // Clientes únicos
-    const clientes = new Set(filas.map(r=>`${r['CLIENTE']}-${r['FECHA']}`)).size;
-    // Total vendido
-    const total = filas.filter(r=>r['TOTAL PEDIDO ($)']&&parseFloat(r['TOTAL PEDIDO ($)'])>0).reduce((s,r)=>s+(parseFloat(r['TOTAL PEDIDO ($)'])||0),0);
-    // Horas
-    const horas = filas.map(r=>r['HORA REGISTRO']).filter(Boolean).sort();
-    const primerHora = horas[0] || '—';
-    const ultimaHora = horas[horas.length-1] || '—';
-    // Distancia
-    let km = 0;
-    for (let i=1; i<gps.length; i++) {
-      const lat1=gps[i-1]._lat, lon1=gps[i-1]._lng;
-      const lat2=gps[i]._lat,   lon2=gps[i]._lng;
-      if (!isNaN(lat1)&&!isNaN(lon1)&&!isNaN(lat2)&&!isNaN(lon2)) km += haversineKm(lat1,lon1,lat2,lon2);
-    }
-
-    return `
-      <div class="asesor-card" style="border-left-color:${color};animation-delay:${Object.keys(asesorMap).indexOf(asesorKey)*0.05}s">
-        <div class="asesor-card-header">
-          <div class="asesor-dot" style="background:${color}"></div>
-          <div class="asesor-nombre" style="color:${color}">${nombre}</div>
-        </div>
-        <div class="asesor-stats">
-          <div class="asesor-stat">
-            <div class="asesor-stat-label">Clientes</div>
-            <div class="asesor-stat-value" style="color:${color}">${clientes}</div>
-          </div>
-          <div class="asesor-stat">
-            <div class="asesor-stat-label">Total vendido</div>
-            <div class="asesor-stat-value" style="color:${color};font-size:1rem">$${total.toFixed(2)}</div>
-          </div>
-        </div>
-        <div class="asesor-horario">
-          <div>
-            <div class="asesor-horario-label">Primer pedido</div>
-            <div class="asesor-horario-value">🕐 ${primerHora}</div>
-          </div>
-          <div style="text-align:right">
-            <div class="asesor-horario-label">Último pedido</div>
-            <div class="asesor-horario-value">🕐 ${ultimaHora}</div>
-          </div>
-        </div>
-        <div class="asesor-km">
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 0 1 5 5c0 3.5-5 9-5 9S3 9.5 3 6a5 5 0 0 1 5-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
-          ${km > 0 ? km.toFixed(1)+' km recorridos' : 'Sin ruta GPS trazada'}
-        </div>
+function renderAsesorCards(datosAll,datosGPS) {
+  const grid=document.getElementById('asesorCardsGrid');
+  const asesorMap={};
+  datosAll.forEach(r=>{ const a=r['ASESOR / RUTA']||'Sin asignar'; if(!asesorMap[a])asesorMap[a]={filas:[],gps:[]}; asesorMap[a].filas.push(r); });
+  datosGPS.forEach(r=>{ const a=r['ASESOR / RUTA']||'Sin asignar'; if(!asesorMap[a])asesorMap[a]={filas:[],gps:[]}; asesorMap[a].gps.push(r); });
+  if(!Object.keys(asesorMap).length){ grid.innerHTML='<div class="loading"><span style="color:var(--muted)">📭 Sin datos para el filtro seleccionado</span></div>'; return; }
+  grid.innerHTML=Object.entries(asesorMap).map(([asesorKey,data])=>{
+    const color=RUTA_COLORS[asesorKey]||'#555', nombre=asesorKey.split(':')[1]?.trim()||asesorKey;
+    const filas=data.filas, gps=data.gps;
+    const clientes=new Set(filas.map(r=>`${r['CLIENTE']}-${r['FECHA']}`)).size;
+    const total=filas.filter(r=>r['TOTAL PEDIDO ($)']&&parseFloat(r['TOTAL PEDIDO ($)'])>0).reduce((s,r)=>s+(parseFloat(r['TOTAL PEDIDO ($)'])||0),0);
+    const horas=filas.map(r=>r['HORA REGISTRO']).filter(Boolean).sort();
+    const primerHora=horas[0]||'—', ultimaHora=horas[horas.length-1]||'—';
+    let km=0;
+    for(let i=1;i<gps.length;i++){ const lat1=gps[i-1]._lat,lon1=gps[i-1]._lng,lat2=gps[i]._lat,lon2=gps[i]._lng; if(!isNaN(lat1)&&!isNaN(lon1)&&!isNaN(lat2)&&!isNaN(lon2))km+=haversineKm(lat1,lon1,lat2,lon2); }
+    return `<div class="asesor-card" style="border-left-color:${color};animation-delay:${Object.keys(asesorMap).indexOf(asesorKey)*0.05}s">
+      <div class="asesor-card-header"><div class="asesor-dot" style="background:${color}"></div><div class="asesor-nombre" style="color:${color}">${nombre}</div></div>
+      <div class="asesor-stats">
+        <div class="asesor-stat"><div class="asesor-stat-label">Clientes</div><div class="asesor-stat-value" style="color:${color}">${clientes}</div></div>
+        <div class="asesor-stat"><div class="asesor-stat-label">Total vendido</div><div class="asesor-stat-value" style="color:${color};font-size:1rem">$${total.toFixed(2)}</div></div>
       </div>
-    `;
+      <div class="asesor-horario">
+        <div><div class="asesor-horario-label">Primer pedido</div><div class="asesor-horario-value">🕐 ${primerHora}</div></div>
+        <div style="text-align:right"><div class="asesor-horario-label">Último pedido</div><div class="asesor-horario-value">🕐 ${ultimaHora}</div></div>
+      </div>
+      <div class="asesor-km"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 0 1 5 5c0 3.5-5 9-5 9S3 9.5 3 6a5 5 0 0 1 5-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.5"/></svg>${km>0?km.toFixed(1)+' km recorridos':'Sin ruta GPS trazada'}</div>
+    </div>`;
   }).join('');
 }
 
-/* ════════════════════════════════════════
-   TABLA DETALLE RUTA
-════════════════════════════════════════ */
-function renderRutaTabla(datos, markerRefs) {
-  const card  = document.getElementById('rutaDetailCard');
-  const tbody = document.getElementById('tablaRutaDetalle');
-  const badge = document.getElementById('rutaCountBadge');
-  const note  = document.getElementById('rutaTableNote');
-
-  if (!datos.length) {
-    card.style.display = 'block';
-    tbody.innerHTML = '<tr><td colspan="11"><div class="empty-state"><div class="icon">🗺️</div>Sin registros para este filtro</div></td></tr>';
-    badge.textContent = '0 registros';
-    note.textContent = '';
-    return;
-  }
-
-  const mostrar = datos.slice(0, 200);
-  card.style.display = 'block';
-  badge.textContent = mostrar.length + ' registro' + (mostrar.length!==1?'s':'');
-  note.textContent = datos.length > 200 ? `Mostrando 200 de ${datos.length} registros totales.` : '';
-
-  tbody.innerHTML = mostrar.map((r, idx) => {
-    const asesorKey = r['ASESOR / RUTA'] || '';
-    const color   = RUTA_COLORS[asesorKey] || '#ccc';
-    const nombre  = asesorKey.split(':')[1]?.trim() || asesorKey || '-';
-    const total   = r['TOTAL PEDIDO ($)'] ? `<strong style="color:var(--teal)">$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}</strong>` : '<span style="color:var(--muted)">—</span>';
-    const pago    = r['FORMA DE PAGO'] ? `<span class="badge badge-teal">${r['FORMA DE PAGO']}</span>` : '';
-    const notas   = r['NOTAS'] ? `<span style="font-size:11px;color:var(--muted);font-style:italic" title="${r['NOTAS']}">${r['NOTAS'].substring(0,30)}${r['NOTAS'].length>30?'…':''}</span>` : '<span style="color:var(--muted);font-size:11px">—</span>';
-    const gps     = r['LINK GPS'] ? `<a class="btn-gps-small" href="${r['LINK GPS']}" target="_blank" onclick="event.stopPropagation()">📍 Ver</a>` : '<span style="color:var(--muted);font-size:11px">—</span>';
-    const hasGPS  = !isNaN(parseFloat(r['LATITUD'])) && !isNaN(parseFloat(r['LONGITUD']));
-    const key     = `${r['CLIENTE']}-${r['HORA REGISTRO']}-${asesorKey}`;
-
-    const rowClick = hasGPS ? `onclick="flyToMarker('${key.replace(/'/g,"\\'")}',${parseFloat(r['LATITUD'])},${parseFloat(r['LONGITUD'])})"` : '';
-    const rowClass = hasGPS ? 'clickable-row' : '';
-    const rowTitle = hasGPS ? 'title="Click para ver en el mapa"' : '';
-
-    return `<tr class="${rowClass}" id="rrow-${idx}" ${rowClick} ${rowTitle}>
+function renderRutaTabla(datos,markerRefs) {
+  const card=document.getElementById('rutaDetailCard'),tbody=document.getElementById('tablaRutaDetalle'),badge=document.getElementById('rutaCountBadge'),note=document.getElementById('rutaTableNote');
+  if(!datos.length){ card.style.display='block'; tbody.innerHTML='<tr><td colspan="11"><div class="empty-state"><div class="icon">🗺️</div>Sin registros para este filtro</div></td></tr>'; badge.textContent='0 registros'; note.textContent=''; return; }
+  const mostrar=datos.slice(0,200);
+  card.style.display='block'; badge.textContent=mostrar.length+' registro'+(mostrar.length!==1?'s':'');
+  note.textContent=datos.length>200?`Mostrando 200 de ${datos.length} registros totales.`:'';
+  tbody.innerHTML=mostrar.map((r,idx)=>{
+    const asesorKey=r['ASESOR / RUTA']||'', color=RUTA_COLORS[asesorKey]||'#ccc', nombre=asesorKey.split(':')[1]?.trim()||asesorKey||'-';
+    const total=r['TOTAL PEDIDO ($)']?`<strong style="color:var(--teal)">$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}</strong>`:'<span style="color:var(--muted)">—</span>';
+    const pago=r['FORMA DE PAGO']?`<span class="badge badge-teal">${r['FORMA DE PAGO']}</span>`:'';
+    const notas=r['NOTAS']?`<span style="font-size:11px;color:var(--muted);font-style:italic" title="${r['NOTAS']}">${r['NOTAS'].substring(0,30)}${r['NOTAS'].length>30?'…':''}</span>`:'<span style="color:var(--muted);font-size:11px">—</span>';
+    const gps=r['LINK GPS']?`<a class="btn-gps-small" href="${r['LINK GPS']}" target="_blank" onclick="event.stopPropagation()">📍 Ver</a>`:'<span style="color:var(--muted);font-size:11px">—</span>';
+    const hasGPS=!isNaN(parseFloat(r['LATITUD']))&&!isNaN(parseFloat(r['LONGITUD']));
+    const rowClick=hasGPS?`onclick="flyToMarker('${(r['CLIENTE']+'-'+r['HORA REGISTRO']+'-'+asesorKey).replace(/'/g,"\\'")}',${parseFloat(r['LATITUD'])},${parseFloat(r['LONGITUD'])})"`:'';
+    const rowClass=hasGPS?'clickable-row':'';
+    return `<tr class="${rowClass}" id="rrow-${idx}" ${rowClick} ${hasGPS?'title="Click para ver en el mapa"':''}>
       <td style="text-align:center;font-size:11px;color:var(--muted);font-weight:700">${idx+1}</td>
       <td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span><span style="font-size:11px;font-weight:700;color:${color}">${nombre}</span></span></td>
       <td style="font-size:12px;font-weight:700;white-space:nowrap">${r['HORA REGISTRO']||'-'}</td>
@@ -1590,56 +1158,35 @@ function renderRutaTabla(datos, markerRefs) {
   }).join('');
 }
 
-/* Volar al marcador en el mapa */
-function flyToMarker(key, lat, lng) {
-  if (!leafletMap) return;
-  // Resaltar fila
-  document.querySelectorAll('#tablaRutaDetalle tr').forEach(tr => tr.classList.remove('highlight-row'));
-  // Volar
-  leafletMap.flyTo([lat,lng], 17, { duration: 1 });
-  // Buscar y abrir popup del marcador correspondiente
-  setTimeout(() => {
-    mapMarkers.forEach(m => {
-      if (m.getLatLng) {
-        const ml = m.getLatLng();
-        if (Math.abs(ml.lat - lat) < 0.0001 && Math.abs(ml.lng - lng) < 0.0001) {
-          if (m.openPopup) m.openPopup();
-        }
-      }
-    });
-    // Scroll al mapa
-    document.getElementById('leafletMap').scrollIntoView({ behavior:'smooth', block:'center' });
-  }, 900);
+function flyToMarker(key,lat,lng) {
+  if(!leafletMap) return;
+  document.querySelectorAll('#tablaRutaDetalle tr').forEach(tr=>tr.classList.remove('highlight-row'));
+  leafletMap.flyTo([lat,lng],17,{duration:1});
+  setTimeout(()=>{
+    mapMarkers.forEach(m=>{ if(m.getLatLng){ const ml=m.getLatLng(); if(Math.abs(ml.lat-lat)<0.0001&&Math.abs(ml.lng-lng)<0.0001&&m.openPopup)m.openPopup(); } });
+    document.getElementById('leafletMap').scrollIntoView({behavior:'smooth',block:'center'});
+  },900);
 }
 
-/* ════════════════════════════════════════
-   HELPER — LIMPIAR FECHA
-════════════════════════════════════════ */
 function limpiarFecha(fecha) {
-  if (!fecha) return '-';
-  const f = String(fecha);
-  if (f.includes('T')) return f.split('T')[0];
+  if(!fecha) return '-';
+  const f=String(fecha);
+  if(f.includes('T')) return f.split('T')[0];
   return f;
 }
 
-/* ════════════════════════════════════════
-   EXPORTAR CSV
-════════════════════════════════════════ */
 function exportarExcel() {
-  const datos = datosNotasFiltrados.length > 0 ? datosNotasFiltrados : todosLosDatos.filter(r => r['PRODUCTO'] && r['PRODUCTO'] !== '');
-  if (!datos.length) { alert('No hay datos para exportar. Aplica los filtros primero.'); return; }
-  const headers = ['ASESOR / RUTA','CLIENTE','PRODUCTO','PRECIO UNIT.','CANTIDAD','SUBTOTAL','TOTAL PEDIDO ($)','FORMA DE PAGO','FECHA','TELÉFONO','DIRECCIÓN'];
-  const filas = datos.map(r => headers.map(h => {
-    const str = String(r[h]!==undefined?r[h]:'').replace(/"/g,'""');
-    return str.includes(',')||str.includes('"')||str.includes('\n') ? `"${str}"` : str;
-  }).join(','));
-  const csv  = '\uFEFF' + headers.join(',') + '\n' + filas.join('\n');
-  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const fecha  = document.getElementById('notasFecha').value || new Date().toISOString().split('T')[0];
-  const asesor = document.getElementById('notasAsesor').value.split(':')[1]?.trim() || 'Todos';
-  a.href = url; a.download = `NotasVentas_${fecha}_${asesor}.csv`; a.click();
+  const datos=datosNotasFiltrados.length>0?datosNotasFiltrados:todosLosDatos.filter(r=>r['PRODUCTO']&&r['PRODUCTO']!=='');
+  if(!datos.length){ alert('No hay datos para exportar. Aplica los filtros primero.'); return; }
+  const headers=['ASESOR / RUTA','CLIENTE','PRODUCTO','PRECIO UNIT.','CANTIDAD','SUBTOTAL','TOTAL PEDIDO ($)','FORMA DE PAGO','FECHA','TELÉFONO','DIRECCIÓN'];
+  const filas=datos.map(r=>headers.map(h=>{ const str=String(r[h]!==undefined?r[h]:'').replace(/"/g,'""'); return str.includes(',')||str.includes('"')||str.includes('\n')?`"${str}"`:str; }).join(','));
+  const csv='\uFEFF'+headers.join(',')+'\n'+filas.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const fecha=document.getElementById('notasFecha').value||new Date().toISOString().split('T')[0];
+  const asesor=document.getElementById('notasAsesor').value.split(':')[1]?.trim()||'Todos';
+  a.href=url; a.download=`NotasVentas_${fecha}_${asesor}.csv`; a.click();
   URL.revokeObjectURL(url);
 }
 </script>
