@@ -39,7 +39,7 @@
                frame-ancestors 'none';">
 
 <!-- [SEC-10] Clickjacking protection -->
-<meta http-equiv="X-Frame-Options" content="DENY">
+<!-- X-Frame-Options se configura en el servidor web -->
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 
@@ -905,9 +905,7 @@ body { padding: 1rem 0.75rem 3rem; }
   <div class="footer"><a href="https://www.elhyai.com" target="_blank" rel="noopener noreferrer">www.elhyai.com &nbsp;|&nbsp; Aqua Luan</a></div>
 </div><!-- /container -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        integrity="sha512-2TiDTBjkq5xSBXlbZMV2bLuD4mFGLWpbRBbpVlhMrPxFBgP5HScSL0bHkMMz5NWuHMUoMkrjvAQjKHcL3N3w=="
-        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1067,12 +1065,7 @@ let listaGastos    = [];
 /* ── CONFIGURACIÓN — Solo cambiar SCRIPT_URL ──────────────────────────── */
 // SCRIPT_URL y WHATSAPP_ZOILA ya definidas arriba en configuración
 
-/* ── Token CSRF por sesión de navegador ──────────────────────────────── */
-const SESSION_TOKEN = (() => {
-  const arr = new Uint8Array(32);
-  crypto.getRandomValues(arr);
-  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
-})();
+/* SESSION_TOKEN ya declarado arriba — no duplicar */
 
 /* ── Parámetros de login ─────────────────────────────────────────────── */
 const MAX_INTENTOS_LOCAL = 5;          // Rate limit local adicional
