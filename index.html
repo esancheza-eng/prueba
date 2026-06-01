@@ -5,10 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗
-  ║  AQUA LUAN — Sistema de Pedidos v3.2 Enterprise                     ║
-  ║  Login → Google Apps Script (hoja USUARIOS)                         ║
-  ║  Panel Admin → crear/editar/desactivar usuarios en Sheets           ║
-  ║  [v3.2] Auth 100% servidor, panel admin conectado a Drive           ║
+  ║  AQUA LUAN — Sistema de Pedidos v3.0 Enterprise                     ║
+  ║  [FIX] servidorConfigurado() → false                                ║
+  ║        Login usa AUTH_REGISTRY local (SHA-256) siempre              ║
   ╚══════════════════════════════════════════════════════════════════════╝
 -->
 <title>Aqua Luan v3.0 — Sistema de Pedidos Empresarial</title>
@@ -467,70 +466,6 @@ body { padding: 1rem 0.75rem 3rem; }
 .formas-pago-label { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .btn-wa-resumen { width: 100%; padding: 13px; background: #25D366; color: #fff; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
 .btn-wa-resumen:hover { background: #1da851; }
-
-/* ── PANEL ADMIN USUARIOS ── */
-.btn-admin-usuarios {
-  height: 30px; padding: 0 12px; background: rgba(109,40,217,0.2);
-  color: rgba(255,255,255,0.85); border: 1px solid rgba(109,40,217,0.5);
-  border-radius: 100px; font-family: 'DM Sans', sans-serif;
-  font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
-  display: none; align-items: center; gap: 5px;
-  transition: background 0.2s; letter-spacing: 0.03em;
-}
-.btn-admin-usuarios:hover { background: rgba(109,40,217,0.4); }
-.btn-admin-usuarios.visible { display: flex; }
-.admin-modal-overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(10,30,60,0.8); z-index: 300;
-  align-items: flex-end; justify-content: center; padding: 0;
-}
-.admin-modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
-.admin-modal {
-  background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 1.5rem; width: 100%; max-width: 640px;
-  max-height: 92vh; overflow-y: auto; animation: slideUp 0.3s ease;
-}
-.admin-modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 1.25rem; }
-.admin-modal-title { font-family: 'DM Serif Display', serif; font-size: clamp(1.1rem,4vw,1.35rem); color: var(--navy); margin-bottom: 0.25rem; }
-.admin-modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 1.25rem; }
-.usuarios-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 1.25rem; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); }
-.usuarios-table thead tr { background: var(--navy); }
-.usuarios-table th { padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
-.usuarios-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text); font-weight: 500; vertical-align: middle; }
-.usuarios-table tr:last-child td { border-bottom: none; }
-.usuarios-table tr:nth-child(even) td { background: var(--surface2); }
-.usuarios-table tr.admin-row td { background: rgba(109,40,217,0.06); }
-.badge-admin { background: rgba(109,40,217,0.12); color: #6d28d9; font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; }
-.badge-op { background: var(--teal-light); color: var(--teal-dark); font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; }
-.btn-usr-edit { height: 28px; padding: 0 10px; background: var(--blue-light); color: var(--blue); border: 1px solid #90caf9; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
-.btn-usr-edit:hover { background: #bbdefb; }
-.btn-usr-del { height: 28px; padding: 0 10px; background: var(--red-light); color: var(--red); border: 1px solid #e57373; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
-.btn-usr-del:hover { background: #ffcdd2; }
-.admin-form-section { background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
-.admin-form-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6d28d9; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
-.admin-form-title::after { content:''; flex:1; height:1.5px; background: rgba(109,40,217,0.15); }
-.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.admin-field { display: flex; flex-direction: column; gap: 5px; }
-.admin-field label { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--navy); }
-.admin-field input, .admin-field select { background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 10px 13px; outline: none; width: 100%; -webkit-appearance: none; }
-.admin-field input:focus, .admin-field select:focus { border-color: #6d28d9; box-shadow: 0 0 0 3px rgba(109,40,217,0.1); }
-.admin-field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236d28d9' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer; }
-.btn-admin-guardar { width: 100%; padding: 13px; background: #6d28d9; color: #fff; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
-.btn-admin-guardar:hover { background: #5b21b6; }
-.btn-admin-cerrar { width: 100%; padding: 13px; background: var(--navy); color: #fff; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; margin-top: 10px; padding-bottom: calc(13px + env(safe-area-inset-bottom, 0px)); }
-.btn-admin-cerrar:hover { background: #0f2a45; }
-.admin-status { margin-top: 10px; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 600; display: none; }
-.admin-status.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success-text); }
-.admin-status.error { display: block; background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
-@media (max-width: 480px) {
-  .admin-grid { grid-template-columns: 1fr; }
-  .admin-modal-overlay { align-items: flex-end; }
-}
-@media (min-width: 768px) {
-  .admin-modal-overlay { align-items: center; padding: 1rem; }
-  .admin-modal { border-radius: var(--radius-lg); max-height: 88vh; }
-  .admin-modal-handle { display: none; }
-}
 </style>
 </head>
 <body>
@@ -624,10 +559,6 @@ body { padding: 1rem 0.75rem 3rem; }
       </div>
     </div>
     <div class="date-badge" id="fechaHoy"></div>
-    <button class="btn-admin-usuarios" id="btnAdminUsuarios" onclick="abrirAdminUsuarios()">
-      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M1 13c0-2.76 2.24-5 5-5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M11 9v4M9 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Usuarios
-    </button>
     <button class="btn-logout" id="btnLogout" onclick="cerrarSesion()" style="display:none">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Salir
@@ -668,7 +599,6 @@ body { padding: 1rem 0.75rem 3rem; }
               <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
               <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
               <option value="RUTA 5: Lister">RUTA 5: Lister</option>
-              <option value="Asesor de Ruta">Asesor de Ruta</option>
             </select>
           </div>
         </div>
@@ -797,7 +727,7 @@ body { padding: 1rem 0.75rem 3rem; }
     <div class="card">
       <div class="section-title blue">Registrar pago recibido</div>
       <div class="grid-2">
-        <div class="field"><label>Asesor / Ruta</label><div id="wrap-pago-empleado"><select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="Asesor de Ruta">Asesor de Ruta</option></select></div></div>
+        <div class="field"><label>Asesor / Ruta</label><div id="wrap-pago-empleado"><select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select></div></div>
         <div class="field"><label for="pago-fecha">Fecha</label><input type="date" id="pago-fecha" class="focus-blue"></div>
       </div>
       <div class="field"><label for="pago-cliente">Cliente</label><input type="text" id="pago-cliente" placeholder="Nombre del cliente" autocomplete="off" class="focus-blue" maxlength="100"></div>
@@ -827,7 +757,7 @@ body { padding: 1rem 0.75rem 3rem; }
     <div class="card">
       <div class="section-title red">Registrar gasto</div>
       <div class="grid-2">
-        <div class="field"><label>Responsable</label><div id="wrap-gasto-empleado"><select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="Asesor de Ruta">Asesor de Ruta</option><option value="Administración">Administración</option></select></div></div>
+        <div class="field"><label>Responsable</label><div id="wrap-gasto-empleado"><select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="Administración">Administración</option></select></div></div>
         <div class="field"><label for="gasto-fecha">Fecha</label><input type="date" id="gasto-fecha" class="focus-red"></div>
       </div>
       <datalist id="gasto-categorias-list"><option value="Combustible"><option value="Almuerzos"><option value="Ascensor"><option value="Triciclo"><option value="Otro"></datalist>
@@ -863,9 +793,8 @@ body { padding: 1rem 0.75rem 3rem; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════════════════
-   AQUA LUAN v3.2 — JavaScript
-   Login 100% vía Google Apps Script → hoja USUARIOS en Drive
-   Panel Admin conectado: crear / editar / desactivar usuarios en Sheets
+   AQUA LUAN v3.0 — JavaScript
+   [FIX] servidorConfigurado() → false  →  login usa AUTH_REGISTRY local
    ══════════════════════════════════════════════════════════════════════════ */
 
 const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
@@ -885,23 +814,12 @@ function escHTML(str) {
     .replace(/"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\//g,'&#x2F;');
 }
 
-const LISTAS_BLANCAS_STATIC = {
+const LISTAS_BLANCAS = {
+  empleado: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister'],
+  empleadoGasto: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','Administración'],
   formapago: ['Contado','Crédito','Transferencia','Cheque'],
   pagoForma: ['Efectivo','Transferencia','Cheque'],
   productos: ['BOTELLON 20LT','BOTELLON CON LLAVE','PACA 625ML AZUL','PACA 600ML VERDE','PACA 1000ML','PACA 400ML','GALONES 4LT','POMA 5LTS','ENVASE CON LLAVE','ENVASE AZUL ADICIONAL']
-};
-// Devuelve rutas de operadores desde caché del servidor (o fallback local)
-function getLBEmpleado(){
-  if(_usuariosCache.length>0) return _usuariosCache.filter(u=>u.rol!=='ADMIN'&&u.activo!==false).map(u=>u.ruta).filter(Boolean);
-  return ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','Asesor de Ruta'];
-}
-function getLBEmpleadoGasto(){ return [...getLBEmpleado(),'Administración']; }
-const LISTAS_BLANCAS = {
-  get empleado(){ return getLBEmpleado(); },
-  get empleadoGasto(){ return getLBEmpleadoGasto(); },
-  formapago: LISTAS_BLANCAS_STATIC.formapago,
-  pagoForma: LISTAS_BLANCAS_STATIC.pagoForma,
-  productos: LISTAS_BLANCAS_STATIC.productos
 };
 function esValorSeguro(v,l){ return l.includes(String(v).trim()); }
 function sanitizarTexto(s,m=255){ if(!s)return''; return String(s).trim().slice(0,m); }
@@ -937,13 +855,23 @@ function verificarIntentosLocal(){
 function incrementarIntentoLocal(){ let est; try{est=JSON.parse(sessionStorage.getItem('_al_att')||'{"c":0,"t":0}');}catch{est={c:0,t:Date.now()};} est.c+=1; if(!est.t)est.t=Date.now(); sessionStorage.setItem('_al_att',JSON.stringify(est)); }
 function resetearIntentosLocal(){ sessionStorage.removeItem('_al_att'); }
 
-/* ════════════════════════════════════════════════════════════
-   AUTENTICACIÓN — 100% vía Google Apps Script (hoja USUARIOS)
-   El hash SHA-256 se genera en el navegador y se valida en el servidor.
-   ════════════════════════════════════════════════════════════ */
+const AUTH_REGISTRY = Object.freeze({
+  'admin':     { h: '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055', nombre: 'Admin',     rol: 'ADMIN',    ruta: null,                esAdmin: true  },
+  'jefferson': { h: '4bfc5062667279d31eefd696f24a2f28e5fa203f7c683e4aefa5483947449770', nombre: 'Jefferson', rol: 'OPERADOR', ruta: 'RUTA 1: Jefferson', esAdmin: false },
+  'luis':      { h: '5893cd3c3f2b3903c3214bcabcdfa9aee03a3ec0931a4876204046f244cad892', nombre: 'Luis',      rol: 'OPERADOR', ruta: 'RUTA 2: Luis',      esAdmin: false },
+  'vicente':   { h: 'f66986a120970c2ab68459132797c4c269b609ea16761f56cdafbae04290f630', nombre: 'Vicente',   rol: 'OPERADOR', ruta: 'RUTA 3: Vicente',    esAdmin: false },
+  'wilson':    { h: 'b2ec2618e167952138ce705b6e65a7d138aef40a39fd54333e3bf68fe0b01f99', nombre: 'Wilson',    rol: 'OPERADOR', ruta: 'RUTA 4: Wilson',     esAdmin: false },
+  'lister':    { h: 'df5fece5d1a837bc2d97f79beecae74a2b58f4a5418f07e11a290ea96f14ac06', nombre: 'Lister',    rol: 'OPERADOR', ruta: 'RUTA 5: Lister',     esAdmin: false }
+});
 
-// Caché de usuarios para LISTAS_BLANCAS (se llena al cargar usuarios desde server)
-let _usuariosCache = [];
+/* ════════════════════════════════════════════════════════════
+   [FIX] — SIEMPRE modo local — AUTH_REGISTRY
+   El Apps Script se sigue usando SOLO para guardar pedidos/pagos/gastos.
+   El login NO va al servidor.
+   ════════════════════════════════════════════════════════════ */
+function servidorConfigurado() {
+  return false; // [FIX] Usar AUTH_REGISTRY local siempre
+}
 
 function comparacionSegura(a,b){
   if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;
@@ -951,63 +879,43 @@ function comparacionSegura(a,b){
   return diff===0;
 }
 
+async function authLocalLogin(usuario,passHash){
+  const inicio=Date.now();
+  const registro=AUTH_REGISTRY[usuario]||null;
+  let ok=false;
+  if(registro){ ok=comparacionSegura(passHash,registro.h); }
+  else{ await hashSHA256('__dummy__'); }
+  const elapsed=Date.now()-inicio;
+  if(elapsed<80) await new Promise(r=>setTimeout(r,80-elapsed));
+  if(!ok) return{ok:false};
+  return{ ok:true, token:'LOCAL_'+SESSION_TOKEN.slice(0,16), nombre:registro.nombre, rol:registro.rol, ruta:registro.ruta, esAdmin:registro.esAdmin, expira:Date.now()+8*60*60*1000, modoLocal:true };
+}
+
 async function doLogin(){
   const chk=verificarIntentosLocal();
-  if(!chk.ok){
-    document.getElementById('loginError').classList.remove('show');
-    const b=document.getElementById('loginBloqueo'); b.textContent=chk.msg; b.classList.add('show'); return;
-  }
+  if(!chk.ok){ document.getElementById('loginError').classList.remove('show'); const b=document.getElementById('loginBloqueo'); b.textContent=chk.msg; b.classList.add('show'); return; }
   const userRaw=document.getElementById('loginUser').value.trim().toLowerCase();
   const passRaw=document.getElementById('loginPass').value;
   const btnLogin=document.getElementById('btnLogin');
   if(!userRaw||!passRaw){mostrarErrorLogin('Completa usuario y contraseña.');return;}
   if(userRaw.length>50||passRaw.length>128){mostrarErrorLogin('Datos inválidos.');return;}
-  btnLogin.disabled=true; btnLogin.innerHTML='<div class="spinner2"></div> Verificando...';
+  btnLogin.disabled=true; btnLogin.textContent='Verificando...';
   try{
     const passHash=await hashSHA256(passRaw);
     document.getElementById('loginPass').value='';
-    // Llamada al servidor
-    const resp=await fetchConTimeout(SCRIPT_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({accion:'login',usuario:userRaw,passHash,userAgent:navigator.userAgent.slice(0,200)})
-    },12000);
-    const resultado=await resp.json();
+    const resultado=await authLocalLogin(userRaw,passHash);
     if(resultado.ok&&resultado.token){
       resetearIntentosLocal();
-      const sesion={
-        token:resultado.token,
-        nombre:resultado.nombre,
-        rol:resultado.rol||'OPERADOR',
-        ruta:resultado.ruta||null,
-        esAdmin:resultado.esAdmin||resultado.rol==='ADMIN',
-        expira:resultado.expira||(Date.now()+8*60*60*1000)
-      };
+      const sesion={ token:resultado.token, nombre:resultado.nombre, rol:resultado.rol||(resultado.esAdmin?'ADMIN':'OPERADOR'), ruta:resultado.ruta||null, esAdmin:resultado.esAdmin||resultado.rol==='ADMIN', expira:resultado.expira||(Date.now()+8*60*60*1000), modoLocal:true };
       sessionStorage.setItem('_al_sess',JSON.stringify(sesion));
       usuarioActual=sesion;
       document.getElementById('loginOverlay').style.display='none';
       document.getElementById('loginError').classList.remove('show');
       document.getElementById('loginBloqueo').classList.remove('show');
       aplicarUsuario(); iniciarMonitorExpiracion();
-    } else {
-      incrementarIntentoLocal();
-      mostrarErrorLogin(resultado.error||'Usuario o contraseña incorrectos.');
-    }
-  }catch(err){
-    incrementarIntentoLocal();
-    mostrarErrorLogin('Sin conexión al servidor. Verifica tu internet.');
-  }
-  finally{
-    btnLogin.disabled=false;
-    btnLogin.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ingresar';
-  }
-}
-
-function fetchConTimeout(url,opts,ms){
-  return new Promise((res,rej)=>{
-    const t=setTimeout(()=>rej(new Error('timeout')),ms);
-    fetch(url,opts).then(r=>{clearTimeout(t);res(r);}).catch(e=>{clearTimeout(t);rej(e);});
-  });
+    } else { incrementarIntentoLocal(); mostrarErrorLogin('Usuario o contraseña incorrectos.'); }
+  }catch{ mostrarErrorLogin('Error al verificar. Intenta de nuevo.'); }
+  finally{ btnLogin.disabled=false; btnLogin.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ingresar'; }
 }
 
 let _monitorId=null;
@@ -1024,6 +932,7 @@ function iniciarMonitorExpiracion(){
 async function cerrarSesion(){
   if(_monitorId)clearInterval(_monitorId);
   usuarioActual=null; ultimoRegistro=null; productos=[];
+  // Conservar historial del día — solo limpiar datos de sesión
   sessionStorage.removeItem('_al_sess');
   sessionStorage.removeItem('_al_att');
   sessionStorage.removeItem('aqualuan-historial');
@@ -1031,24 +940,16 @@ async function cerrarSesion(){
   document.getElementById('loginPass').value='';
   document.getElementById('loginOverlay').style.display='flex';
   document.getElementById('btnLogout').style.display='none';
-  document.getElementById('btnAdminUsuarios').classList.remove('visible');
   document.getElementById('logoSub').textContent='Registro de Pedidos';
   restaurarSelectsCompletos(); limpiarFormulario();
 }
 
 function mostrarErrorLogin(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.classList.add('show'); }
 
-function _buildOpcionesRutas(incluirAdmin=false){
-  const rutas = getLBEmpleado();
-  let opts = rutas.map(r=>`<option value="${escHTML(r)}">${escHTML(r)}</option>`).join('');
-  if(incluirAdmin) opts += `<option value="Administración">Administración</option>`;
-  return opts;
-}
 function restaurarSelectsCompletos(){
-  const base = `<option value="">-- Selecciona --</option>`;
-  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required>${base}${_buildOpcionesRutas()}</select>`;
-  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue">${base}${_buildOpcionesRutas()}</select>`;
-  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red">${base}${_buildOpcionesRutas(true)}</select>`;
+  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select>`;
+  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select>`;
+  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="Administración">Administración</option></select>`;
 }
 
 async function _generarHash(clave){ if(!clave){console.warn('Ingresa una clave');return;} const h=await hashSHA256(clave); console.log('%cHash SHA-256:','color:#0a7c6e;font-weight:bold'); console.log('%c'+h,'font-family:monospace;background:#e6f4f2;padding:4px 8px;border-radius:4px'); return h; }
@@ -1058,7 +959,7 @@ function _restaurarHistDia(u){
     const hoy=new Date().toISOString().slice(0,10);
     let hR=[];
     if(u.esAdmin){
-      [...getLBEmpleado(),'admin'].forEach(r=>{
+      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','admin'].forEach(r=>{
         hR=hR.concat(JSON.parse(localStorage.getItem(_claveHistDia(r,hoy))||'[]'));
       });
       hR.sort((a,b)=>(b.id||0)-(a.id||0));
@@ -1079,7 +980,6 @@ function aplicarUsuario(){
   const u=usuarioActual; if(!u)return;
   document.getElementById('logoSub').textContent=u.esAdmin?'Administrador':`Bienvenido, ${u.nombre}`;
   document.getElementById('btnLogout').style.display='flex';
-  document.getElementById('btnAdminUsuarios').classList.toggle('visible', !!u.esAdmin);
   _restaurarHistDia(u);
   if(u.esAdmin)return;
   const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
@@ -1451,9 +1351,11 @@ function _claveHistDia(empleado,fecha){
 function guardarEnHistorial(reg){
   try{
     const r={id:Date.now(),nombre:sanitizarTexto(reg.nombre,100),total:reg.total,fecha:reg.fecha,empleado:reg.empleado,formapago:reg.formapago,telefono:sanitizarTexto(reg.telefono,20),direccion:sanitizarTexto(reg.direccion,200),notas:sanitizarTexto(reg.notas,500),productos:reg.productos,gps:null};
+    // sessionStorage (sesión actual)
     const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
     hS.unshift(r); if(hS.length>20)hS.pop();
     sessionStorage.setItem('aqualuan-historial',JSON.stringify(hS));
+    // localStorage (persiste entre logins del mismo día)
     const clave=_claveHistDia(reg.empleado,reg.fecha);
     const hL=JSON.parse(localStorage.getItem(clave)||'[]');
     if(!hL.find(x=>x.id===r.id)){hL.unshift(r);if(hL.length>20)hL.pop();localStorage.setItem(clave,JSON.stringify(hL));}
@@ -1467,7 +1369,7 @@ function cargarHistorial(){
   lista.innerHTML=hist.map((r,i)=>`<div class="historial-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px"><span class="historial-cliente">👤 ${escHTML(r.nombre)}</span><span class="historial-total">$${escHTML(r.total)}</span></div><div class="historial-meta">📅 ${escHTML(r.fecha||'-')} &nbsp;|&nbsp; 👷 ${escHTML(r.empleado)} &nbsp;|&nbsp; 💳 ${escHTML(r.formapago||'-')}</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px">📦 ${escHTML(String(r.productos.length))} producto${r.productos.length!==1?'s':''}</div><div class="historial-btns"><button class="btn-hist btn-hist-pdf" onclick="descargarPDFDesde(${parseInt(i)})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Descargar PDF</button><button class="btn-hist btn-hist-wa" onclick="enviarWhatsappDesde(${parseInt(i)})"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp secretaria</button></div></div>`).join('');
 }
 function descargarPDFDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; const r=hist[idx]; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,r); const ns=r.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60); const fs=(r.fecha||'sin-fecha').replace(/[^0-9\-]/g,''); doc.save(`Pedido_${ns}_${fs}.pdf`); }
-function enviarWhatsappDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${_construirMsgWA(hist[idx])}`,'_blank','noopener,noreferrer'); }
+function enviarWhatsappDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${_construirMsgWA(hist[idx])}`,'_blank','noopener,noreferrer'); }
 function limpiarHistorial(){
   if(!confirm('¿Limpiar el historial de pedidos de hoy?'))return;
   try{
@@ -1475,7 +1377,7 @@ function limpiarHistorial(){
     if(usuarioActual){
       const hoy=new Date().toISOString().slice(0,10);
       if(usuarioActual.esAdmin){
-        [...getLBEmpleado(),'admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
+        ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
       } else {
         localStorage.removeItem(_claveHistDia(usuarioActual.ruta,hoy));
       }
@@ -1486,190 +1388,6 @@ function limpiarHistorial(){
 
 document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModal(); });
 renderLista();
-
-/* ══════════════════════════════════════════════════════════
-   PANEL DE ADMINISTRACIÓN DE USUARIOS — conectado a Google Sheets
-   ══════════════════════════════════════════════════════════ */
-let _adminEditando = null;
-
-async function abrirAdminUsuarios(){
-  if(!usuarioActual||!usuarioActual.esAdmin){ alert('Acceso denegado.'); return; }
-  _adminEditando = null;
-  _resetAdminForm();
-  document.getElementById('adminModalOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-  await _cargarYRenderTabla();
-}
-function cerrarAdminModal(){
-  document.getElementById('adminModalOverlay').classList.remove('open');
-  document.body.style.overflow='';
-  _adminEditando = null;
-  _setAdminStatus('','');
-}
-
-async function _cargarYRenderTabla(){
-  const tbody = document.getElementById('adminTbody');
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--muted)">⏳ Cargando usuarios...</td></tr>`;
-  try{
-    const resp = await fetchConTimeout(SCRIPT_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({accion:'ver_usuarios', token:usuarioActual.token})
-    },10000);
-    const data = await resp.json();
-    if(data.ok && data.usuarios){
-      _usuariosCache = data.usuarios;
-      _renderTablaUsuarios(data.usuarios);
-    } else {
-      tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:16px;color:#c0392b">Error al cargar: ${escHTML(data.error||'desconocido')}</td></tr>`;
-    }
-  }catch(e){
-    tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:16px;color:#c0392b">Sin conexión al servidor.</td></tr>`;
-  }
-}
-
-function _renderTablaUsuarios(usuarios){
-  const tbody = document.getElementById('adminTbody');
-  if(!usuarios||!usuarios.length){ tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--muted)">No hay usuarios.</td></tr>`; return; }
-  tbody.innerHTML = usuarios.map(u => {
-    const esAdmin = u.rol==='ADMIN';
-    const activo = u.activo!==false;
-    const rolBadge = esAdmin ? `<span class="badge-admin">Admin</span>` : `<span class="badge-op">Operador</span>`;
-    const estadoBadge = activo ? '' : `<span style="font-size:9px;background:#fee2e2;color:#b71c1c;padding:2px 7px;border-radius:100px;font-weight:700;margin-left:4px">INACTIVO</span>`;
-    const btnEdit = `<button class="btn-usr-edit" onclick="adminEditarUsuario('${escHTML(u.usuario)}')">✏ Editar</button>`;
-    const btnDel = !esAdmin ? `<button class="btn-usr-del" onclick="adminEliminarUsuario('${escHTML(u.usuario)}','${escHTML(u.nombre)}')">✕ Eliminar</button>` : '';
-    return `<tr class="${esAdmin?'admin-row':''}">
-      <td><strong>${escHTML(u.usuario)}</strong>${estadoBadge}</td>
-      <td>${escHTML(u.nombre||u.usuario)}</td>
-      <td style="font-size:12px">${escHTML(u.ruta||'—')}</td>
-      <td>${rolBadge}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">${btnEdit}${btnDel}</td>
-    </tr>`;
-  }).join('');
-}
-
-function adminEditarUsuario(user){
-  const u = _usuariosCache.find(x=>x.usuario===user); if(!u) return;
-  _adminEditando = user;
-  document.getElementById('adminFormTitle').textContent = `✏ Editando: ${user}`;
-  document.getElementById('adminInputUser').value = user;
-  document.getElementById('adminInputUser').disabled = true;
-  document.getElementById('adminInputNombre').value = u.nombre || '';
-  document.getElementById('adminInputRuta').value = u.ruta || '';
-  document.getElementById('adminInputRol').value = u.rol || 'OPERADOR';
-  document.getElementById('adminInputPass').value = '';
-  document.getElementById('adminInputPass').placeholder = 'Dejar vacío para no cambiar';
-  document.getElementById('adminFormSection').scrollIntoView({behavior:'smooth'});
-}
-
-async function adminGuardarUsuario(){
-  const userRaw = document.getElementById('adminInputUser').value.trim().toLowerCase();
-  const nombre  = document.getElementById('adminInputNombre').value.trim();
-  const ruta    = document.getElementById('adminInputRuta').value.trim();
-  const passRaw = document.getElementById('adminInputPass').value;
-
-  if(!userRaw){ _setAdminStatus('error','El usuario no puede estar vacío.'); return; }
-  if(!/^[a-z0-9_]{2,30}$/.test(userRaw)){ _setAdminStatus('error','Usuario: solo letras minúsculas, números y _ (2-30 caracteres).'); return; }
-  if(!nombre){ _setAdminStatus('error','El nombre no puede estar vacío.'); return; }
-
-  const btn = document.getElementById('adminBtnGuardar');
-  btn.disabled = true; btn.innerHTML = '<div class="spinner2"></div> Guardando...';
-
-  try{
-    let payload, resp, data;
-
-    if(_adminEditando){
-      // ── EDITAR usuario existente ──
-      payload = {
-        accion: 'editar_usuario',
-        token: usuarioActual.token,
-        usuario_objetivo: _adminEditando,
-        nuevo_nombre: nombre,
-        nueva_ruta: ruta
-      };
-      resp = await fetchConTimeout(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},10000);
-      data = await resp.json();
-      if(!data.ok){ _setAdminStatus('error', data.error||'Error al editar.'); return; }
-
-      // Si cambió la contraseña
-      if(passRaw){
-        const nuevoHash = await hashSHA256(passRaw);
-        const respPass = await fetchConTimeout(SCRIPT_URL,{
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({accion:'cambiar_password', token:usuarioActual.token, usuario_objetivo:_adminEditando, nuevo_hash:nuevoHash, hash_actual:'admin_override'})
-        },10000);
-        const dataPass = await respPass.json();
-        if(!dataPass.ok){ _setAdminStatus('error','Datos editados pero error al cambiar contraseña: '+(dataPass.error||'')); return; }
-      }
-      _setAdminStatus('success', `✓ Usuario "${userRaw}" actualizado en Google Sheets.`);
-
-    } else {
-      // ── CREAR nuevo usuario ──
-      if(!passRaw){ _setAdminStatus('error','Debes ingresar una contraseña.'); return; }
-      const nuevoHash = await hashSHA256(passRaw);
-      payload = {
-        accion: 'crear_usuario',
-        token: usuarioActual.token,
-        nuevo_usuario: userRaw,
-        nuevo_nombre: nombre,
-        nuevo_rol: 'OPERADOR',
-        nueva_ruta: ruta || nombre,
-        nuevo_hash: nuevoHash
-      };
-      resp = await fetchConTimeout(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},10000);
-      data = await resp.json();
-      if(!data.ok){ _setAdminStatus('error', data.error||'Error al crear usuario.'); return; }
-      _setAdminStatus('success', `✓ Usuario "${userRaw}" creado en Google Sheets.`);
-    }
-
-    _resetAdminForm();
-    _adminEditando = null;
-    await _cargarYRenderTabla(); // recargar tabla desde servidor
-
-  }catch(e){
-    _setAdminStatus('error','Sin conexión al servidor. Verifica tu internet.');
-  }finally{
-    btn.disabled=false;
-    btn.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Guardar cambios';
-  }
-}
-
-async function adminEliminarUsuario(user, nombre){
-  if(!confirm(`¿Desactivar usuario "${user}" (${nombre})? Podrás reactivarlo después desde Google Sheets.`)){ return; }
-  try{
-    const resp = await fetchConTimeout(SCRIPT_URL,{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({accion:'desactivar_usuario', token:usuarioActual.token, usuario_objetivo:user, activar:false})
-    },10000);
-    const data = await resp.json();
-    if(data.ok){
-      _setAdminStatus('success', `✓ Usuario "${user}" desactivado. No podrá iniciar sesión.`);
-      await _cargarYRenderTabla();
-    } else {
-      _setAdminStatus('error', data.error||'Error al desactivar.');
-    }
-  }catch(e){
-    _setAdminStatus('error','Sin conexión al servidor.');
-  }
-}
-
-function _resetAdminForm(){
-  _adminEditando = null;
-  document.getElementById('adminFormTitle').textContent = '＋ Agregar nuevo usuario';
-  document.getElementById('adminInputUser').value = '';
-  document.getElementById('adminInputUser').disabled = false;
-  document.getElementById('adminInputNombre').value = '';
-  document.getElementById('adminInputRuta').value = '';
-  document.getElementById('adminInputRol').value = 'OPERADOR';
-  document.getElementById('adminInputPass').value = '';
-  document.getElementById('adminInputPass').placeholder = 'Contraseña';
-  _setAdminStatus('','');
-}
-function _setAdminStatus(tipo, msg){
-  const el = document.getElementById('adminStatus');
-  el.className = 'admin-status' + (tipo ? ' '+tipo : '');
-  el.textContent = msg;
-}
 
 /* ── RESUMEN DEL DÍA ── */
 let _resumenDiaData=null;
@@ -1712,7 +1430,6 @@ function imprimirResumen(){
   v.document.close();
 }
 document.getElementById('resumenModalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarResumenModal(); });
-document.getElementById('adminModalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarAdminModal(); });
 
 function enviarResumenWhatsapp(){
   if(!_resumenDiaData){alert('Primero genera el resumen del día.');return;}
@@ -1732,7 +1449,7 @@ function enviarResumenWhatsapp(){
   msg+=`💳 *FORMAS DE PAGO TOTAL*%0A`;
   Object.entries(formasPagoGlobal).sort(([,a],[,b])=>b-a).forEach(([f,v])=>{ msg+=` ${iF[f]||'💳'} ${encodeURIComponent(f)}: *$${v.toFixed(2)}*%0A`; });
   msg+=`%0A💰 *TOTAL GENERAL DEL DÍA: $${totalGeneral.toFixed(2)}*%0A%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
-  window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${msg}`,'_blank','noopener,noreferrer');
+  window.open(`https://wa.me/${WHATSAPP_ZOILA}?text=${msg}`,'_blank','noopener,noreferrer');
 }
 </script>
 
@@ -1756,70 +1473,6 @@ function enviarResumenWhatsapp(){
       Imprimir / Guardar PDF
     </button>
     <button class="btn-cerrar-resumen" onclick="cerrarResumenModal()">Cerrar</button>
-  </div>
-</div>
-
-<!-- ══ MODAL ADMIN USUARIOS ══ -->
-<div class="admin-modal-overlay" id="adminModalOverlay">
-  <div class="admin-modal" id="adminModal">
-    <div class="admin-modal-handle"></div>
-    <div class="admin-modal-title">⚙ Gestión de Usuarios</div>
-    <div class="admin-modal-sub">Agregar, editar o eliminar accesos al sistema</div>
-
-    <!-- Tabla de usuarios -->
-    <div style="overflow-x:auto;margin-bottom:1.25rem">
-      <table class="usuarios-table">
-        <thead>
-          <tr>
-            <th>Usuario</th>
-            <th>Nombre</th>
-            <th>Ruta</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="adminTbody"></tbody>
-      </table>
-    </div>
-
-    <!-- Formulario agregar / editar -->
-    <div class="admin-form-section" id="adminFormSection">
-      <div class="admin-form-title" id="adminFormTitle">＋ Agregar nuevo usuario</div>
-      <div class="admin-grid">
-        <div class="admin-field">
-          <label>Usuario (login)</label>
-          <input type="text" id="adminInputUser" placeholder="ej: maria" autocomplete="off" maxlength="30">
-        </div>
-        <div class="admin-field">
-          <label>Nombre visible</label>
-          <input type="text" id="adminInputNombre" placeholder="ej: María García" autocomplete="off" maxlength="60">
-        </div>
-        <div class="admin-field">
-          <label>Ruta / Identificador</label>
-          <input type="text" id="adminInputRuta" placeholder="ej: RUTA 6: María" autocomplete="off" maxlength="80">
-        </div>
-        <input type="hidden" id="adminInputRol" value="OPERADOR">
-        <div class="admin-field" style="grid-column:1/-1">
-          <label>Contraseña</label>
-          <input type="password" id="adminInputPass" placeholder="Contraseña" autocomplete="new-password" maxlength="128">
-        </div>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap">
-        <button class="btn-admin-guardar" id="adminBtnGuardar" onclick="adminGuardarUsuario()" style="flex:1;min-width:160px">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Guardar cambios
-        </button>
-        <button onclick="_resetAdminForm()" style="flex:0 0 auto;height:46px;padding:0 16px;background:var(--surface2);color:var(--muted);border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">
-          Limpiar
-        </button>
-      </div>
-      <div class="admin-status" id="adminStatus"></div>
-    </div>
-
-    <button class="btn-admin-cerrar" onclick="cerrarAdminModal()">
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      Cerrar panel
-    </button>
   </div>
 </div>
 
