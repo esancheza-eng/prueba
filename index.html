@@ -801,7 +801,10 @@ body { padding: 1rem 0.75rem 3rem; }
 const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
 const SUPABASE_URL   = "https://batbcvqxuumqhmqxhutu.supabase.co";
 const SUPABASE_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhdGJjdnF4dXVtcWhtcXhodXR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ5MzcsImV4cCI6MjA5NjcxMDkzN30.53Buxko6MDIleJb56bwdFrGjfVCgcS4PEvqL3eE2LYo";
-const supabase       = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase;
+window.addEventListener('load', () => {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+});
 const WHATSAPP_secretaria = "593989938910";
 const SESSION_TOKEN  = generarTokenSesion();
 
