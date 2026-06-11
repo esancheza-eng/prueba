@@ -6,7 +6,7 @@
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗
   ║  AQUA LUAN — Sistema de Pedidos v3.0 Enterprise                     ║
-  ║  [FIX] servidorConfigurado() → false                                ║
+  ║  [FIX] servidorConfigurado() → false                                
   ║        Login usa AUTH_REGISTRY local (SHA-256) siempre              ║
   ╚══════════════════════════════════════════════════════════════════════╝
 -->
@@ -806,13 +806,13 @@ window.addEventListener('load', () => {
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 });
 const WHATSAPP_secretaria = "593989938910";
-const SESSION_TOKEN  = generarTokenSesion();
-
 function generarTokenSesion() {
   const arr = new Uint8Array(32);
   crypto.getRandomValues(arr);
   return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
 }
+
+const SESSION_TOKEN  = generarTokenSesion();
 
 function escHTML(str) {
   if (str === null || str === undefined) return '';
