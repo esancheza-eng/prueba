@@ -1,4 +1,5 @@
-const CACHE_NAME = 'aqualuan-v11';
+// v1781152464 — fuerza actualización de caché
+const CACHE_NAME = 'aqualuan-v13';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
@@ -20,7 +21,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, {cache: 'no-store'})
       .then(resp => {
         const clone = resp.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
