@@ -791,6 +791,7 @@ body { padding: 1rem 0.75rem 3rem; }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════════════════
    AQUA LUAN v3.0 — JavaScript
@@ -798,6 +799,9 @@ body { padding: 1rem 0.75rem 3rem; }
    ══════════════════════════════════════════════════════════════════════════ */
 
 const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
+const SUPABASE_URL   = "https://batbcvqxuumqhmqxhutu.supabase.co";
+const SUPABASE_KEY   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhdGJjdnF4dXVtcWhtcXhodXR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMzQ5MzcsImV4cCI6MjA5NjcxMDkzN30.53Buxko6MDIleJb56bwdFrGjfVCgcS4PEvqL3eE2LYo";
+const supabase       = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const WHATSAPP_secretaria = "593989938910";
 const SESSION_TOKEN  = generarTokenSesion();
 
@@ -1131,41 +1135,87 @@ async function confirmarEnvio(){
   if(!dataPendiente)return;
   const btn=document.getElementById('btnConfirmar');
   btn.disabled=true; btn.innerHTML='<div class="spinner2"></div> Guardando...';
+
   const fechaObj=dataPendiente.fecha?new Date(dataPendiente.fecha+'T00:00:00'):new Date();
-  const dia=fechaObj.getDate(),mes=fechaObj.getMonth()+1;
-  const productosTexto=dataPendiente.productos.map(p=>`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
-  const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:productosTexto,total:dataPendiente.total,latitud:dataPendiente.gps?dataPendiente.gps.lat.toFixed(6):'',longitud:dataPendiente.gps?dataPendiente.gps.lng.toFixed(6):'',gps_link:dataPendiente.gps?dataPendiente.gps.url:'',gps_prec:dataPendiente.gps?`±${dataPendiente.gps.acc}m`:'',csrfToken:SESSION_TOKEN};
-  const estaOnline=navigator.onLine;
+  const dia=fechaObj.getDate(), mes=fechaObj.getMonth()+1;
+
   const onExito=(modoOffline=false)=>{
     ultimoRegistro={...dataPendiente};
     guardarEnHistorial(ultimoRegistro);
     cerrarModal();
-    if(modoOffline)setStatus('warning','📥 Sin internet. Pedido guardado localmente.');
-    else setStatus('success','✓ Pedido guardado correctamente en Google Sheets.');
+    if(modoOffline) setStatus('warning','📥 Sin internet. Pedido guardado localmente.');
+    else setStatus('success','✓ Pedido guardado correctamente en Supabase.');
     document.getElementById('btnWhatsapp').classList.add('visible');
     document.getElementById('btnPdf').style.display='flex';
     document.getElementById('btnNuevo').style.display='flex';
     document.getElementById('btnGuardar').style.display='none';
     limpiarSoloFormulario();
-    if(!modoOffline)subirPDFaDrive(ultimoRegistro);
   };
-  if(estaOnline){
-    try{ await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); onExito(false); }
-    catch{ guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{}); }
-  } else {
-    guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{});
-    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
-  }
-  btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
-  dataPendiente=null;
-}
 
-function limpiarSoloFormulario(){
-  if(!usuarioActual||usuarioActual.esAdmin) document.getElementById('empleado').value='';
-  ['formapago','nombre','telefono','direccion','notas'].forEach(id=>document.getElementById(id).value='');
-  productos=[]; renderLista();
-  const hoy=new Date(),yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
-  document.getElementById('fecha').value=`${yyyy}-${mm}-${dd}`;
+  const estaOnline=navigator.onLine;
+
+  if(estaOnline){
+    try{
+      // 1. Insertar pedido principal
+      const { data: pedidoData, error: pedidoError } = await supabase
+        .from('pedidos')
+        .insert({
+          fecha:       dataPendiente.fecha,
+          asesor:      dataPendiente.empleado.includes(':') ? dataPendiente.empleado.split(':')[1].trim() : dataPendiente.empleado,
+          ruta:        dataPendiente.empleado.includes(':') ? dataPendiente.empleado.split(':')[0].trim() : '',
+          forma_pago:  dataPendiente.formapago,
+          cliente:     dataPendiente.nombre,
+          telefono:    dataPendiente.telefono||null,
+          direccion:   dataPendiente.direccion||null,
+          notas:       dataPendiente.notas||null,
+          total_pedido:parseFloat(dataPendiente.total),
+          latitud:     dataPendiente.gps?.lat||null,
+          longitud:    dataPendiente.gps?.lng||null,
+          link_gps:    dataPendiente.gps?.url||null,
+          precision_gps:dataPendiente.gps?`±${dataPendiente.gps.acc}m`:null,
+          hora_registro:new Date().toTimeString().slice(0,8)
+        })
+        .select()
+        .single();
+
+      if(pedidoError) throw pedidoError;
+
+      // 2. Insertar detalle de productos
+      const detalles = dataPendiente.productos.map(p=>({
+        pedido_id:  pedidoData.id,
+        producto:   p.nombre,
+        cantidad:   p.cantidad,
+        precio_unit:p.precio
+      }));
+
+      const { error: detalleError } = await supabase
+        .from('detalle_pedido')
+        .insert(detalles);
+
+      if(detalleError) throw detalleError;
+
+      onExito(false);
+
+    } catch(err) {
+      console.error('Supabase error:', err);
+      // Fallback: guardar local y también intentar Apps Script
+      const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:dataPendiente.productos.map(p=>`${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)})`).join(' | '),total:dataPendiente.total,latitud:dataPendiente.gps?.lat||'',longitud:dataPendiente.gps?.lng||'',gps_link:dataPendiente.gps?.url||'',csrfToken:SESSION_TOKEN};
+      guardarEnLocalStorageSync(payload);
+      guardarLocal(payload).catch(()=>{});
+      onExito(true);
+      actualizarBanners();
+    }
+  } else {
+    const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:dataPendiente.productos.map(p=>`${p.nombre} (${p.cantidad} x $${p.precio.toFixed(2)})`).join(' | '),total:dataPendiente.total,latitud:dataPendiente.gps?.lat||'',longitud:dataPendiente.gps?.lng||'',gps_link:dataPendiente.gps?.url||'',csrfToken:SESSION_TOKEN};
+    guardarEnLocalStorageSync(payload);
+    guardarLocal(payload).catch(()=>{});
+    onExito(true);
+    actualizarBanners();
+  }
+
+  btn.disabled=false;
+  btn.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
+  dataPendiente=null;
 }
 function limpiarFormulario(){
   limpiarSoloFormulario(); ultimoRegistro=null;
