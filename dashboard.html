@@ -676,8 +676,17 @@ display: inline-block;
         <div class="filter-bar">
           <span class="filter-label">Filtrar por fecha</span>
           <input type="date" id="filtroFecha">
+          <span class="filter-label" style="margin-left:6px">Asesor</span>
+          <select id="filtroAsesor">
+            <option value="">Todos</option>
+            <option value="RUTA 1: Jefferson">Jefferson</option>
+            <option value="RUTA 2: Luis">Luis</option>
+            <option value="RUTA 3: Vicente">Vicente</option>
+            <option value="RUTA 4: Wilson">Wilson</option>
+            <option value="RUTA 5: Lister">Lister</option>
+          </select>
           <button class="btn-filter btn-hoy" onclick="filtrarHoy()">Hoy</button>
-          <button class="btn-filter" onclick="cargarDatos()">Aplicar</button>
+          <button class="btn-filter" onclick="renderDashboard()">Aplicar</button>
           <button class="btn-filter" style="background:var(--muted)" onclick="limpiarFiltro()">Todo</button>
           <span class="last-update" id="lastUpdate">—</span>
         </div>
@@ -692,11 +701,37 @@ display: inline-block;
           <div class="map-points" id="mapPoints"></div>
         </div>
         <div class="table-card" id="tableCard" style="display:none">
-          <div class="table-header"><div class="table-title">📋 Detalle de pedidos</div></div>
+          <div class="table-header">
+            <div class="table-title">📋 Detalle de pedidos</div>
+            <button class="btn-filter" style="background:#c0392b;display:flex;align-items:center;gap:6px" onclick="exportarDetallePDF()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM7.5 12h2c.83 0 1.5.67 1.5 1.5S10.33 15 9.5 15H8v2H7v-5zm1 2h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v1zM12 12h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-5zm1 4h1v-3h-1v3zM16 12h2v1h-1v1h1v1h-1v2h-1v-5z"/></svg>
+              Exportar a PDF
+            </button>
+          </div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Teléfono</th><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Total</th><th>Pago</th><th>GPS</th></tr></thead>
               <tbody id="tablaPedidos"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="table-card" id="clienteCard" style="display:none">
+          <div class="table-header">
+            <div class="table-title">🔍 Consultar por Cliente</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <button class="btn-filter" style="background:#c0392b;display:flex;align-items:center;gap:6px" onclick="exportarClientePDF()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM7.5 12h2c.83 0 1.5.67 1.5 1.5S10.33 15 9.5 15H8v2H7v-5zm1 2h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v1zM12 12h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-5zm1 4h1v-3h-1v3zM16 12h2v1h-1v1h1v1h-1v2h-1v-5z"/></svg>
+                Exportar a PDF
+              </button>
+              <select id="clienteSelect" onchange="mostrarDetalleCliente()" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:7px 12px;outline:none;cursor:pointer;min-width:220px">
+                <option value="">-- Selecciona un cliente --</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Cantidad</th><th>Descripción</th><th>Valor Unitario</th><th>Valor Total</th></tr></thead>
+              <tbody id="tablaCliente"><tr><td colspan="4"><div class="empty-state"><div class="icon">👤</div>Selecciona un cliente para ver el detalle</div></td></tr></tbody>
             </table>
           </div>
         </div>
@@ -797,6 +832,7 @@ let leafletMap = null;
 let leafletLoaded = false;
 let mapMarkers = [];
 let mapPolylines = [];
+let pedidosDetalleActuales = [];
 
 /* ════════════════════════════════════════
    TABS
@@ -889,11 +925,14 @@ async function cargarDatos(mostrarSpinner = true) {
    FILTROS DASHBOARD
 ════════════════════════════════════════ */
 function filtrarHoy() { document.getElementById('filtroFecha').value = fechaHoy(); renderDashboard(); }
-function limpiarFiltro() { document.getElementById('filtroFecha').value = ''; renderDashboard(); }
+function limpiarFiltro() { document.getElementById('filtroFecha').value = ''; if (document.getElementById('filtroAsesor')) document.getElementById('filtroAsesor').value = ''; renderDashboard(); }
 function getDatosFiltrados() {
   const filtro = document.getElementById('filtroFecha').value;
-  if (!filtro) return todosLosDatos;
-  return todosLosDatos.filter(r => { const fecha = r['FECHA'] || r['fecha'] || ''; return String(fecha).includes(filtro); });
+  const asesorSel = document.getElementById('filtroAsesor') ? document.getElementById('filtroAsesor').value : '';
+  let datos = todosLosDatos;
+  if (filtro) datos = datos.filter(r => { const fecha = r['FECHA'] || r['fecha'] || ''; return String(fecha).includes(filtro); });
+  if (asesorSel) datos = datos.filter(r => (r['ASESOR / RUTA']||'') === asesorSel);
+  return datos;
 }
 
 /* ════════════════════════════════════════
@@ -923,10 +962,13 @@ function renderDashboard() {
   `;
   renderCharts(pedidos, pedidosConTotal);
   renderGPS(pedidosConTotal);
+  pedidosDetalleActuales = pedidos;
   renderTabla(pedidos);
+  poblarClienteSelect(pedidos);
   document.getElementById('chartsGrid').style.display = 'grid';
   document.getElementById('mapCard').style.display = 'block';
   document.getElementById('tableCard').style.display = 'block';
+  document.getElementById('clienteCard').style.display = 'block';
 }
 
 /* ════════════════════════════════════════
@@ -1065,6 +1107,9 @@ function actualizarTablaCentral(datos) {
   const tbody = document.getElementById('tablaPedidos');
   const card  = document.getElementById('tableCard');
   card.style.display = 'block';
+  pedidosDetalleActuales = datos;
+  poblarClienteSelect(datos);
+  document.getElementById('clienteCard').style.display = 'block';
   if (!datos.length) { tbody.innerHTML='<tr><td colspan="10"><div class="empty-state"><div class="icon">📋</div>No hay pedidos con estos filtros</div></td></tr>'; return; }
   tbody.innerHTML = datos.map(r => {
     const gps   = r['LINK GPS'] ? `<a href="${r['LINK GPS']}" target="_blank" style="color:var(--teal);font-weight:700;font-size:11px">📍 Ver</a>` : '<span style="color:var(--muted);font-size:11px">—</span>';
@@ -1322,6 +1367,96 @@ function flyToMarker(key,lat,lng) {
   },900);
 }
 
+function exportarClientePDF() {
+  const sel = document.getElementById('clienteSelect').value;
+  if (!sel) { alert('Selecciona un cliente primero.'); return; }
+  const items = pedidosDetalleActuales.filter(r => r['CLIENTE'] === sel);
+  if (!items.length) { alert('No hay pedidos para este cliente en el filtro actual.'); return; }
+
+  const fecha = document.getElementById('filtroFecha').value || 'Todos los registros';
+  const asesorSel = document.getElementById('filtroAsesor') ? document.getElementById('filtroAsesor').value : '';
+  const asesorLabel = asesorSel.split(':')[1]?.trim() || items[0]['ASESOR / RUTA']?.split(':')[1]?.trim() || 'Todos';
+
+  let totalGeneral = 0;
+  const filas = items.map(r => {
+    const valorTotal = parseFloat(r['SUBTOTAL']||0);
+    totalGeneral += valorTotal;
+    return `<tr>
+      <td style="text-align:center">${r['CANTIDAD']||'-'}</td>
+      <td>${r['PRODUCTO']||'-'}</td>
+      <td style="text-align:right">$${parseFloat(r['PRECIO UNIT.']||0).toFixed(2)}</td>
+      <td style="text-align:right;font-weight:700">$${valorTotal.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  const v = window.open('', '_blank', 'width=800,height=900');
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Detalle Cliente — ${sel} — Aqua Luan</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}
+    .print-header{text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1a3a5c;}
+    .print-header h1{font-family:'DM Serif Display',serif;font-size:22px;color:#1a3a5c;}
+    .print-header p{font-size:12px;color:#888;margin-top:4px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    thead tr{background:#1a3a5c;}
+    thead th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;}
+    thead th:nth-child(1),thead th:nth-child(3),thead th:nth-child(4){text-align:right}
+    thead th:nth-child(1){text-align:center}
+    tbody td{padding:9px 12px;border-bottom:1px solid #eee;}
+    tbody tr:nth-child(even){background:#f7fafb;}
+    .total-row{background:#e6f4f2;font-weight:800;color:#085f54;}
+    .total-row td{padding:12px;border-top:2px solid #0a7c6e;}
+    @media print{body{padding:12px;} thead{display:table-header-group;}}
+  </style></head><body>
+  <div class="print-header">
+    <h1>🔍 Detalle de Cliente — Aqua Luan</h1>
+    <p>Cliente: <b>${sel}</b> · Asesor: ${asesorLabel} · Fecha: ${fecha} · Generado: ${new Date().toLocaleString('es-EC')}</p>
+  </div>
+  <table>
+    <thead><tr><th>Cantidad</th><th>Descripción</th><th>Valor Unitario</th><th>Valor Total</th></tr></thead>
+    <tbody>
+      ${filas}
+      <tr class="total-row"><td colspan="3" style="text-align:right">TOTAL</td><td style="text-align:right">$${totalGeneral.toFixed(2)}</td></tr>
+    </tbody>
+  </table>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  v.document.close();
+}
+
+/* ════════════════════════════════════════
+   CONSULTAR POR CLIENTE
+════════════════════════════════════════ */
+function poblarClienteSelect(datos) {
+  const sel = document.getElementById('clienteSelect');
+  const valorActual = sel.value;
+  const clientes = [...new Set(datos.map(r => r['CLIENTE']).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
+  sel.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + clientes.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (clientes.includes(valorActual)) sel.value = valorActual;
+  mostrarDetalleCliente();
+}
+
+function mostrarDetalleCliente() {
+  const sel = document.getElementById('clienteSelect').value;
+  const tbody = document.getElementById('tablaCliente');
+  if (!sel) { tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="icon">👤</div>Selecciona un cliente para ver el detalle</div></td></tr>'; return; }
+  const items = pedidosDetalleActuales.filter(r => r['CLIENTE'] === sel);
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="icon">📭</div>Sin pedidos para este cliente en el filtro actual</div></td></tr>'; return; }
+  let totalGeneral = 0;
+  const filas = items.map(r => {
+    const valorTotal = parseFloat(r['SUBTOTAL']||0);
+    totalGeneral += valorTotal;
+    return `<tr>
+      <td style="text-align:center;font-weight:700">${r['CANTIDAD']||'-'}</td>
+      <td>${r['PRODUCTO']||'-'}</td>
+      <td style="text-align:right">$${parseFloat(r['PRECIO UNIT.']||0).toFixed(2)}</td>
+      <td style="text-align:right;font-weight:700;color:var(--teal)">$${valorTotal.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = filas + `<tr style="background:var(--teal-light)"><td colspan="3" style="text-align:right;font-weight:800;color:var(--teal-dark)">TOTAL</td><td style="text-align:right;font-weight:800;color:var(--teal-dark)">$${totalGeneral.toFixed(2)}</td></tr>`;
+}
+
 function limpiarFecha(fecha) {
   if(!fecha) return '-';
   const f=String(fecha);
@@ -1571,6 +1706,64 @@ function imprimirCierre() {
   </style></head><body>
   <div class="print-header"><h1>📅 Cierre del Día — Aqua Luan</h1><p>Fecha: ${fecha} · Generado: ${new Date().toLocaleString('es-EC')}</p></div>
   ${cuerpo}
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  v.document.close();
+}
+
+function exportarDetallePDF() {
+  const datos = pedidosDetalleActuales;
+  if (!datos.length) { alert('No hay datos para exportar. Aplica los filtros primero.'); return; }
+  const fecha = document.getElementById('filtroFecha').value || 'Todos los registros';
+  const asesorSel = document.getElementById('filtroAsesor') ? document.getElementById('filtroAsesor').value : '';
+  const asesorLabel = asesorSel.split(':')[1]?.trim() || 'Todos';
+
+  const totalGeneral = datos.filter(r=>r['TOTAL PEDIDO ($)']&&parseFloat(r['TOTAL PEDIDO ($)'])>0).reduce((s,r)=>s+(parseFloat(r['TOTAL PEDIDO ($)'])||0),0);
+
+  const filas = datos.map(r => {
+    const total = r['TOTAL PEDIDO ($)'] ? `$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}` : '—';
+    return `<tr>
+      <td>${limpiarFecha(r['FECHA'])}</td>
+      <td>${(r['ASESOR / RUTA']||'').split(':')[1]?.trim()||r['ASESOR / RUTA']||'-'}</td>
+      <td>${r['CLIENTE']||'-'}</td>
+      <td>${r['TELÉFONO']||'-'}</td>
+      <td>${r['PRODUCTO']||'-'}</td>
+      <td style="text-align:center">${r['CANTIDAD']||'-'}</td>
+      <td style="text-align:right">$${parseFloat(r['SUBTOTAL']||0).toFixed(2)}</td>
+      <td style="text-align:right;font-weight:700">${total}</td>
+      <td>${r['FORMA DE PAGO']||'-'}</td>
+    </tr>`;
+  }).join('');
+
+  const v = window.open('', '_blank', 'width=1000,height=900');
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Detalle de Pedidos — Aqua Luan — ${fecha}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}
+    .print-header{text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1a3a5c;}
+    .print-header h1{font-family:'DM Serif Display',serif;font-size:22px;color:#1a3a5c;}
+    .print-header p{font-size:12px;color:#888;margin-top:4px;}
+    table{width:100%;border-collapse:collapse;font-size:11px;}
+    thead tr{background:#1a3a5c;}
+    thead th{padding:8px 10px;text-align:left;font-size:9px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#fff;}
+    tbody td{padding:7px 10px;border-bottom:1px solid #eee;}
+    tbody tr:nth-child(even){background:#f7fafb;}
+    .total-row{background:#e6f4f2;font-weight:800;color:#085f54;}
+    .total-row td{padding:10px;border-top:2px solid #0a7c6e;}
+    @media print{body{padding:12px;} thead{display:table-header-group;}}
+  </style></head><body>
+  <div class="print-header">
+    <h1>📋 Detalle de Pedidos — Aqua Luan</h1>
+    <p>Fecha: ${fecha} · Asesor: ${asesorLabel} · ${datos.length} línea(s) · Generado: ${new Date().toLocaleString('es-EC')}</p>
+  </div>
+  <table>
+    <thead><tr><th>Fecha</th><th>Asesor</th><th>Cliente</th><th>Teléfono</th><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Total</th><th>Pago</th></tr></thead>
+    <tbody>
+      ${filas}
+      <tr class="total-row"><td colspan="7" style="text-align:right">TOTAL GENERAL</td><td style="text-align:right">$${totalGeneral.toFixed(2)}</td><td></td></tr>
+    </tbody>
+  </table>
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`);
   v.document.close();
