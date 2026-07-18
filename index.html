@@ -664,7 +664,7 @@ body { padding: 1rem 0.75rem 3rem; }
         </div>
         <div class="field">
           <label for="sel-precio">Precio ($)</label>
-          <input type="number" id="sel-precio" placeholder="0.00" step="0.01" min="0" max="99999" inputmode="decimal">
+          <input type="text" id="sel-precio" placeholder="0.00" inputmode="decimal" autocomplete="off" maxlength="10" oninput="filtrarInputMonto(this)">
         </div>
         <button class="btn-add" onclick="agregarProducto()">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -732,7 +732,7 @@ body { padding: 1rem 0.75rem 3rem; }
       </div>
       <div class="field"><label for="pago-cliente">Cliente</label><input type="text" id="pago-cliente" placeholder="Nombre del cliente" autocomplete="off" class="focus-blue" maxlength="100"></div>
       <div class="grid-2">
-        <div class="field"><label for="pago-monto">Monto recibido ($)</label><input type="number" id="pago-monto" placeholder="0.00" step="0.01" min="0" max="999999" inputmode="decimal" class="focus-blue"></div>
+        <div class="field"><label for="pago-monto">Monto recibido ($)</label><input type="text" id="pago-monto" placeholder="0.00" inputmode="decimal" autocomplete="off" maxlength="10" class="focus-blue" oninput="filtrarInputMonto(this)"></div>
         <div class="field"><label for="pago-forma">Forma de pago</label><select id="pago-forma" class="focus-blue"><option value="">-- Selecciona --</option><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Cheque">Cheque</option></select></div>
       </div>
       <div class="field" style="margin-bottom:0"><label for="pago-notas">Referencia / Notas</label><input type="text" id="pago-notas" placeholder="N° transferencia, observación..." autocomplete="off" class="focus-blue" maxlength="200"></div>
@@ -763,7 +763,7 @@ body { padding: 1rem 0.75rem 3rem; }
       <datalist id="gasto-categorias-list"><option value="Combustible"><option value="Almuerzos"><option value="Ascensor"><option value="Triciclo"><option value="Otro"></datalist>
       <div class="grid-2">
         <div class="field"><label for="gasto-categoria">Categoría</label><input type="text" id="gasto-categoria" list="gasto-categorias-list" placeholder="Combustible, Almuerzos..." autocomplete="off" class="focus-red" maxlength="100"></div>
-        <div class="field"><label for="gasto-monto">Monto ($)</label><input type="number" id="gasto-monto" placeholder="0.00" step="0.01" min="0" max="999999" inputmode="decimal" class="focus-red"></div>
+        <div class="field"><label for="gasto-monto">Monto ($)</label><input type="text" id="gasto-monto" placeholder="0.00" inputmode="decimal" autocomplete="off" maxlength="10" class="focus-red" oninput="filtrarInputMonto(this)"></div>
       </div>
       <div class="field"><label for="gasto-desc">Descripción</label><input type="text" id="gasto-desc" placeholder="Describe el gasto..." autocomplete="off" class="focus-red" maxlength="300"></div>
       <div class="field" style="margin-bottom:0"><label for="gasto-ref">Comprobante / Referencia</label><input type="text" id="gasto-ref" placeholder="N° factura, voucher, nota..." autocomplete="off" class="focus-red" maxlength="100"></div>
@@ -824,6 +824,26 @@ const LISTAS_BLANCAS = {
 function esValorSeguro(v,l){ return l.includes(String(v).trim()); }
 function sanitizarTexto(s,m=255){ if(!s)return''; return String(s).trim().slice(0,m); }
 function validarMonto(v){ const n=parseFloat(v); return !isNaN(n)&&n>0&&n<1000000; }
+
+/* [FIX] Acepta coma "," o punto "." como separador decimal (teclado numérico de Ecuador/Android) */
+function parseMonto(v){
+  if(v===null||v===undefined) return NaN;
+  let s=String(v).trim().replace(/[^0-9.,]/g,'');
+  if(s.indexOf(',')>-1 && s.indexOf('.')>-1){
+    // si vienen ambos, se asume que el punto es separador de miles: 1.234,56
+    s=s.replace(/\./g,'').replace(',', '.');
+  } else {
+    s=s.replace(',', '.');
+  }
+  return parseFloat(s);
+}
+/* Filtra en vivo lo que el usuario escribe en campos de monto: solo dígitos, una coma/punto */
+function filtrarInputMonto(el){
+  let v=el.value.replace(/[^0-9.,]/g,'');
+  const partes=v.split(/[.,]/);
+  if(partes.length>2){ v=partes[0]+(v.includes(',')? ',':'.')+partes.slice(1).join(''); }
+  el.value=v;
+}
 
 /* IndexedDB */
 const DB_NAME='aqualuan-db', STORE='pedidos-pendientes', LS_KEY='aqualuan-pendientes-ls';
@@ -1060,7 +1080,7 @@ function renderLista(){
 function agregarProducto(){
   const nombre=document.getElementById('sel-producto').value;
   const cantidad=parseFloat(document.getElementById('sel-cantidad').value);
-  const precio=parseFloat(document.getElementById('sel-precio').value);
+  const precio=parseMonto(document.getElementById('sel-precio').value);
   if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido.');return;}
   if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad inválida.');return;}
   if(!Number.isFinite(precio)||precio<=0||precio>99999){alert('Precio inválido.');return;}
@@ -1185,7 +1205,7 @@ function registrarPago(){
   const empleado=document.getElementById('pago-empleado').value;
   const fecha=document.getElementById('pago-fecha').value;
   const cliente=sanitizarTexto(document.getElementById('pago-cliente').value,100);
-  const monto=parseFloat(document.getElementById('pago-monto').value);
+  const monto=parseMonto(document.getElementById('pago-monto').value);
   const forma=document.getElementById('pago-forma').value;
   const notas=sanitizarTexto(document.getElementById('pago-notas').value,200);
   if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleado)){setStatusPagos('error','Selecciona el asesor / ruta.');return;}
@@ -1218,7 +1238,7 @@ function registrarGasto(){
   const empleado=document.getElementById('gasto-empleado').value;
   const fecha=document.getElementById('gasto-fecha').value;
   const categoria=sanitizarTexto(document.getElementById('gasto-categoria').value,100);
-  const monto=parseFloat(document.getElementById('gasto-monto').value);
+  const monto=parseMonto(document.getElementById('gasto-monto').value);
   const desc=sanitizarTexto(document.getElementById('gasto-desc').value,300);
   const ref=sanitizarTexto(document.getElementById('gasto-ref').value,100);
   if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleadoGasto)){setStatusGastos('error','Selecciona el responsable.');return;}
