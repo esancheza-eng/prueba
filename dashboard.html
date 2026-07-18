@@ -532,6 +532,32 @@ display: inline-block;
   display: flex; align-items: center; gap: 8px;
 }
 .btn-print-cierre:hover { background: #5b21b6; }
+.cierre-cliente-block {
+  border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; margin: 8px 16px;
+}
+.cierre-cliente-header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: 8px; padding: 8px 12px; background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.cierre-cliente-nombre { font-size: 12.5px; font-weight: 800; color: var(--navy); }
+.cierre-cliente-meta { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+.cierre-cliente-total { font-size: 13px; font-weight: 800; color: var(--teal); }
+.cierre-cliente-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.cierre-cliente-table th {
+  padding: 5px 12px; text-align: left; font-size: 9px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.cierre-cliente-table th:nth-child(2),
+.cierre-cliente-table th:nth-child(3),
+.cierre-cliente-table th:nth-child(4) { text-align: right; }
+.cierre-cliente-table td { padding: 6px 12px; border-bottom: 1px solid var(--border); font-weight: 500; }
+.cierre-cliente-table td:nth-child(2),
+.cierre-cliente-table td:nth-child(3),
+.cierre-cliente-table td:nth-child(4) { text-align: right; }
+.cierre-cliente-table tr:last-child td { border-bottom: none; }
 
 @media (max-width: 768px) {
   .charts-grid { grid-template-columns: 1fr; }
@@ -1391,6 +1417,44 @@ function abrirCierreDia() {
         <span class="cierre-pago-tag-valor">$${v.toFixed(2)}</span>
       </div>`).join('');
 
+    // ── Detalle por cliente (todos los productos con precios, agrupados por cliente)
+    const porCliente = {};
+    d.pedidos.forEach(r => {
+      const cliente = r['CLIENTE'] || 'Sin nombre';
+      if (!porCliente[cliente]) porCliente[cliente] = { items: [], hora: '', formaPago: '' };
+      porCliente[cliente].items.push(r);
+      if (r['HORA REGISTRO']) porCliente[cliente].hora = r['HORA REGISTRO'];
+      if (r['FORMA DE PAGO']) porCliente[cliente].formaPago = r['FORMA DE PAGO'];
+    });
+
+    const clientesOrdenados = Object.entries(porCliente).sort(([,a],[,b]) => (a.hora||'').localeCompare(b.hora||''));
+
+    const clientesHtml = clientesOrdenados.map(([cliente, c]) => {
+      const totalesPedido = c.items.map(r => parseFloat(r['TOTAL PEDIDO ($)']||0)).filter(v => v > 0);
+      const totalCliente = totalesPedido.length ? totalesPedido[0] : c.items.reduce((s,r) => s + (parseFloat(r['SUBTOTAL']||0)), 0);
+
+      const filasProdCliente = c.items.map(r => `
+        <tr>
+          <td>${r['PRODUCTO']||'-'}</td>
+          <td>$${parseFloat(r['PRECIO UNIT.']||0).toFixed(2)}</td>
+          <td>${r['CANTIDAD']||'-'}</td>
+          <td>$${parseFloat(r['SUBTOTAL']||0).toFixed(2)}</td>
+        </tr>`).join('');
+
+      return `
+        <div class="cierre-cliente-block">
+          <div class="cierre-cliente-header">
+            <span class="cierre-cliente-nombre">👤 ${cliente}</span>
+            <span class="cierre-cliente-meta">${c.hora?'🕐 '+c.hora+'  ·  ':''}${ICONOS_PAGO[c.formaPago]||'💳'} ${c.formaPago||'Sin especificar'}</span>
+            <span class="cierre-cliente-total">$${totalCliente.toFixed(2)}</span>
+          </div>
+          <table class="cierre-cliente-table">
+            <thead><tr><th>Producto</th><th>Precio Unit.</th><th>Cant.</th><th>Subtotal</th></tr></thead>
+            <tbody>${filasProdCliente}</tbody>
+          </table>
+        </div>`;
+    }).join('');
+
     html += `
       <div class="cierre-asesor-block">
         <div class="cierre-asesor-header" style="background:${color}">
@@ -1403,7 +1467,7 @@ function abrirCierreDia() {
           <div class="cierre-asesor-total">$${d.total.toFixed(2)}</div>
         </div>
 
-        <div class="cierre-section-label">📦 Productos vendidos</div>
+        <div class="cierre-section-label">📦 Productos vendidos (resumen)</div>
         <table class="cierre-prod-table">
           <thead>
             <tr>
@@ -1421,6 +1485,9 @@ function abrirCierreDia() {
             </tr>
           </tbody>
         </table>
+
+        <div class="cierre-section-label">👥 Detalle por cliente</div>
+        ${clientesHtml}
 
         <div class="cierre-section-label">💳 Formas de pago</div>
         <div class="cierre-pago-tags">${tagsPago}</div>
@@ -1486,6 +1553,16 @@ function imprimirCierre() {
     .cierre-total-general{background:#1a3a5c;border-radius:12px;padding:16px 20px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;}
     .cierre-total-label{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);}
     .cierre-total-value{font-family:'DM Serif Display',serif;font-size:2rem;color:#4ec9a0;}
+    .cierre-cliente-block{border:1px solid #ddd;border-radius:10px;overflow:hidden;margin:8px 16px;page-break-inside:avoid;}
+    .cierre-cliente-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:8px 12px;background:#f0f5f8;border-bottom:1px solid #eee;}
+    .cierre-cliente-nombre{font-size:12.5px;font-weight:800;color:#1a3a5c;}
+    .cierre-cliente-meta{font-size:10.5px;color:#888;font-weight:600;}
+    .cierre-cliente-total{font-size:13px;font-weight:800;color:#0a7c6e;}
+    .cierre-cliente-table{width:100%;border-collapse:collapse;font-size:11.5px;}
+    .cierre-cliente-table th{padding:5px 12px;text-align:left;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#888;border-bottom:1px solid #eee;}
+    .cierre-cliente-table th:nth-child(2),.cierre-cliente-table th:nth-child(3),.cierre-cliente-table th:nth-child(4){text-align:right;}
+    .cierre-cliente-table td{padding:6px 12px;border-bottom:1px solid #f5f5f5;font-weight:500;}
+    .cierre-cliente-table td:nth-child(2),.cierre-cliente-table td:nth-child(3),.cierre-cliente-table td:nth-child(4){text-align:right;}
     .print-header{text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1a3a5c;}
     .print-header h1{font-family:'DM Serif Display',serif;font-size:24px;color:#1a3a5c;}
     .print-header p{font-size:12px;color:#888;margin-top:4px;}
