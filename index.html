@@ -8,6 +8,8 @@
   ║  AQUA LUAN — Sistema de Pedidos v3.0 Enterprise                     ║
   ║  [FIX] servidorConfigurado() → false                                ║
   ║        Login usa AUTH_REGISTRY local (SHA-256) siempre              ║
+  ║  [FIX v3.1] Guardar deja btnGuardar visible (nuevo pedido inmediato)║
+  ║  [FIX v3.1] Historial: límite ampliado 20→200 (no pierde primeros)  ║
   ╚══════════════════════════════════════════════════════════════════════╝
 -->
 <title>Aqua Luan v3.0 — Sistema de Pedidos Empresarial</title>
@@ -698,10 +700,6 @@ body { padding: 1rem 0.75rem 3rem; }
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
         Descargar PDF del pedido
       </button>
-      <button class="btn" id="btnNuevo" onclick="nuevoPedido()" style="display:none;margin-top:10px;background:var(--navy)">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Registrar nuevo pedido
-      </button>
       <button class="btn btn-resumen-dia" id="btnResumenDia" onclick="abrirResumenDia()" style="margin-top:10px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Ver Resumen del Día
@@ -795,6 +793,8 @@ body { padding: 1rem 0.75rem 3rem; }
 /* ══════════════════════════════════════════════════════════════════════════
    AQUA LUAN v3.0 — JavaScript
    [FIX] servidorConfigurado() → false  →  login usa AUTH_REGISTRY local
+   [FIX v3.1] Guardar deja btnGuardar visible (nuevo pedido inmediato)
+   [FIX v3.1] Historial: límite ampliado 20→200 (no pierde primeros pedidos)
    ══════════════════════════════════════════════════════════════════════════ */
 
 const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
@@ -983,7 +983,7 @@ function _restaurarHistDia(u){
         hR=hR.concat(JSON.parse(localStorage.getItem(_claveHistDia(r,hoy))||'[]'));
       });
       hR.sort((a,b)=>(b.id||0)-(a.id||0));
-      if(hR.length>40)hR=hR.slice(0,40);
+      if(hR.length>200)hR=hR.slice(0,200); // [FIX v3.1] límite ampliado (antes 40)
     } else {
       hR=JSON.parse(localStorage.getItem(_claveHistDia(u.ruta,hoy))||'[]');
     }
@@ -992,7 +992,7 @@ function _restaurarHistDia(u){
       const ids=new Set(hS.map(r=>r.id));
       const nuevos=hR.filter(r=>!ids.has(r.id));
       const combinado=[...hS,...nuevos].sort((a,b)=>(b.id||0)-(a.id||0));
-      sessionStorage.setItem('aqualuan-historial',JSON.stringify(combinado.slice(0,40)));
+      sessionStorage.setItem('aqualuan-historial',JSON.stringify(combinado.slice(0,200))); // [FIX v3.1] límite ampliado (antes 40)
     }
   }catch(e){}
 }
@@ -1164,8 +1164,8 @@ async function confirmarEnvio(){
     else setStatus('success','✓ Pedido guardado correctamente en Google Sheets.');
     document.getElementById('btnWhatsapp').classList.add('visible');
     document.getElementById('btnPdf').style.display='flex';
-    document.getElementById('btnNuevo').style.display='flex';
-    document.getElementById('btnGuardar').style.display='none';
+    // [FIX v3.1] Ya no se oculta btnGuardar: queda disponible de inmediato
+    // para registrar el siguiente pedido sin tener que pulsar "Nuevo pedido".
     limpiarSoloFormulario();
     if(!modoOffline)subirPDFaDrive(ultimoRegistro);
   };
@@ -1192,7 +1192,6 @@ function limpiarFormulario(){
   document.getElementById('btnGuardar').style.display='flex';
   document.getElementById('btnWhatsapp').classList.remove('visible');
   document.getElementById('btnPdf').style.display='none';
-  document.getElementById('btnNuevo').style.display='none';
   document.getElementById('driveProgress').classList.remove('show');
   document.getElementById('progressFill').style.width='0%';
   document.getElementById('progressLink').classList.remove('show');
@@ -1373,12 +1372,12 @@ function guardarEnHistorial(reg){
     const r={id:Date.now(),nombre:sanitizarTexto(reg.nombre,100),total:reg.total,fecha:reg.fecha,empleado:reg.empleado,formapago:reg.formapago,telefono:sanitizarTexto(reg.telefono,20),direccion:sanitizarTexto(reg.direccion,200),notas:sanitizarTexto(reg.notas,500),productos:reg.productos,gps:null};
     // sessionStorage (sesión actual)
     const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
-    hS.unshift(r); if(hS.length>20)hS.pop();
+    hS.unshift(r); if(hS.length>200)hS.pop(); // [FIX v3.1] límite ampliado (antes 20) — ya no se pierden los primeros pedidos
     sessionStorage.setItem('aqualuan-historial',JSON.stringify(hS));
     // localStorage (persiste entre logins del mismo día)
     const clave=_claveHistDia(reg.empleado,reg.fecha);
     const hL=JSON.parse(localStorage.getItem(clave)||'[]');
-    if(!hL.find(x=>x.id===r.id)){hL.unshift(r);if(hL.length>20)hL.pop();localStorage.setItem(clave,JSON.stringify(hL));}
+    if(!hL.find(x=>x.id===r.id)){hL.unshift(r);if(hL.length>200)hL.pop();localStorage.setItem(clave,JSON.stringify(hL));} // [FIX v3.1] límite ampliado (antes 20)
   }catch{}
 }
 
