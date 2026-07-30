@@ -1333,7 +1333,20 @@ function registrarPago(){
   if(!esValorSeguro(forma,LISTAS_BLANCAS.pagoForma)){setStatusPagos('error','Selecciona la forma de pago.');return;}
   const pago={id:Date.now(),empleado,fecha,cliente,monto,forma,notas,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
   listaPagos.unshift(pago); renderPagos(); actualizarResumenPagos();
-  if(navigator.onLine) fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'registrar_pago',empleado,fecha,cliente,monto:monto.toFixed(2),forma,notas,csrfToken:SESSION_TOKEN})}).catch(()=>{});
+  const payloadPago={accion:'registrar_pago',empleado,fecha,cliente,monto:monto.toFixed(2),forma,notas,csrfToken:SESSION_TOKEN};
+  if(navigator.onLine){
+    // [FIX] mode:'no-cors' — sin esto el navegador bloqueaba la petición antes
+    // de que saliera y el pago nunca llegaba a Google Sheets/Drive.
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadPago)}).catch(()=>{
+      guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
+      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    });
+  } else {
+    // [FIX] Antes: sin internet, el pago se perdía en silencio. Ahora se guarda
+    // igual que los pedidos y se reenvía solo cuando vuelve la conexión.
+    guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
+    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+  }
   ['pago-empleado','pago-forma'].forEach(id=>document.getElementById(id).value='');
   ['pago-cliente','pago-monto','pago-notas'].forEach(id=>document.getElementById(id).value='');
   setStatusPagos('success',`✓ Pago de $${monto.toFixed(2)} registrado para ${escHTML(cliente)}.`);
@@ -1366,7 +1379,20 @@ function registrarGasto(){
   if(!desc){setStatusGastos('error','Describe el gasto.');return;}
   const gasto={id:Date.now(),empleado,fecha,categoria,monto,desc,ref,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
   listaGastos.unshift(gasto); renderGastos(); actualizarResumenGastos();
-  if(navigator.onLine) fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'registrar_gasto',empleado,fecha,categoria,monto:monto.toFixed(2),desc,ref,csrfToken:SESSION_TOKEN})}).catch(()=>{});
+  const payloadGasto={accion:'registrar_gasto',empleado,fecha,categoria,monto:monto.toFixed(2),desc,ref,csrfToken:SESSION_TOKEN};
+  if(navigator.onLine){
+    // [FIX] mode:'no-cors' — mismo problema que en registrarPago(): sin esto el
+    // gasto nunca llegaba a Google Sheets/Drive.
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadGasto)}).catch(()=>{
+      guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
+      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    });
+  } else {
+    // [FIX] Antes: sin internet, el gasto se perdía en silencio. Ahora se guarda
+    // igual que los pedidos y se reenvía solo cuando vuelve la conexión.
+    guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
+    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+  }
   ['gasto-empleado','gasto-categoria'].forEach(id=>document.getElementById(id).value='');
   ['gasto-monto','gasto-desc','gasto-ref'].forEach(id=>document.getElementById(id).value='');
   setStatusGastos('success',`✓ Gasto de $${monto.toFixed(2)} registrado — ${escHTML(desc)}.`);
