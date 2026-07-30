@@ -987,7 +987,7 @@ function iniciarMonitorExpiracion(){
 
 async function cerrarSesion(){
   if(_monitorId)clearInterval(_monitorId);
-  usuarioActual=null; ultimoRegistro=null; productos=[];
+  usuarioActual=null; ultimoRegistro=null; productos=[]; listaPagos=[]; listaGastos=[]; // [NEW] limpia solo la vista, no borra localStorage
   // Conservar historial del día — solo limpiar datos de sesión
   sessionStorage.removeItem('_al_sess');
   sessionStorage.removeItem('_al_att');
@@ -1041,6 +1041,7 @@ function aplicarUsuario(){
   document.getElementById('btnGestionAsesores').style.display=u.esAdmin?'flex':'none'; // [NEW] solo admin ve "Agregar Asesor"
   document.getElementById('btnGestionProductos').style.display=u.esAdmin?'flex':'none'; // [NEW] solo admin ve "Gestionar Producto"
   _restaurarHistDia(u);
+  _restaurarPagosGastosDia(u); // [NEW]
   if(u.esAdmin)return;
   const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
   const rs=escHTML(u.ruta);
@@ -1089,11 +1090,14 @@ async function sincronizarManual(silencioso=false){
 
 if('serviceWorker'in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
 
+let _fechaActualApp = null; // [NEW] fecha (YYYY-MM-DD) que la app tiene "activa" ahora mismo
+
 (function init(){
   const hoy=new Date();
   document.getElementById('fechaHoy').textContent=hoy.toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long'});
   const yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
   const hoyStr=`${yyyy}-${mm}-${dd}`;
+  _fechaActualApp=hoyStr; // [NEW]
   document.getElementById('fecha').value=hoyStr;
   document.getElementById('pago-fecha').value=hoyStr;
   document.getElementById('gasto-fecha').value=hoyStr;
@@ -1107,7 +1111,29 @@ if('serviceWorker'in navigator){ window.addEventListener('load',()=>{ navigator.
       aplicarUsuario(); iniciarMonitorExpiracion();
     } else if(sess){ sessionStorage.removeItem('_al_sess'); sessionStorage.removeItem('_al_att'); sessionStorage.removeItem('aqualuan-historial'); }
   }catch{}
+  setInterval(_verificarCambioDeDia, 60000); // [NEW] revisa cada minuto si ya cambió el día
 })();
+
+/* [NEW] Detecta si el reloj del celular pasó de un día al siguiente mientras la
+   app seguía abierta, y refresca solo la vista de fecha/historial/pagos/gastos
+   — no toca un pedido que el asesor esté armando en ese momento. */
+function _verificarCambioDeDia(){
+  const hoyStr=new Date().toISOString().slice(0,10);
+  if(hoyStr===_fechaActualApp) return;
+  _fechaActualApp=hoyStr;
+  ['fecha','pago-fecha','gasto-fecha'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=hoyStr; });
+  sessionStorage.removeItem('aqualuan-historial');
+  if(usuarioActual){
+    _restaurarHistDia(usuarioActual);
+    _restaurarPagosGastosDia(usuarioActual);
+  } else {
+    listaPagos=[]; listaGastos=[]; renderPagos(); actualizarResumenPagos(); renderGastos(); actualizarResumenGastos();
+  }
+  const contHist=document.getElementById('content-historial');
+  if(contHist&&contHist.classList.contains('active')) cargarHistorial();
+  const aviso=document.getElementById('avisoSesion');
+  if(aviso){ aviso.textContent=`📅 Nuevo día iniciado — ${hoyStr}`; aviso.style.display='block'; setTimeout(()=>{ if(aviso.textContent.includes('Nuevo día')) aviso.style.display='none'; },6000); }
+}
 
 function calcTotal(){ return productos.reduce((s,p)=>s+p.subtotal,0); }
 function renderLista(){
@@ -1333,6 +1359,12 @@ function registrarPago(){
   if(!esValorSeguro(forma,LISTAS_BLANCAS.pagoForma)){setStatusPagos('error','Selecciona la forma de pago.');return;}
   const pago={id:Date.now(),empleado,fecha,cliente,monto,forma,notas,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
   listaPagos.unshift(pago); renderPagos(); actualizarResumenPagos();
+  try{ // [NEW] persistir en localStorage — sobrevive a cerrar/recargar la app
+    const clave=_clavePagosDia(empleado,fecha);
+    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
+    guardados.unshift(pago);
+    localStorage.setItem(clave,JSON.stringify(guardados));
+  }catch{}
   const payloadPago={accion:'registrar_pago',empleado,fecha,cliente,monto:monto.toFixed(2),forma,notas,csrfToken:SESSION_TOKEN};
   if(navigator.onLine){
     // [FIX] mode:'no-cors' — sin esto el navegador bloqueaba la petición antes
@@ -1379,6 +1411,12 @@ function registrarGasto(){
   if(!desc){setStatusGastos('error','Describe el gasto.');return;}
   const gasto={id:Date.now(),empleado,fecha,categoria,monto,desc,ref,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
   listaGastos.unshift(gasto); renderGastos(); actualizarResumenGastos();
+  try{ // [NEW] persistir en localStorage — sobrevive a cerrar/recargar la app
+    const clave=_claveGastosDia(empleado,fecha);
+    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
+    guardados.unshift(gasto);
+    localStorage.setItem(clave,JSON.stringify(guardados));
+  }catch{}
   const payloadGasto={accion:'registrar_gasto',empleado,fecha,categoria,monto:monto.toFixed(2),desc,ref,csrfToken:SESSION_TOKEN};
   if(navigator.onLine){
     // [FIX] mode:'no-cors' — mismo problema que en registrarPago(): sin esto el
@@ -1520,6 +1558,39 @@ function _claveHistDia(empleado,fecha){
   const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
   const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
   return 'al_hist_'+e+'_'+f;
+}
+/* [NEW] Mismo patrón que el historial de pedidos, pero para Pagos y Gastos */
+function _clavePagosDia(empleado,fecha){
+  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
+  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
+  return 'al_pagos_'+e+'_'+f;
+}
+function _claveGastosDia(empleado,fecha){
+  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
+  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
+  return 'al_gastos_'+e+'_'+f;
+}
+/* [NEW] Restaura Pagos y Gastos guardados en localStorage al iniciar sesión —
+   mismo mecanismo que _restaurarHistDia(), así sobreviven a cerrar la app. */
+function _restaurarPagosGastosDia(u){
+  try{
+    const hoy=new Date().toISOString().slice(0,10);
+    let pagosR=[], gastosR=[];
+    if(u.esAdmin){
+      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
+        pagosR=pagosR.concat(JSON.parse(localStorage.getItem(_clavePagosDia(r,hoy))||'[]'));
+        gastosR=gastosR.concat(JSON.parse(localStorage.getItem(_claveGastosDia(r,hoy))||'[]'));
+      });
+    } else {
+      pagosR=JSON.parse(localStorage.getItem(_clavePagosDia(u.ruta,hoy))||'[]');
+      gastosR=JSON.parse(localStorage.getItem(_claveGastosDia(u.ruta,hoy))||'[]');
+    }
+    pagosR.sort((a,b)=>(b.id||0)-(a.id||0));
+    gastosR.sort((a,b)=>(b.id||0)-(a.id||0));
+    listaPagos=pagosR; listaGastos=gastosR;
+    renderPagos(); actualizarResumenPagos();
+    renderGastos(); actualizarResumenGastos();
+  }catch(e){}
 }
 function guardarEnHistorial(reg){
   try{
@@ -1690,16 +1761,32 @@ let _resumenDiaData=null;
 function abrirResumenDia(){
   let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{}
   const contenedor=document.getElementById('resumenDiaContenido'),sub=document.getElementById('resumenDiaSub'),totalBox=document.getElementById('resumenTotalGeneral'),totalValor=document.getElementById('resumenTotalValor');
-  if(!hist.length){ contenedor.innerHTML=`<div class="empty-msg" style="margin-top:0">No hay pedidos registrados en esta sesión.</div>`; totalBox.style.display='none'; _resumenDiaData=null; document.getElementById('resumenModalOverlay').classList.add('open'); document.body.style.overflow='hidden'; return; }
+
+  // [NEW] Cuadre de Caja: Ingresos (pagos) vs Egresos (gastos) de esta sesión
+  const totalIngresos=listaPagos.reduce((s,p)=>s+p.monto,0);
+  const totalEgresos=listaGastos.reduce((s,g)=>s+g.monto,0);
+  const netoCaja=totalIngresos-totalEgresos;
+  const hayCaja=listaPagos.length>0||listaGastos.length>0;
+  const cajaHtml=hayCaja?`
+    <div class="resumen-grid" style="margin-bottom:1rem">
+      <div class="resumen-card teal"><span class="resumen-label">🟢 Ingresos (pagos)</span><span class="resumen-value">$${totalIngresos.toFixed(2)}</span><span class="resumen-sub">${listaPagos.length} pago(s)</span></div>
+      <div class="resumen-card red"><span class="resumen-label">🔴 Egresos (gastos)</span><span class="resumen-value">$${totalEgresos.toFixed(2)}</span><span class="resumen-sub">${listaGastos.length} gasto(s)</span></div>
+    </div>
+    <div class="resumen-total-general" style="background:${netoCaja>=0?'var(--navy)':'#7a2020'};margin-top:0;margin-bottom:1.25rem">
+      <span class="resumen-total-general-label">🧮 Total en caja (Ingresos − Egresos)</span>
+      <span class="resumen-total-general-value">$${netoCaja.toFixed(2)}</span>
+    </div>`:'';
+
+  if(!hist.length){ contenedor.innerHTML=cajaHtml+`<div class="empty-msg" style="margin-top:0">No hay pedidos registrados en esta sesión.</div>`; totalBox.style.display='none'; _resumenDiaData={porAsesor:{},totalGeneral:0,formasPagoGlobal:{},hoy:new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),totalPedidos:0,totalIngresos,totalEgresos,netoCaja}; document.getElementById('resumenModalOverlay').classList.add('open'); document.body.style.overflow='hidden'; return; }
   const hoy=new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   sub.textContent=`📅 ${hoy} — ${hist.length} pedido(s) en esta sesión`;
   const porAsesor={};
   hist.forEach(pedido=>{ const asesor=pedido.empleado||'Sin asignar'; if(!porAsesor[asesor])porAsesor[asesor]={clientes:new Set(),pedidos:0,productos:{},formasPago:{},totalDia:0}; const datos=porAsesor[asesor]; datos.clientes.add(pedido.nombre||''); datos.pedidos++; const tot=parseFloat(pedido.total||0); datos.totalDia+=tot; const forma=pedido.formapago||'Sin especificar'; datos.formasPago[forma]=(datos.formasPago[forma]||0)+tot; (pedido.productos||[]).forEach(p=>{ const nom=p.nombre||'Sin nombre'; if(!datos.productos[nom])datos.productos[nom]={cantidad:0,precioUnit:p.precio||0,subtotal:0}; datos.productos[nom].cantidad+=parseFloat(p.cantidad||0); datos.productos[nom].subtotal+=parseFloat(p.subtotal||0); datos.productos[nom].precioUnit=parseFloat(p.precio||datos.productos[nom].precioUnit); }); });
   let totalGeneral=0; const formasPagoGlobal={};
   Object.values(porAsesor).forEach(d=>{ totalGeneral+=d.totalDia; Object.entries(d.formasPago).forEach(([f,v])=>{ formasPagoGlobal[f]=(formasPagoGlobal[f]||0)+v; }); });
-  _resumenDiaData={porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos:hist.length};
+  _resumenDiaData={porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos:hist.length,totalIngresos,totalEgresos,netoCaja};
   const iconoForma={'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓'};
-  let html='';
+  let html=cajaHtml;
   Object.entries(porAsesor).forEach(([asesor,datos])=>{
     const nc=asesor.includes(':')?asesor.split(':')[1].trim():asesor;
     const ca=[...datos.clientes].filter(Boolean);
@@ -1729,7 +1816,7 @@ document.getElementById('resumenModalOverlay').addEventListener('click',function
 
 function enviarResumenWhatsapp(){
   if(!_resumenDiaData){alert('Primero genera el resumen del día.');return;}
-  const{porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos}=_resumenDiaData;
+  const{porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos,totalIngresos,totalEgresos,netoCaja}=_resumenDiaData;
   const iF={'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓'};
   let msg=`📊 *RESUMEN DEL DÍA — AQUA LUAN*%0A📅 ${encodeURIComponent(hoy)}%0A📦 Total pedidos: ${totalPedidos}%0A%0A`;
   Object.entries(porAsesor).forEach(([asesor,datos])=>{
@@ -1744,7 +1831,11 @@ function enviarResumenWhatsapp(){
   });
   msg+=`💳 *FORMAS DE PAGO TOTAL*%0A`;
   Object.entries(formasPagoGlobal).sort(([,a],[,b])=>b-a).forEach(([f,v])=>{ msg+=` ${iF[f]||'💳'} ${encodeURIComponent(f)}: *$${v.toFixed(2)}*%0A`; });
-  msg+=`%0A💰 *TOTAL GENERAL DEL DÍA: $${totalGeneral.toFixed(2)}*%0A%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
+  msg+=`%0A💰 *TOTAL GENERAL DEL DÍA: $${totalGeneral.toFixed(2)}*%0A`;
+  if((totalIngresos||0)>0||(totalEgresos||0)>0){
+    msg+=`%0A🧮 *CUADRE DE CAJA*%0A🟢 Ingresos (pagos): $${(totalIngresos||0).toFixed(2)}%0A🔴 Egresos (gastos): $${(totalEgresos||0).toFixed(2)}%0A💼 *Total en caja: $${(netoCaja||0).toFixed(2)}*%0A`;
+  }
+  msg+=`%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
   window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${msg}`,'_blank','noopener,noreferrer'); // [FIX] WHATSAPP_ZOILA no existía en esta versión
 }
 
