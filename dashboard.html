@@ -1674,8 +1674,11 @@ let clientesDisponibles = [];
 let clientesSeleccionados = [];
 
 function poblarClienteSelect(datos) {
-  clientesDisponibles = [...new Set(datos.map(r => r['CLIENTE']).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
-  clientesSeleccionados = clientesSeleccionados.filter(c => clientesDisponibles.includes(c)); // descarta selección que ya no aplica al filtro
+  // [NEW] La lista de clientes seleccionables sale de TODOS los pedidos registrados,
+  // no solo del filtro de fecha/asesor actual — así siempre aparecen todos los clientes.
+  const todosPedidos = todosLosDatos.filter(r => r['PRODUCTO'] && r['PRODUCTO'] !== '');
+  clientesDisponibles = [...new Set(todosPedidos.map(r => r['CLIENTE']).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
+  clientesSeleccionados = clientesSeleccionados.filter(c => clientesDisponibles.includes(c));
   renderListaClientesCheck(document.getElementById('clienteBuscarInput') ? document.getElementById('clienteBuscarInput').value : '');
   actualizarLabelClientes();
   poblarFiltroTotalCliente(datos); // [NEW]
