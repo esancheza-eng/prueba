@@ -239,6 +239,30 @@ cursor: pointer; display: flex; align-items: center; justify-content: center;
 transition: background 0.15s; line-height: 1;
 }
 .btn-remove:hover { background: #fca5a5; }
+.producto-bloque:nth-child(even) .lista-item { background: var(--surface2); }
+.regalia-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px 6px 28px; background: var(--teal-light);
+  border-top: 1px dashed var(--success-border); font-size: 12px;
+}
+.regalia-icon { font-size: 13px; flex-shrink: 0; }
+.regalia-nombre { flex: 1; color: var(--teal-dark); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.regalia-cant { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.regalia-precio { color: var(--teal); font-weight: 700; min-width: 46px; text-align: right; }
+.btn-add-regalia {
+  display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
+  background: transparent; border: none; border-top: 1px solid var(--border);
+  color: var(--teal); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; padding: 9px 12px 9px 28px; transition: background 0.15s;
+}
+.btn-add-regalia:hover { background: var(--teal-light); }
+.regalia-form {
+  display: flex; gap: 8px; padding: 10px 12px 10px 28px; flex-wrap: wrap; align-items: flex-end;
+  background: var(--surface2); border-top: 1px solid var(--border);
+}
+.regalia-form select { flex: 1; min-width: 140px; }
+.regalia-form input { width: 84px; flex-shrink: 0; }
+.regalia-form .btn { width: auto; padding: 0 16px; height: 44px; min-height: auto; flex-shrink: 0; }
 .total-row {
 display: flex; align-items: center; justify-content: space-between;
 background: var(--navy); border-radius: var(--radius); padding: 16px 18px; margin-top: 1rem;
@@ -565,6 +589,10 @@ body { padding: 1rem 0.75rem 3rem; }
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3 2.5-5 5-5s5 2 5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13 4v4M11 6h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       Asesor
     </button>
+    <button class="btn-logout" id="btnGestionProductos" onclick="abrirModalProducto()" style="display:none;margin-right:8px">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="5" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2 8h12" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 5V3.5A1.5 1.5 0 0 1 7 2h2a1.5 1.5 0 0 1 1.5 1.5V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Producto
+    </button>
     <button class="btn-logout" id="btnLogout" onclick="cerrarSesion()" style="display:none">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Salir
@@ -651,19 +679,21 @@ body { padding: 1rem 0.75rem 3rem; }
       <div class="add-row">
         <div class="field">
           <label for="sel-producto">Producto</label>
-          <select id="sel-producto">
-            <option value="">-- Selecciona --</option>
-            <option value="BOTELLON 20LT">BOTELLON 20LT</option>
-            <option value="BOTELLON CON LLAVE">BOTELLON CON LLAVE</option>
-            <option value="PACA 625ML AZUL">PACA 625ML AZUL</option>
-            <option value="PACA 600ML VERDE">PACA 600ML VERDE</option>
-            <option value="PACA 1000ML">PACA 1000ML</option>
-            <option value="PACA 400ML">PACA 400ML</option>
-            <option value="GALONES 4LT">GALONES 4LT</option>
-            <option value="POMA 5LTS">POMA 5LTS</option>
-            <option value="ENVASE CON LLAVE">ENVASE CON LLAVE</option>
-            <option value="ENVASE AZUL ADICIONAL">ENVASE AZUL ADICIONAL</option>
-          </select>
+          <div id="wrap-sel-producto">
+            <select id="sel-producto">
+              <option value="">-- Selecciona --</option>
+              <option value="BOTELLON 20LT">BOTELLON 20LT</option>
+              <option value="BOTELLON CON LLAVE">BOTELLON CON LLAVE</option>
+              <option value="PACA 625ML AZUL">PACA 625ML AZUL</option>
+              <option value="PACA 600ML VERDE">PACA 600ML VERDE</option>
+              <option value="PACA 1000ML">PACA 1000ML</option>
+              <option value="PACA 400ML">PACA 400ML</option>
+              <option value="GALONES 4LT">GALONES 4LT</option>
+              <option value="POMA 5LTS">POMA 5LTS</option>
+              <option value="ENVASE CON LLAVE">ENVASE CON LLAVE</option>
+              <option value="ENVASE AZUL ADICIONAL">ENVASE AZUL ADICIONAL</option>
+            </select>
+          </div>
         </div>
         <div class="field">
           <label for="sel-cantidad">Cantidad</label>
@@ -967,6 +997,7 @@ async function cerrarSesion(){
   document.getElementById('loginOverlay').style.display='flex';
   document.getElementById('btnLogout').style.display='none';
   document.getElementById('btnGestionAsesores').style.display='none'; // [NEW]
+  document.getElementById('btnGestionProductos').style.display='none'; // [NEW]
   document.getElementById('logoSub').textContent='Registro de Pedidos';
   restaurarSelectsCompletos(); limpiarFormulario();
 }
@@ -1008,6 +1039,7 @@ function aplicarUsuario(){
   document.getElementById('logoSub').textContent=u.esAdmin?'Administrador':`Bienvenido, ${u.nombre}`;
   document.getElementById('btnLogout').style.display='flex';
   document.getElementById('btnGestionAsesores').style.display=u.esAdmin?'flex':'none'; // [NEW] solo admin ve "Agregar Asesor"
+  document.getElementById('btnGestionProductos').style.display=u.esAdmin?'flex':'none'; // [NEW] solo admin ve "Gestionar Producto"
   _restaurarHistDia(u);
   if(u.esAdmin)return;
   const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
@@ -1082,8 +1114,18 @@ function renderLista(){
   const items=document.getElementById('productosItems'),lista=document.getElementById('productosLista'),emptyMsg=document.getElementById('emptyMsg');
   if(productos.length===0){lista.classList.add('empty');emptyMsg.style.display='block';}
   else{lista.classList.remove('empty');emptyMsg.style.display='none';}
-  items.innerHTML=productos.map((p,i)=>`<div class="lista-item"><span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHTML(p.nombre)}">${escHTML(p.nombre)}</span><span class="item-num">${escHTML(String(p.cantidad))}</span><span class="item-precio">$${escHTML(p.precio.toFixed(2))}</span><span class="item-subtotal">$${escHTML(p.subtotal.toFixed(2))}</span><button class="btn-remove" onclick="eliminarProducto(${parseInt(i)})" aria-label="Eliminar">&times;</button></div>`).join('');
+  items.innerHTML=productos.map((p,i)=>{
+    const filaPrincipal=`<div class="lista-item"><span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHTML(p.nombre)}">${escHTML(p.nombre)}</span><span class="item-num">${escHTML(String(p.cantidad))}</span><span class="item-precio">$${escHTML(p.precio.toFixed(2))}</span><span class="item-subtotal">$${escHTML(p.subtotal.toFixed(2))}</span><button class="btn-remove" onclick="eliminarProducto(${parseInt(i)})" aria-label="Eliminar">&times;</button></div>`;
+    const filasRegalia=(p.regalias||[]).map((r,ri)=>`<div class="regalia-row"><span class="regalia-icon">🎁</span><span class="regalia-nombre" title="${escHTML(r.nombre)}">${escHTML(r.nombre)}</span><span class="regalia-cant">x${escHTML(String(r.cantidad))}</span><span class="regalia-precio">$0.00</span><button class="btn-remove" onclick="eliminarRegalia(${parseInt(i)},${parseInt(ri)})" aria-label="Quitar regalía">&times;</button></div>`).join('');
+    const formRegalia=`<div class="regalia-form" id="regalia-form-${i}" style="display:none"><select id="regalia-sel-${i}">${_opcionesProductosHTML()}</select><input type="number" id="regalia-cant-${i}" placeholder="Cant." min="1" max="9999" inputmode="numeric"><button type="button" class="btn" onclick="confirmarRegalia(${i})">Agregar</button></div>`;
+    const btnToggle=`<button type="button" class="btn-add-regalia" onclick="toggleRegaliaForm(${i})">➕ Agregar Regalía</button>`;
+    return `<div class="producto-bloque">${filaPrincipal}${filasRegalia}${btnToggle}${formRegalia}</div>`;
+  }).join('');
   document.getElementById('totalGeneral').textContent='$'+calcTotal().toFixed(2);
+}
+/* [NEW] Genera las <option> del catálogo de productos, reutilizado en el selector de regalías */
+function _opcionesProductosHTML(){
+  return '<option value="">-- Selecciona --</option>' + LISTAS_BLANCAS.productos.map(n=>`<option value="${escHTML(n)}">${escHTML(n)}</option>`).join('');
 }
 function agregarProducto(){
   const nombre=document.getElementById('sel-producto').value;
@@ -1094,8 +1136,34 @@ function agregarProducto(){
   if(!Number.isFinite(precio)||precio<0||precio>99999){alert('Precio inválido.');return;} // [FIX] permite $0.00 (regalías/obsequios a clientes)
   const ex=productos.findIndex(p=>p.nombre===nombre&&p.precio===precio); // [FIX] solo fusiona si el precio coincide
   if(ex>=0){productos[ex].cantidad+=cantidad;productos[ex].subtotal=productos[ex].cantidad*productos[ex].precio;}
-  else{productos.push({nombre,cantidad,precio,subtotal:cantidad*precio});}
+  else{productos.push({nombre,cantidad,precio,subtotal:cantidad*precio,regalias:[]});} // [NEW] regalias vacío por defecto
   document.getElementById('sel-producto').value='';document.getElementById('sel-cantidad').value='';document.getElementById('sel-precio').value='';
+  renderLista();
+}
+/* [NEW] Muestra/oculta el mini-formulario de regalía para el producto en el índice i */
+function toggleRegaliaForm(i){
+  const form=document.getElementById('regalia-form-'+i);
+  if(!form)return;
+  const abierto=form.style.display!=='none';
+  document.querySelectorAll('.regalia-form').forEach(f=>f.style.display='none');
+  form.style.display=abierto?'none':'flex';
+}
+/* [NEW] Agrega una regalía al producto en el índice i — precio siempre $0.00, no afecta el total */
+function confirmarRegalia(i){
+  if(!productos[i])return;
+  const sel=document.getElementById('regalia-sel-'+i);
+  const cantInput=document.getElementById('regalia-cant-'+i);
+  const nombre=sel.value;
+  const cantidad=parseFloat(cantInput.value);
+  if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido para la regalía.');return;}
+  if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad de regalía inválida.');return;}
+  if(!productos[i].regalias)productos[i].regalias=[];
+  productos[i].regalias.push({nombre,cantidad});
+  renderLista();
+}
+/* [NEW] Quita la regalía ri del producto i */
+function eliminarRegalia(i,ri){
+  if(productos[i]&&productos[i].regalias)productos[i].regalias.splice(ri,1);
   renderLista();
 }
 function eliminarProducto(i){ if(i>=0&&i<productos.length)productos.splice(i,1); renderLista(); }
@@ -1133,7 +1201,13 @@ async function abrirModal(){
   document.getElementById('m-fecha').textContent=fecha||'-';
   document.getElementById('m-notas').textContent=notas||'-';
   document.getElementById('m-total').textContent='$'+total.toFixed(2);
-  document.getElementById('m-productos').innerHTML=productos.map(p=>`<tr><td>${escHTML(p.nombre)}</td><td style="text-align:center">${escHTML(String(p.cantidad))}</td><td style="text-align:right">$${escHTML(p.precio.toFixed(2))}</td><td>$${escHTML(p.subtotal.toFixed(2))}</td></tr>`).join('');
+  document.getElementById('m-productos').innerHTML=productos.map(p=>{
+    let fila=`<tr><td>${escHTML(p.nombre)}</td><td style="text-align:center">${escHTML(String(p.cantidad))}</td><td style="text-align:right">$${escHTML(p.precio.toFixed(2))}</td><td>$${escHTML(p.subtotal.toFixed(2))}</td></tr>`;
+    if(p.regalias&&p.regalias.length){
+      fila+=p.regalias.map(r=>`<tr><td colspan="2" style="font-size:11px;color:var(--teal-dark);font-style:italic">🎁 ${escHTML(r.nombre)} x${escHTML(String(r.cantidad))}</td><td style="font-size:11px;color:var(--teal-dark);font-style:italic;text-align:right">Regalo</td><td style="font-size:11px;color:var(--teal-dark);font-style:italic">$0.00</td></tr>`).join('');
+    }
+    return fila;
+  }).join('');
   resetGpsBadge();
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -1161,7 +1235,11 @@ async function confirmarEnvio(){
   btn.disabled=true; btn.innerHTML='<div class="spinner2"></div> Guardando...';
   const fechaObj=dataPendiente.fecha?new Date(dataPendiente.fecha+'T00:00:00'):new Date();
   const dia=fechaObj.getDate(),mes=fechaObj.getMonth()+1;
-  const productosTexto=dataPendiente.productos.map(p=>`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`).join(' | ');
+  const productosTexto=dataPendiente.productos.map(p=>{
+    let txt=`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`;
+    if(p.regalias&&p.regalias.length){ txt+=' [Regalo: '+p.regalias.map(r=>`${escHTML(r.nombre)} x${r.cantidad}`).join(', ')+']'; }
+    return txt;
+  }).join(' | ');
   const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:productosTexto,total:dataPendiente.total,latitud:dataPendiente.gps?dataPendiente.gps.lat.toFixed(6):'',longitud:dataPendiente.gps?dataPendiente.gps.lng.toFixed(6):'',gps_link:dataPendiente.gps?dataPendiente.gps.url:'',gps_prec:dataPendiente.gps?`±${dataPendiente.gps.acc}m`:'',csrfToken:SESSION_TOKEN};
   const estaOnline=navigator.onLine;
   const onExito=(modoOffline=false)=>{
@@ -1305,6 +1383,10 @@ function _buildPDF(doc,d){
     doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,58,92);
     doc.text(p.nombre,margin+3,y+5);doc.text(String(p.cantidad),138,y+5,{align:'center'});doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
     doc.setFont('helvetica','bold');doc.setTextColor(10,124,110);doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'});y+=7;
+    if(p.regalias&&p.regalias.length){
+      doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(10,124,110);
+      p.regalias.forEach(r=>{ doc.text(`+ Regalo: ${r.nombre} x${r.cantidad}`,margin+6,y+4); y+=5; });
+    }
   });
   y+=4;doc.setFillColor(26,58,92);doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
   doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(200,220,240);doc.text('TOTAL GENERAL',margin+4,y+8);
@@ -1364,7 +1446,11 @@ async function subirPDFaDrive(snap){
 }
 
 function _construirMsgWA(d){
-  const lineas=d.productos.map(p=>` - ${encodeURIComponent(p.nombre)}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`).join('%0A');
+  const lineas=d.productos.map(p=>{
+    let l=` - ${encodeURIComponent(p.nombre)}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`;
+    if(p.regalias&&p.regalias.length){ l+=p.regalias.map(r=>`%0A    🎁 Regalo: ${encodeURIComponent(r.nombre)} x${r.cantidad}`).join(''); }
+    return l;
+  }).join('%0A');
   const gpsLinea=d.gps?`%0A📌 *Ubicación GPS:* ${encodeURIComponent(d.gps.url)}`:'';
   return`Estimada Secretria, se envia pedido de cliente:%0A%0A`+`👤 *Cliente:* ${encodeURIComponent(d.nombre)}%0A`+`📞 *Telefono:* ${encodeURIComponent(d.telefono||'-')}%0A`+`📍 *Direccion:* ${encodeURIComponent(d.direccion||'-')}%0A`+`📅 *Fecha:* ${encodeURIComponent(d.fecha)}%0A`+`👷 *Asesor:* ${encodeURIComponent(d.empleado)}%0A`+`💳 *Pago:* ${encodeURIComponent(d.formapago||'-')}%0A%0A`+`📦 *Productos:*%0A${lineas}%0A%0A`+`💰 *TOTAL: $${d.total}*%0A`+`📝 *Notas:* ${encodeURIComponent(d.notas||'-')}`+gpsLinea;
 }
@@ -1601,6 +1687,99 @@ function enviarResumenWhatsapp(){
   msg+=`%0A💰 *TOTAL GENERAL DEL DÍA: $${totalGeneral.toFixed(2)}*%0A%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
   window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${msg}`,'_blank','noopener,noreferrer'); // [FIX] WHATSAPP_ZOILA no existía en esta versión
 }
+
+/* ── [NEW] Panel Admin: gestionar productos (agregar / eliminar) ──
+   Igual que los asesores, aquí no hay backend de catálogo (LISTAS_BLANCAS.productos
+   vive hardcodeado), así que este panel también GENERA el código listo para pegar. */
+function abrirModalProducto(){
+  document.getElementById('np-nombre').value='';
+  document.getElementById('np-resultado').style.display='none';
+  document.getElementById('np-codigo').value='';
+  document.getElementById('np-elim-resultado').style.display='none';
+  document.getElementById('np-elim-codigo').value='';
+  poblarSelectEliminarProducto();
+  document.getElementById('modalProductoOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function cerrarModalProducto(){
+  document.getElementById('modalProductoOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function poblarSelectEliminarProducto(){
+  const sel = document.getElementById('np-eliminar-select');
+  sel.innerHTML = '<option value="">-- Selecciona --</option>';
+  LISTAS_BLANCAS.productos.forEach(nombre=>{
+    const opt = document.createElement('option');
+    opt.value = nombre;
+    opt.textContent = nombre;
+    sel.appendChild(opt);
+  });
+}
+function generarCodigoProducto(){
+  const nombreRaw = document.getElementById('np-nombre').value;
+  const nombre = sanitizarTexto(nombreRaw,60).toUpperCase();
+  if(!nombre){ alert('Ingresa el nombre del producto.'); return; }
+  if(LISTAS_BLANCAS.productos.includes(nombre)){ alert('Ese producto ya existe en la lista.'); return; }
+
+  const codigo =
+`/* ══ NUEVO PRODUCTO: ${escHTML(nombre)} ══ */
+
+/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, agrega este valor (antes del ] de cierre): */
+  '${nombre}',
+
+/* PASO 2 — Agrega esta opción dentro del <select id="sel-producto"> en el HTML: */
+  <option value="${nombre}">${nombre}</option>
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
+
+  document.getElementById('np-codigo').value = codigo;
+  document.getElementById('np-resultado').style.display='block';
+}
+function copiarCodigoProducto(){
+  const ta = document.getElementById('np-codigo');
+  if(!ta.value){ alert('Primero genera el código.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 2 pasos, o envíamelo.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+function generarInstruccionesEliminarProducto(){
+  const nombre = document.getElementById('np-eliminar-select').value;
+  if(!nombre){ alert('Selecciona un producto de la lista.'); return; }
+  const texto =
+`/* ══ ELIMINAR PRODUCTO: ${escHTML(nombre)} ══ */
+
+/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, elimina este valor: */
+  '${nombre}',
+
+/* PASO 2 — Elimina <option value="${nombre}">${nombre}</option> del <select id="sel-producto"> en el HTML */
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */
+
+NOTA: esto solo quita el producto del formulario de nuevos pedidos. Los pedidos
+ya registrados con este producto siguen intactos en tu Google Sheets — no se
+borra ningún dato histórico.`;
+
+  document.getElementById('np-elim-codigo').value = texto;
+  document.getElementById('np-elim-resultado').style.display='block';
+}
+function copiarInstruccionesEliminarProducto(){
+  const ta = document.getElementById('np-elim-codigo');
+  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+document.getElementById('modalProductoOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalProducto(); });
 </script>
 
 <!-- MODAL RESUMEN DEL DÍA -->
@@ -1685,6 +1864,54 @@ function enviarResumenWhatsapp(){
     </div>
 
     <button class="btn btn-outline" style="margin-top:10px" onclick="cerrarModalAsesor()">Cerrar</button>
+  </div>
+</div>
+
+<!-- MODAL GESTIONAR PRODUCTOS (solo admin) -->
+<div class="modal-overlay" id="modalProductoOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalProductoTituloId">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalProductoTituloId">📦 Gestionar Productos</div>
+    <div class="modal-subtitle">Genera el código del catálogo. Cópialo y pégalo en <strong>index.html</strong> (o envíamelo para actualizarlo).</div>
+    <div class="field" style="margin-bottom:1rem">
+      <label for="np-nombre">Nombre del producto nuevo</label>
+      <input type="text" id="np-nombre" placeholder="Ej. BOTELLON 10LT" autocomplete="off" maxlength="60">
+    </div>
+    <button class="btn" onclick="generarCodigoProducto()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Generar código
+    </button>
+    <div id="np-resultado" style="display:none;margin-top:14px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Código generado — copia todo y sigue los 2 pasos</label>
+      <textarea id="np-codigo" readonly style="width:100%;min-height:180px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
+      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarCodigoProducto()">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Copiar código
+      </button>
+    </div>
+
+    <hr class="divider" style="margin:1.5rem 0">
+    <div class="section-title red">Eliminar producto existente</div>
+    <div class="field">
+      <label for="np-eliminar-select">Selecciona el producto a eliminar</label>
+      <select id="np-eliminar-select">
+        <option value="">-- Selecciona --</option>
+      </select>
+    </div>
+    <button class="btn red" onclick="generarInstruccionesEliminarProducto()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2.5A1.5 1.5 0 0 1 7.5 1h1A1.5 1.5 0 0 1 10 2.5V4M12.5 4l-.6 9a1.5 1.5 0 0 1-1.5 1.4H5.6a1.5 1.5 0 0 1-1.5-1.4L3.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Generar instrucciones de eliminación
+    </button>
+    <div id="np-elim-resultado" style="display:none;margin-top:14px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Instrucciones — copia todo y sigue los pasos</label>
+      <textarea id="np-elim-codigo" readonly style="width:100%;min-height:160px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
+      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarInstruccionesEliminarProducto()">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Copiar instrucciones
+      </button>
+    </div>
+
+    <button class="btn btn-outline" style="margin-top:10px" onclick="cerrarModalProducto()">Cerrar</button>
   </div>
 </div>
 
