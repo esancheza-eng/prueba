@@ -636,41 +636,6 @@ display: inline-block;
 <!-- VIEW DASHBOARD -->
 <div class="view active" id="viewDashboard">
   <div class="layout">
-    <div class="sidebar">
-      <div class="sidebar-title">📋 Notas de Ventas <span class="notas-count" id="notasCount">0</span></div>
-      <div><div class="sidebar-label">Filtro Día</div><input type="date" id="notasFecha"></div>
-      <div>
-        <div class="sidebar-label">Filtro Asesor / Ruta</div>
-        <select id="notasAsesor">
-          <option value="">-- Todos --</option>
-          <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
-          <option value="RUTA 2: Luis">RUTA 2: Luis</option>
-          <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
-          <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
-          <option value="RUTA 5: Lister">RUTA 5: Lister</option>
-        </select>
-      </div>
-      <div>
-        <div class="sidebar-label">Filtro Forma de Pago</div>
-        <select id="notasPago">
-          <option value="">-- Todas --</option>
-          <option value="Contado">Contado</option>
-          <option value="Crédito">Crédito</option>
-          <option value="Transferencia">Transferencia</option>
-          <option value="Cheque">Cheque</option>
-        </select>
-      </div>
-      <button class="btn-aplicar-notas" onclick="aplicarNotasFiltros()">🔍 Aplicar filtros</button>
-      <div class="notas-resumen" id="notasResumen">
-        <div class="notas-resumen-item"><span class="notas-resumen-label">Pedidos</span><span class="notas-resumen-value" id="notasTotalPedidos">0</span></div>
-        <div class="notas-resumen-item"><span class="notas-resumen-label">Total ventas</span><span class="notas-resumen-value" id="notasTotalVentas">$0.00</span></div>
-        <div class="notas-resumen-item"><span class="notas-resumen-label">Unidades</span><span class="notas-resumen-value" id="notasTotalUnidades">0</span></div>
-      </div>
-      <button class="btn-excel" onclick="exportarExcel()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17.5l2.5-3.5L8 10.5h1.5L11 12.8l1.5-2.3H14l-2.5 3.5 2.5 3.5H12.5L11 15.2l-1.5 2.3H8z"/></svg>
-        Exportar a Excel
-      </button>
-    </div>
     <div class="content">
       <div class="main">
         <div class="filter-bar">
@@ -684,6 +649,7 @@ display: inline-block;
             <option value="RUTA 3: Vicente">Vicente</option>
             <option value="RUTA 4: Wilson">Wilson</option>
             <option value="RUTA 5: Lister">Lister</option>
+            <option value="RUTA 6: Asesora">Asesora</option>
           </select>
           <button class="btn-filter btn-hoy" onclick="filtrarHoy()">Hoy</button>
           <button class="btn-filter" onclick="renderDashboard()">Aplicar</button>
@@ -695,10 +661,6 @@ display: inline-block;
           <div class="chart-card"><div class="chart-title">Ventas por Ruta / Asesor</div><div class="chart-wrap"><canvas id="chartRutas"></canvas></div></div>
           <div class="chart-card"><div class="chart-title">Productos más vendidos</div><div class="chart-wrap"><canvas id="chartProductos"></canvas></div></div>
           <div class="chart-card full"><div class="chart-title">Ventas por hora del día</div><div class="chart-wrap"><canvas id="chartHoras"></canvas></div></div>
-        </div>
-        <div class="map-card" id="mapCard" style="display:none">
-          <div class="map-header"><div class="map-title">📍 Ubicaciones GPS de pedidos</div></div>
-          <div class="map-points" id="mapPoints"></div>
         </div>
         <div class="table-card" id="tableCard" style="display:none">
           <div class="table-header">
@@ -764,6 +726,7 @@ display: inline-block;
         <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
         <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
         <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+        <option value="RUTA 6: Asesora">RUTA 6: Asesora</option>
       </select>
       <button class="btn-filter" onclick="aplicarRutas()">🗺️ Ver rutas</button>
       <span class="last-update" id="rutasLastUpdate">—</span>
@@ -816,6 +779,7 @@ const RUTA_COLORS = {
   'RUTA 3: Vicente':   '#e67e22',
   'RUTA 4: Wilson':    '#c0392b',
   'RUTA 5: Lister':    '#7b1fa2',
+  'RUTA 6: Asesora':   '#0891b2',
 };
 const RUTA_INITIALS = {
   'RUTA 1: Jefferson': 'J',
@@ -823,6 +787,7 @@ const RUTA_INITIALS = {
   'RUTA 3: Vicente':   'V',
   'RUTA 4: Wilson':    'W',
   'RUTA 5: Lister':    'Li',
+  'RUTA 6: Asesora':   'A',
 };
 
 let todosLosDatos = [];
@@ -895,6 +860,30 @@ function fechaHoy() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+/* [FIX] Convierte "7:59:52 p. m." / "8:00 a. m." / "19:59:52" a minutos desde medianoche (0-1439).
+   Devuelve NaN si el texto no tiene un formato de hora reconocible. */
+function horaAMinutos(str) {
+  if (!str) return NaN;
+  const s = String(str).trim();
+  const m12 = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([ap])\.?\s*\.?\s*m\.?/i);
+  if (m12) {
+    let h = parseInt(m12[1], 10);
+    const min = parseInt(m12[2], 10);
+    const ampm = m12[4].toLowerCase();
+    if (ampm === 'p' && h !== 12) h += 12;
+    if (ampm === 'a' && h === 12) h = 0;
+    if (isNaN(h) || isNaN(min)) return NaN;
+    return h * 60 + min;
+  }
+  const m24 = s.match(/^(\d{1,2}):(\d{2})/);
+  if (m24) {
+    const h = parseInt(m24[1], 10);
+    const min = parseInt(m24[2], 10);
+    if (!isNaN(h) && !isNaN(min)) return h * 60 + min;
+  }
+  return NaN;
+}
+
 /* ════════════════════════════════════════
    CARGAR DATOS
 ════════════════════════════════════════ */
@@ -902,7 +891,6 @@ async function cargarDatos(mostrarSpinner = true) {
   if (mostrarSpinner) {
     document.getElementById('kpiGrid').innerHTML = '<div class="loading"><div class="spinner"></div><span>Cargando datos...</span></div>';
     document.getElementById('chartsGrid').style.display = 'none';
-    document.getElementById('mapCard').style.display = 'none';
     document.getElementById('tableCard').style.display = 'none';
   }
   const icon = document.getElementById('refreshIcon');
@@ -961,12 +949,10 @@ function renderDashboard() {
     <div class="kpi-card accent"><div class="kpi-icon">📦</div><div class="kpi-label">Líneas de producto</div><div class="kpi-value">${pedidos.length}</div><div class="kpi-sub">unidades registradas</div></div>
   `;
   renderCharts(pedidos, pedidosConTotal);
-  renderGPS(pedidosConTotal);
   pedidosDetalleActuales = pedidos;
   renderTabla(pedidos);
   poblarClienteSelect(pedidos);
   document.getElementById('chartsGrid').style.display = 'grid';
-  document.getElementById('mapCard').style.display = 'block';
   document.getElementById('tableCard').style.display = 'block';
   document.getElementById('clienteCard').style.display = 'block';
 }
@@ -995,8 +981,8 @@ function renderCharts(pedidos, pedidosConTotal) {
   const ventasPorHora = {};
   for(let h=7;h<=20;h++) ventasPorHora[h]=0;
   pedidosConTotal.forEach(r => {
-    const match = String(r['HORA REGISTRO']||'').match(/(\d+):/);
-    if(match){ const h=parseInt(match[1]); if(h>=7&&h<=20) ventasPorHora[h]=(ventasPorHora[h]||0)+(parseFloat(r['TOTAL PEDIDO ($)'])||0); }
+    const minutos = horaAMinutos(r['HORA REGISTRO']);
+    if(!isNaN(minutos)){ const h=Math.floor(minutos/60); if(h>=7&&h<=20) ventasPorHora[h]=(ventasPorHora[h]||0)+(parseFloat(r['TOTAL PEDIDO ($)'])||0); }
   });
   if (charts.horas) charts.horas.destroy();
   charts.horas = new Chart(document.getElementById('chartHoras').getContext('2d'), {
@@ -1098,7 +1084,6 @@ function aplicarNotasFiltros() {
     <div class="kpi-card accent"><div class="kpi-icon">📦</div><div class="kpi-label">Líneas de producto</div><div class="kpi-value">${datos.length}</div><div class="kpi-sub">unidades registradas</div></div>
   `;
   renderCharts(datos, pedidosConTotal);
-  renderGPS(pedidosConTotal);
   actualizarTablaCentral(datos);
   card.scrollIntoView({ behavior:'smooth', block:'start' });
 }
@@ -1231,8 +1216,8 @@ function renderRutasDia(fecha, asesorFiltro) {
   diagBox.style.display=(datosGPS.length===0||conCoordsRaw.length===0)?'block':'none';
   diagContent.innerHTML=diagLines.join('<br>');
   const pedidosDatos=datos.filter(r=>r['PRODUCTO']&&r['PRODUCTO']!=='');
-  const datosOrdenados=[...pedidosDatos].sort((a,b)=>String(a['HORA REGISTRO']||'').localeCompare(String(b['HORA REGISTRO']||'')));
-  const datosGPSOrdenados=[...datosGPS].sort((a,b)=>String(a['HORA REGISTRO']||'').localeCompare(String(b['HORA REGISTRO']||'')));
+  const datosOrdenados=[...pedidosDatos].sort((a,b)=>(horaAMinutos(a['HORA REGISTRO'])||0)-(horaAMinutos(b['HORA REGISTRO'])||0));
+  const datosGPSOrdenados=[...datosGPS].sort((a,b)=>(horaAMinutos(a['HORA REGISTRO'])||0)-(horaAMinutos(b['HORA REGISTRO'])||0));
   mapMarkers.forEach(m=>m.remove()); mapPolylines.forEach(p=>p.remove()); mapMarkers=[]; mapPolylines=[];
   const rutasMap={};
   datosGPSOrdenados.forEach(r=>{ const a=r['ASESOR / RUTA']||'Sin asignar'; if(!rutasMap[a])rutasMap[a]=[]; rutasMap[a].push(r); });
@@ -1307,7 +1292,7 @@ function renderAsesorCards(datosAll,datosGPS) {
     const filas=data.filas, gps=data.gps;
     const clientes=new Set(filas.map(r=>`${r['CLIENTE']}-${r['FECHA']}`)).size;
     const total=filas.filter(r=>r['TOTAL PEDIDO ($)']&&parseFloat(r['TOTAL PEDIDO ($)'])>0).reduce((s,r)=>s+(parseFloat(r['TOTAL PEDIDO ($)'])||0),0);
-    const horas=filas.map(r=>r['HORA REGISTRO']).filter(Boolean).sort();
+    const horas=filas.map(r=>r['HORA REGISTRO']).filter(Boolean).sort((a,b)=>(horaAMinutos(a)||0)-(horaAMinutos(b)||0));
     const primerHora=horas[0]||'—', ultimaHora=horas[horas.length-1]||'—';
     let km=0;
     for(let i=1;i<gps.length;i++){ const lat1=gps[i-1]._lat,lon1=gps[i-1]._lng,lat2=gps[i]._lat,lon2=gps[i]._lng; if(!isNaN(lat1)&&!isNaN(lon1)&&!isNaN(lat2)&&!isNaN(lon2))km+=haversineKm(lat1,lon1,lat2,lon2); }
