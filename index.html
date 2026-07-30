@@ -823,1116 +823,6 @@ body { padding: 1rem 0.75rem 3rem; }
   <div class="footer"><a href="https://www.elhyai.com" target="_blank" rel="noopener noreferrer">www.elhyai.com &nbsp;|&nbsp; Aqua Luan</a></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
-<script>
-/* ══════════════════════════════════════════════════════════════════════════
-   AQUA LUAN v3.0 — JavaScript
-   [FIX] servidorConfigurado() → false  →  login usa AUTH_REGISTRY local
-   [FIX v3.1] Guardar deja btnGuardar visible (nuevo pedido inmediato)
-   [FIX v3.1] Historial: límite ampliado 20→200 (no pierde primeros pedidos)
-   ══════════════════════════════════════════════════════════════════════════ */
-
-const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
-const WHATSAPP_secretaria = "593989938910";
-const SESSION_TOKEN  = generarTokenSesion();
-
-function generarTokenSesion() {
-  const arr = new Uint8Array(32);
-  crypto.getRandomValues(arr);
-  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-function escHTML(str) {
-  if (str === null || str === undefined) return '';
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\//g,'&#x2F;');
-}
-
-const LISTAS_BLANCAS = {
-  empleado: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora'],
-  empleadoGasto: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','Administración'],
-  formapago: ['Contado','Crédito','Transferencia','Cheque'],
-  pagoForma: ['Efectivo','Transferencia','Cheque'],
-  productos: ['BOTELLON 20LT','BOTELLON CON LLAVE','PACA 625ML AZUL','PACA 600ML VERDE','PACA 1000ML','PACA 400ML','GALONES 4LT','POMA 5LTS','ENVASE CON LLAVE','ENVASE AZUL ADICIONAL']
-};
-function esValorSeguro(v,l){ return l.includes(String(v).trim()); }
-function sanitizarTexto(s,m=255){ if(!s)return''; return String(s).trim().slice(0,m); }
-function validarMonto(v){ const n=parseFloat(v); return !isNaN(n)&&n>0&&n<1000000; }
-
-/* [FIX] Acepta coma "," o punto "." como separador decimal (teclado numérico de Ecuador/Android) */
-function parseMonto(v){
-  if(v===null||v===undefined) return NaN;
-  let s=String(v).trim().replace(/[^0-9.,]/g,'');
-  if(s.indexOf(',')>-1 && s.indexOf('.')>-1){
-    // si vienen ambos, se asume que el punto es separador de miles: 1.234,56
-    s=s.replace(/\./g,'').replace(',', '.');
-  } else {
-    s=s.replace(',', '.');
-  }
-  return parseFloat(s);
-}
-/* Filtra en vivo lo que el usuario escribe en campos de monto: solo dígitos, una coma/punto */
-function filtrarInputMonto(el){
-  let v=el.value.replace(/[^0-9.,]/g,'');
-  const partes=v.split(/[.,]/);
-  if(partes.length>2){ v=partes[0]+(v.includes(',')? ',':'.')+partes.slice(1).join(''); }
-  el.value=v;
-}
-
-/* IndexedDB */
-const DB_NAME='aqualuan-db', STORE='pedidos-pendientes', LS_KEY='aqualuan-pendientes-ls';
-let dbInstance=null;
-function abrirDB(){ if(dbInstance)return Promise.resolve(dbInstance); return new Promise((res,rej)=>{ const req=indexedDB.open(DB_NAME,1); req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true}); }; req.onsuccess=e=>{dbInstance=e.target.result;res(dbInstance);}; req.onerror=e=>rej(e.target.error); }); }
-async function guardarLocal(p){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const req=tx.objectStore(STORE).add({payload:p,fecha:new Date().toISOString()}); req.onsuccess=()=>res(req.result); req.onerror=e=>rej(e.target.error); }); }
-async function obtenerPendientes(){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const req=tx.objectStore(STORE).getAll(); req.onsuccess=()=>res(req.result); req.onerror=e=>rej(e.target.error); }); }
-async function eliminarLocal(id){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const req=tx.objectStore(STORE).delete(id); req.onsuccess=()=>res(); req.onerror=e=>rej(e.target.error); }); }
-function guardarEnLocalStorageSync(p){ try{ const e=JSON.parse(localStorage.getItem(LS_KEY)||'[]'); e.push({id:Date.now(),payload:p,fecha:new Date().toISOString()}); localStorage.setItem(LS_KEY,JSON.stringify(e)); }catch(e){} }
-
-let productos=[], dataPendiente=null, ultimoRegistro=null, listaPagos=[], listaGastos=[];
-
-/* ── AUTENTICACIÓN ── */
-const MAX_INTENTOS_LOCAL=5, VENTANA_LOCAL_MS=15*60*1000, TIMEOUT_FETCH_MS=15000;
-let usuarioActual=null;
-
-async function hashSHA256(texto){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(texto));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-function verificarIntentosLocal(){
-  let est; try{est=JSON.parse(sessionStorage.getItem('_al_att')||'{"c":0,"t":0}');}catch{est={c:0,t:0};}
-  const ahora=Date.now();
-  if(ahora-est.t>VENTANA_LOCAL_MS){ sessionStorage.setItem('_al_att',JSON.stringify({c:0,t:ahora})); return{ok:true}; }
-  if(est.c>=MAX_INTENTOS_LOCAL){ const resto=Math.ceil((VENTANA_LOCAL_MS-(ahora-est.t))/60000); return{ok:false,msg:`Demasiados intentos. Espera ${resto} minuto(s).`}; }
-  return{ok:true};
-}
-function incrementarIntentoLocal(){ let est; try{est=JSON.parse(sessionStorage.getItem('_al_att')||'{"c":0,"t":0}');}catch{est={c:0,t:Date.now()};} est.c+=1; if(!est.t)est.t=Date.now(); sessionStorage.setItem('_al_att',JSON.stringify(est)); }
-function resetearIntentosLocal(){ sessionStorage.removeItem('_al_att'); }
-
-const AUTH_REGISTRY = Object.freeze({
-  'admin':     { h: '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055', nombre: 'Admin',     rol: 'ADMIN',    ruta: null,                esAdmin: true  },
-  'jefferson': { h: '4bfc5062667279d31eefd696f24a2f28e5fa203f7c683e4aefa5483947449770', nombre: 'Jefferson', rol: 'OPERADOR', ruta: 'RUTA 1: Jefferson', esAdmin: false },
-  'luis':      { h: '5893cd3c3f2b3903c3214bcabcdfa9aee03a3ec0931a4876204046f244cad892', nombre: 'Luis',      rol: 'OPERADOR', ruta: 'RUTA 2: Luis',      esAdmin: false },
-  'vicente':   { h: 'f66986a120970c2ab68459132797c4c269b609ea16761f56cdafbae04290f630', nombre: 'Vicente',   rol: 'OPERADOR', ruta: 'RUTA 3: Vicente',    esAdmin: false },
-  'wilson':    { h: 'b2ec2618e167952138ce705b6e65a7d138aef40a39fd54333e3bf68fe0b01f99', nombre: 'Wilson',    rol: 'OPERADOR', ruta: 'RUTA 4: Wilson',     esAdmin: false },
-  'lister':    { h: 'df5fece5d1a837bc2d97f79beecae74a2b58f4a5418f07e11a290ea96f14ac06', nombre: 'Lister',    rol: 'OPERADOR', ruta: 'RUTA 5: Lister',     esAdmin: false },
-  'aventas':   { h: 'da871a607c4083419b0cc2f963848835995016fde9a91e6fff50c273694ee70a', nombre: 'Asesora',   rol: 'OPERADOR', ruta: 'RUTA 6: Asesora',   esAdmin: false } // [NEW]
-});
-
-/* ════════════════════════════════════════════════════════════
-   [FIX] — SIEMPRE modo local — AUTH_REGISTRY
-   El Apps Script se sigue usando SOLO para guardar pedidos/pagos/gastos.
-   El login NO va al servidor.
-   ════════════════════════════════════════════════════════════ */
-function servidorConfigurado() {
-  return false; // [FIX] Usar AUTH_REGISTRY local siempre
-}
-
-function comparacionSegura(a,b){
-  if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;
-  let diff=0; for(let i=0;i<a.length;i++) diff|=a.charCodeAt(i)^b.charCodeAt(i);
-  return diff===0;
-}
-
-async function authLocalLogin(usuario,passHash){
-  const inicio=Date.now();
-  const registro=AUTH_REGISTRY[usuario]||null;
-  let ok=false;
-  if(registro){ ok=comparacionSegura(passHash,registro.h); }
-  else{ await hashSHA256('__dummy__'); }
-  const elapsed=Date.now()-inicio;
-  if(elapsed<80) await new Promise(r=>setTimeout(r,80-elapsed));
-  if(!ok) return{ok:false};
-  return{ ok:true, token:'LOCAL_'+SESSION_TOKEN.slice(0,16), nombre:registro.nombre, rol:registro.rol, ruta:registro.ruta, esAdmin:registro.esAdmin, expira:Date.now()+8*60*60*1000, modoLocal:true };
-}
-
-async function doLogin(){
-  const chk=verificarIntentosLocal();
-  if(!chk.ok){ document.getElementById('loginError').classList.remove('show'); const b=document.getElementById('loginBloqueo'); b.textContent=chk.msg; b.classList.add('show'); return; }
-  const userRaw=document.getElementById('loginUser').value.trim().toLowerCase();
-  const passRaw=document.getElementById('loginPass').value;
-  const btnLogin=document.getElementById('btnLogin');
-  if(!userRaw||!passRaw){mostrarErrorLogin('Completa usuario y contraseña.');return;}
-  if(userRaw.length>50||passRaw.length>128){mostrarErrorLogin('Datos inválidos.');return;}
-  btnLogin.disabled=true; btnLogin.textContent='Verificando...';
-  try{
-    const passHash=await hashSHA256(passRaw);
-    document.getElementById('loginPass').value='';
-    const resultado=await authLocalLogin(userRaw,passHash);
-    if(resultado.ok&&resultado.token){
-      resetearIntentosLocal();
-      const sesion={ token:resultado.token, nombre:resultado.nombre, rol:resultado.rol||(resultado.esAdmin?'ADMIN':'OPERADOR'), ruta:resultado.ruta||null, esAdmin:resultado.esAdmin||resultado.rol==='ADMIN', expira:resultado.expira||(Date.now()+8*60*60*1000), modoLocal:true };
-      sessionStorage.setItem('_al_sess',JSON.stringify(sesion));
-      usuarioActual=sesion;
-      document.getElementById('loginOverlay').style.display='none';
-      document.getElementById('loginError').classList.remove('show');
-      document.getElementById('loginBloqueo').classList.remove('show');
-      aplicarUsuario(); iniciarMonitorExpiracion();
-    } else { incrementarIntentoLocal(); mostrarErrorLogin('Usuario o contraseña incorrectos.'); }
-  }catch{ mostrarErrorLogin('Error al verificar. Intenta de nuevo.'); }
-  finally{ btnLogin.disabled=false; btnLogin.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ingresar'; }
-}
-
-let _monitorId=null;
-function iniciarMonitorExpiracion(){
-  if(_monitorId)clearInterval(_monitorId);
-  _monitorId=setInterval(()=>{
-    if(!usuarioActual)return;
-    const restante=usuarioActual.expira-Date.now();
-    if(restante<=0){ clearInterval(_monitorId); alert('Tu sesión ha expirado. Por favor inicia sesión de nuevo.'); cerrarSesion(); }
-    else if(restante<=5*60*1000){ const min=Math.ceil(restante/60000); const aviso=document.getElementById('avisoSesion'); if(aviso){aviso.textContent=`⏱ Tu sesión expira en ${min} minuto(s).`;aviso.style.display='block';} }
-  },30000);
-}
-
-async function cerrarSesion(){
-  if(_monitorId)clearInterval(_monitorId);
-  usuarioActual=null; ultimoRegistro=null; productos=[]; listaPagos=[]; listaGastos=[]; // [NEW] limpia solo la vista, no borra localStorage
-  // Conservar historial del día — solo limpiar datos de sesión
-  sessionStorage.removeItem('_al_sess');
-  sessionStorage.removeItem('_al_att');
-  sessionStorage.removeItem('aqualuan-historial');
-  document.getElementById('loginUser').value='';
-  document.getElementById('loginPass').value='';
-  document.getElementById('loginOverlay').style.display='flex';
-  document.getElementById('btnLogout').style.display='none';
-  document.getElementById('btnGestionAsesores').style.display='none'; // [NEW]
-  document.getElementById('btnGestionProductos').style.display='none'; // [NEW]
-  document.getElementById('logoSub').textContent='Registro de Pedidos';
-  restaurarSelectsCompletos(); limpiarFormulario();
-}
-
-function mostrarErrorLogin(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.classList.add('show'); }
-
-function restaurarSelectsCompletos(){
-  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
-  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
-  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option><option value="Administración">Administración</option></select>`;
-}
-
-async function _generarHash(clave){ if(!clave){console.warn('Ingresa una clave');return;} const h=await hashSHA256(clave); console.log('%cHash SHA-256:','color:#0a7c6e;font-weight:bold'); console.log('%c'+h,'font-family:monospace;background:#e6f4f2;padding:4px 8px;border-radius:4px'); return h; }
-
-function _restaurarHistDia(u){
-  try{
-    const hoy=new Date().toISOString().slice(0,10);
-    let hR=[];
-    if(u.esAdmin){
-      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
-        hR=hR.concat(JSON.parse(localStorage.getItem(_claveHistDia(r,hoy))||'[]'));
-      });
-      hR.sort((a,b)=>(b.id||0)-(a.id||0));
-      if(hR.length>200)hR=hR.slice(0,200); // [FIX v3.1] límite ampliado (antes 40)
-    } else {
-      hR=JSON.parse(localStorage.getItem(_claveHistDia(u.ruta,hoy))||'[]');
-    }
-    if(hR.length>0){
-      const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
-      const ids=new Set(hS.map(r=>r.id));
-      const nuevos=hR.filter(r=>!ids.has(r.id));
-      const combinado=[...hS,...nuevos].sort((a,b)=>(b.id||0)-(a.id||0));
-      sessionStorage.setItem('aqualuan-historial',JSON.stringify(combinado.slice(0,200))); // [FIX v3.1] límite ampliado (antes 40)
-    }
-  }catch(e){}
-}
-function aplicarUsuario(){
-  const u=usuarioActual; if(!u)return;
-  document.getElementById('logoSub').textContent=u.esAdmin?'Administrador':`Bienvenido, ${u.nombre}`;
-  document.getElementById('btnLogout').style.display='flex';
-  document.getElementById('btnGestionAsesores').style.display=u.esAdmin?'flex':'none'; // [NEW] solo admin ve "Agregar Asesor"
-  document.getElementById('btnGestionProductos').style.display=u.esAdmin?'flex':'none'; // [NEW] solo admin ve "Gestionar Producto"
-  _restaurarHistDia(u);
-  _restaurarPagosGastosDia(u); // [NEW]
-  if(u.esAdmin)return;
-  const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
-  const rs=escHTML(u.ruta);
-  const bHtml=(id)=>`<div class="campo-bloqueado">${ico}${rs}</div><input type="hidden" id="${id}" value="${rs}">`;
-  document.getElementById('wrap-empleado').innerHTML=bHtml('empleado');
-  document.getElementById('wrap-pago-empleado').innerHTML=bHtml('pago-empleado');
-  document.getElementById('wrap-gasto-empleado').innerHTML=bHtml('gasto-empleado');
-}
-
-const tabSubs={ventas:'Registro de Pedidos',pagos:'Registro de Pagos',gastos:'Registro de Gastos',historial:'Historial de Pedidos'};
-function cambiarTab(tab){
-  ['ventas','pagos','gastos','historial'].forEach(t=>{ document.getElementById('content-'+t).classList.toggle('active',t===tab); document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active-'+t:''); });
-  document.getElementById('logoSub').textContent=tabSubs[tab];
-  if(tab==='historial')cargarHistorial();
-}
-
-function actualizarBanners(){
-  document.getElementById('offlineBanner').classList.toggle('show',!navigator.onLine);
-  let c=0; try{c=JSON.parse(localStorage.getItem(LS_KEY)||'[]').length;}catch{}
-  obtenerPendientes().then(items=>{ const n=Math.max(items.length,c); document.getElementById('pendingBanner')?.classList.toggle('show',n>0); }).catch(()=>{});
-}
-window.addEventListener('online',()=>{actualizarBanners();sincronizarAuto();if(ultimoRegistro)document.getElementById('btnWhatsapp').classList.add('visible');});
-window.addEventListener('offline',()=>{actualizarBanners();document.getElementById('btnWhatsapp').classList.remove('visible');});
-
-async function sincronizarAuto(){
-  if('serviceWorker'in navigator&&'SyncManager'in window){ const reg=await navigator.serviceWorker.ready; try{await reg.sync.register('sync-pedidos');return;}catch{} }
-  await sincronizarManual(true);
-}
-async function sincronizarManual(silencioso=false){
-  if(!navigator.onLine){if(!silencioso)setStatus('error','Sin conexión.');return;}
-  let itemsLS=[]; try{itemsLS=JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch{}
-  const itemsIDB=await obtenerPendientes().catch(()=>[]);
-  const todos=itemsIDB.length>0?itemsIDB:itemsLS;
-  if(!todos.length){try{localStorage.removeItem(LS_KEY);}catch{}return;}
-  let synced=0,failed=0;
-  for(const item of todos){
-    try{
-      await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({...item.payload,csrfToken:SESSION_TOKEN,token:usuarioActual?.token||''})});
-      if(item.id&&itemsIDB.length>0)await eliminarLocal(item.id).catch(()=>{});
-      synced++;
-    }catch{failed++;}
-  }
-  if(failed===0){try{localStorage.removeItem(LS_KEY);}catch{}}
-  actualizarBanners();
-}
-
-if('serviceWorker'in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
-
-let _fechaActualApp = null; // [NEW] fecha (YYYY-MM-DD) que la app tiene "activa" ahora mismo
-
-(function init(){
-  const hoy=new Date();
-  document.getElementById('fechaHoy').textContent=hoy.toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long'});
-  const yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
-  const hoyStr=`${yyyy}-${mm}-${dd}`;
-  _fechaActualApp=hoyStr; // [NEW]
-  document.getElementById('fecha').value=hoyStr;
-  document.getElementById('pago-fecha').value=hoyStr;
-  document.getElementById('gasto-fecha').value=hoyStr;
-  try{localStorage.removeItem('aqualuan-pendientes-ls');}catch{}
-  actualizarBanners();
-  try{
-    const sess=JSON.parse(sessionStorage.getItem('_al_sess')||'null');
-    if(sess&&sess.token&&sess.expira&&Date.now()<sess.expira){
-      usuarioActual=sess;
-      document.getElementById('loginOverlay').style.display='none';
-      aplicarUsuario(); iniciarMonitorExpiracion();
-    } else if(sess){ sessionStorage.removeItem('_al_sess'); sessionStorage.removeItem('_al_att'); sessionStorage.removeItem('aqualuan-historial'); }
-  }catch{}
-  setInterval(_verificarCambioDeDia, 60000); // [NEW] revisa cada minuto si ya cambió el día
-})();
-
-/* [NEW] Detecta si el reloj del celular pasó de un día al siguiente mientras la
-   app seguía abierta, y refresca solo la vista de fecha/historial/pagos/gastos
-   — no toca un pedido que el asesor esté armando en ese momento. */
-function _verificarCambioDeDia(){
-  const hoyStr=new Date().toISOString().slice(0,10);
-  if(hoyStr===_fechaActualApp) return;
-  _fechaActualApp=hoyStr;
-  ['fecha','pago-fecha','gasto-fecha'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=hoyStr; });
-  sessionStorage.removeItem('aqualuan-historial');
-  if(usuarioActual){
-    _restaurarHistDia(usuarioActual);
-    _restaurarPagosGastosDia(usuarioActual);
-  } else {
-    listaPagos=[]; listaGastos=[]; renderPagos(); actualizarResumenPagos(); renderGastos(); actualizarResumenGastos();
-  }
-  const contHist=document.getElementById('content-historial');
-  if(contHist&&contHist.classList.contains('active')) cargarHistorial();
-  const aviso=document.getElementById('avisoSesion');
-  if(aviso){ aviso.textContent=`📅 Nuevo día iniciado — ${hoyStr}`; aviso.style.display='block'; setTimeout(()=>{ if(aviso.textContent.includes('Nuevo día')) aviso.style.display='none'; },6000); }
-}
-
-function calcTotal(){ return productos.reduce((s,p)=>s+p.subtotal,0); }
-function renderLista(){
-  const items=document.getElementById('productosItems'),lista=document.getElementById('productosLista'),emptyMsg=document.getElementById('emptyMsg');
-  if(productos.length===0){lista.classList.add('empty');emptyMsg.style.display='block';}
-  else{lista.classList.remove('empty');emptyMsg.style.display='none';}
-  items.innerHTML=productos.map((p,i)=>{
-    const filaPrincipal=`<div class="lista-item"><span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHTML(p.nombre)}">${escHTML(p.nombre)}</span><span class="item-num">${escHTML(String(p.cantidad))}</span><span class="item-precio">$${escHTML(p.precio.toFixed(2))}</span><span class="item-subtotal">$${escHTML(p.subtotal.toFixed(2))}</span><button class="btn-remove" onclick="eliminarProducto(${parseInt(i)})" aria-label="Eliminar">&times;</button></div>`;
-    const filasRegalia=(p.regalias||[]).map((r,ri)=>`<div class="regalia-row"><span class="regalia-icon">🎁</span><span class="regalia-nombre" title="${escHTML(r.nombre)}">${escHTML(r.nombre)}</span><span class="regalia-cant">x${escHTML(String(r.cantidad))}</span><span class="regalia-precio">$0.00</span><button class="btn-remove" onclick="eliminarRegalia(${parseInt(i)},${parseInt(ri)})" aria-label="Quitar regalía">&times;</button></div>`).join('');
-    const formRegalia=`<div class="regalia-form" id="regalia-form-${i}" style="display:none"><select id="regalia-sel-${i}">${_opcionesProductosHTML()}</select><input type="number" id="regalia-cant-${i}" placeholder="Cant." min="1" max="9999" inputmode="numeric"><button type="button" class="btn" onclick="confirmarRegalia(${i})">Agregar</button></div>`;
-    const btnToggle=`<button type="button" class="btn-add-regalia" onclick="toggleRegaliaForm(${i})">➕ Agregar Regalía</button>`;
-    return `<div class="producto-bloque">${filaPrincipal}${filasRegalia}${btnToggle}${formRegalia}</div>`;
-  }).join('');
-  document.getElementById('totalGeneral').textContent='$'+calcTotal().toFixed(2);
-}
-/* [NEW] Genera las <option> del catálogo de productos, reutilizado en el selector de regalías */
-function _opcionesProductosHTML(){
-  return '<option value="">-- Selecciona --</option>' + LISTAS_BLANCAS.productos.map(n=>`<option value="${escHTML(n)}">${escHTML(n)}</option>`).join('');
-}
-function agregarProducto(){
-  const nombre=document.getElementById('sel-producto').value;
-  const cantidad=parseFloat(document.getElementById('sel-cantidad').value);
-  const precio=parseMonto(document.getElementById('sel-precio').value);
-  if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido.');return;}
-  if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad inválida.');return;}
-  if(!Number.isFinite(precio)||precio<0||precio>99999){alert('Precio inválido.');return;} // [FIX] permite $0.00 (regalías/obsequios a clientes)
-  const ex=productos.findIndex(p=>p.nombre===nombre&&p.precio===precio); // [FIX] solo fusiona si el precio coincide
-  if(ex>=0){productos[ex].cantidad+=cantidad;productos[ex].subtotal=productos[ex].cantidad*productos[ex].precio;}
-  else{productos.push({nombre,cantidad,precio,subtotal:cantidad*precio,regalias:[]});} // [NEW] regalias vacío por defecto
-  document.getElementById('sel-producto').value='';document.getElementById('sel-cantidad').value='';document.getElementById('sel-precio').value='';
-  renderLista();
-}
-/* [NEW] Muestra/oculta el mini-formulario de regalía para el producto en el índice i */
-function toggleRegaliaForm(i){
-  const form=document.getElementById('regalia-form-'+i);
-  if(!form)return;
-  const abierto=form.style.display!=='none';
-  document.querySelectorAll('.regalia-form').forEach(f=>f.style.display='none');
-  form.style.display=abierto?'none':'flex';
-}
-/* [NEW] Agrega una regalía al producto en el índice i — precio siempre $0.00, no afecta el total */
-function confirmarRegalia(i){
-  if(!productos[i])return;
-  const sel=document.getElementById('regalia-sel-'+i);
-  const cantInput=document.getElementById('regalia-cant-'+i);
-  const nombre=sel.value;
-  const cantidad=parseFloat(cantInput.value);
-  if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido para la regalía.');return;}
-  if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad de regalía inválida.');return;}
-  if(!productos[i].regalias)productos[i].regalias=[];
-  productos[i].regalias.push({nombre,cantidad});
-  renderLista();
-}
-/* [NEW] Quita la regalía ri del producto i */
-function eliminarRegalia(i,ri){
-  if(productos[i]&&productos[i].regalias)productos[i].regalias.splice(ri,1);
-  renderLista();
-}
-function eliminarProducto(i){ if(i>=0&&i<productos.length)productos.splice(i,1); renderLista(); }
-
-function setStatus(t,m){_setStatus('status',t,m);}
-function setStatusPagos(t,m){_setStatus('status-pagos',t,m);}
-function setStatusGastos(t,m){_setStatus('status-gastos',t,m);}
-function _setStatus(id,t,m){ const el=document.getElementById(id); el.className='status '+t; el.textContent=m; }
-
-function resetGpsBadge(){ document.getElementById('gpsBadge').className='gps-badge wait'; document.getElementById('gpsBadgeText').textContent='Obteniendo ubicación GPS...'; document.getElementById('m-gps').textContent='-'; }
-function capturarGPS(){
-  return new Promise(resolve=>{
-    if(!navigator.geolocation){resolve(null);return;}
-    let resuelto=false;
-    const terminar=(pos)=>{
-      if(resuelto)return; resuelto=true;
-      resolve(pos?{lat:pos.coords.latitude,lng:pos.coords.longitude,acc:Math.round(pos.coords.accuracy)}:null);
-    };
-    // [FIX] Paso 1 — intento rápido: acepta una ubicación reciente ya en caché del
-    // celular (hasta 20s de antigüedad) en vez de forzar un GPS nuevo desde cero.
-    navigator.geolocation.getCurrentPosition(
-      pos=>terminar(pos),
-      ()=>{
-        // [FIX] Paso 2 — si no hay nada en caché o falla, recién ahí se pide
-        // una ubicación de alta precisión (antes esto era el ÚNICO intento).
-        navigator.geolocation.getCurrentPosition(
-          pos=>terminar(pos),
-          ()=>terminar(null),
-          {enableHighAccuracy:true,timeout:8000,maximumAge:0}
-        );
-      },
-      {enableHighAccuracy:false,timeout:4000,maximumAge:20000}
-    );
-    // [FIX] Tope absoluto: nunca deja al asesor esperando más de 12s en total.
-    setTimeout(()=>terminar(null),12000);
-  });
-}
-
-async function abrirModal(){
-  const empleado=document.getElementById('empleado').value;
-  const formapago=document.getElementById('formapago').value;
-  const nombre=sanitizarTexto(document.getElementById('nombre').value,100);
-  const telefono=sanitizarTexto(document.getElementById('telefono').value,20);
-  const fecha=document.getElementById('fecha').value;
-  const direccion=sanitizarTexto(document.getElementById('direccion').value,200);
-  const notas=sanitizarTexto(document.getElementById('notas').value,500);
-  if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleado)){setStatus('error','Selecciona un asesor válido.');return;}
-  if(!esValorSeguro(formapago,LISTAS_BLANCAS.formapago)){setStatus('error','Selecciona una forma de pago válida.');return;}
-  if(!nombre){setStatus('error','Ingresa el nombre del cliente.');return;}
-  if(productos.length===0){setStatus('error','Agrega al menos un producto.');return;}
-  const total=calcTotal();
-  dataPendiente={empleado,formapago,nombre,telefono,fecha,direccion,notas,productos:[...productos],total:total.toFixed(2),gps:null};
-  const offline=!navigator.onLine;
-  document.getElementById('modalOfflineNote').classList.toggle('show',offline);
-  document.getElementById('modal-subtitle-text').textContent=offline?'Sin internet — se guardará localmente':'Revisa todos los datos antes de enviar a Google Drive';
-  document.getElementById('m-empleado').textContent=empleado;
-  document.getElementById('m-formapago').textContent=formapago;
-  document.getElementById('m-nombre').textContent=nombre;
-  document.getElementById('m-telefono').textContent=telefono||'-';
-  document.getElementById('m-direccion').textContent=direccion||'-';
-  document.getElementById('m-fecha').textContent=fecha||'-';
-  document.getElementById('m-notas').textContent=notas||'-';
-  document.getElementById('m-total').textContent='$'+total.toFixed(2);
-  document.getElementById('m-productos').innerHTML=productos.map(p=>{
-    let fila=`<tr><td>${escHTML(p.nombre)}</td><td style="text-align:center">${escHTML(String(p.cantidad))}</td><td style="text-align:right">$${escHTML(p.precio.toFixed(2))}</td><td>$${escHTML(p.subtotal.toFixed(2))}</td></tr>`;
-    if(p.regalias&&p.regalias.length){
-      fila+=p.regalias.map(r=>`<tr><td colspan="2" style="font-size:11px;color:var(--teal-dark);font-style:italic">🎁 ${escHTML(r.nombre)} x${escHTML(String(r.cantidad))}</td><td style="font-size:11px;color:var(--teal-dark);font-style:italic;text-align:right">Regalo</td><td style="font-size:11px;color:var(--teal-dark);font-style:italic">$0.00</td></tr>`).join('');
-    }
-    return fila;
-  }).join('');
-  resetGpsBadge();
-  document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-  const coords=await capturarGPS();
-  if(coords){
-    const lat=parseFloat(coords.lat.toFixed(6)),lng=parseFloat(coords.lng.toFixed(6));
-    const mapsUrl=`https://www.google.com/maps?q=${lat},${lng}`;
-    dataPendiente.gps={lat,lng,acc:coords.acc,url:mapsUrl};
-    document.getElementById('gpsBadge').className='gps-badge ok';
-    document.getElementById('gpsBadgeText').textContent=`📍 Ubicación capturada — precisión ±${coords.acc}m`;
-    const mGps=document.getElementById('m-gps'); mGps.innerHTML='';
-    const a=document.createElement('a'); a.href=mapsUrl; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent=`${lat}, ${lng}`; mGps.appendChild(a);
-  } else {
-    document.getElementById('gpsBadge').className='gps-badge err';
-    document.getElementById('gpsBadgeText').textContent='⚠ No se pudo obtener la ubicación GPS.';
-    document.getElementById('m-gps').textContent='No disponible';
-  }
-}
-
-function cerrarModal(){ document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; dataPendiente=null; }
-
-async function confirmarEnvio(){
-  if(!dataPendiente)return;
-  const btn=document.getElementById('btnConfirmar');
-  btn.disabled=true; btn.innerHTML='<div class="spinner2"></div> Guardando...';
-  const fechaObj=dataPendiente.fecha?new Date(dataPendiente.fecha+'T00:00:00'):new Date();
-  const dia=fechaObj.getDate(),mes=fechaObj.getMonth()+1;
-  const partesProductos=[];
-  dataPendiente.productos.forEach(p=>{
-    partesProductos.push(`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`);
-    if(p.regalias&&p.regalias.length){
-      p.regalias.forEach(r=>{
-        // [FIX] Formato idéntico al de un producto normal (misma estructura que ya parsea
-        // el Apps Script), como entrada PROPIA separada por " | " — así el script sí logra
-        // extraer cantidad/precio/subtotal (precio y subtotal en $0.00, no afecta el total).
-        partesProductos.push(`🎁 REGALO: ${escHTML(r.nombre)} (${r.cantidad} x $0.00 = $0.00)`);
-      });
-    }
-  });
-  const productosTexto=partesProductos.join(' | ');
-  const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:productosTexto,total:dataPendiente.total,latitud:dataPendiente.gps?dataPendiente.gps.lat.toFixed(6):'',longitud:dataPendiente.gps?dataPendiente.gps.lng.toFixed(6):'',gps_link:dataPendiente.gps?dataPendiente.gps.url:'',gps_prec:dataPendiente.gps?`±${dataPendiente.gps.acc}m`:'',csrfToken:SESSION_TOKEN};
-  const estaOnline=navigator.onLine;
-  const onExito=(modoOffline=false)=>{
-    ultimoRegistro={...dataPendiente};
-    guardarEnHistorial(ultimoRegistro);
-    cerrarModal();
-    if(modoOffline)setStatus('warning','📥 Sin internet. Pedido guardado localmente.');
-    else setStatus('success','✓ Pedido guardado correctamente en Google Sheets.');
-    document.getElementById('btnWhatsapp').classList.add('visible');
-    document.getElementById('btnPdf').style.display='flex';
-    // [FIX v3.1] Ya no se oculta btnGuardar: queda disponible de inmediato
-    // para registrar el siguiente pedido sin tener que pulsar "Nuevo pedido".
-    limpiarSoloFormulario();
-    if(!modoOffline)subirPDFaDrive(ultimoRegistro);
-  };
-  if(estaOnline){
-    try{ await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); onExito(false); }
-    catch{ guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{}); }
-  } else {
-    guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{});
-    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
-  }
-  btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
-  dataPendiente=null;
-}
-
-function limpiarSoloFormulario(){
-  if(!usuarioActual||usuarioActual.esAdmin) document.getElementById('empleado').value='';
-  ['formapago','nombre','telefono','direccion','notas'].forEach(id=>document.getElementById(id).value='');
-  productos=[]; renderLista();
-  const hoy=new Date(),yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
-  document.getElementById('fecha').value=`${yyyy}-${mm}-${dd}`;
-}
-function limpiarFormulario(){
-  limpiarSoloFormulario(); ultimoRegistro=null;
-  document.getElementById('btnGuardar').style.display='flex';
-  document.getElementById('btnWhatsapp').classList.remove('visible');
-  document.getElementById('btnPdf').style.display='none';
-  document.getElementById('driveProgress').classList.remove('show');
-  document.getElementById('progressFill').style.width='0%';
-  document.getElementById('progressLink').classList.remove('show');
-  document.getElementById('status').className='status';
-  document.getElementById('status').textContent='';
-}
-function nuevoPedido(){ limpiarFormulario(); }
-
-function registrarPago(){
-  const empleado=document.getElementById('pago-empleado').value;
-  const fecha=document.getElementById('pago-fecha').value;
-  const cliente=sanitizarTexto(document.getElementById('pago-cliente').value,100);
-  const monto=parseMonto(document.getElementById('pago-monto').value);
-  const forma=document.getElementById('pago-forma').value;
-  const notas=sanitizarTexto(document.getElementById('pago-notas').value,200);
-  if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleado)){setStatusPagos('error','Selecciona el asesor / ruta.');return;}
-  if(!cliente){setStatusPagos('error','Ingresa el nombre del cliente.');return;}
-  if(!validarMonto(monto)){setStatusPagos('error','Ingresa un monto válido mayor a $0.');return;}
-  if(!esValorSeguro(forma,LISTAS_BLANCAS.pagoForma)){setStatusPagos('error','Selecciona la forma de pago.');return;}
-  const pago={id:Date.now(),empleado,fecha,cliente,monto,forma,notas,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
-  listaPagos.unshift(pago); renderPagos(); actualizarResumenPagos();
-  try{ // [NEW] persistir en localStorage — sobrevive a cerrar/recargar la app
-    const clave=_clavePagosDia(empleado,fecha);
-    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
-    guardados.unshift(pago);
-    localStorage.setItem(clave,JSON.stringify(guardados));
-  }catch{}
-  const payloadPago={accion:'registrar_pago',empleado,fecha,cliente,monto:monto.toFixed(2),forma,notas,csrfToken:SESSION_TOKEN};
-  if(navigator.onLine){
-    // [FIX] mode:'no-cors' — sin esto el navegador bloqueaba la petición antes
-    // de que saliera y el pago nunca llegaba a Google Sheets/Drive.
-    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadPago)}).catch(()=>{
-      guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
-      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
-    });
-  } else {
-    // [FIX] Antes: sin internet, el pago se perdía en silencio. Ahora se guarda
-    // igual que los pedidos y se reenvía solo cuando vuelve la conexión.
-    guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
-    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
-  }
-  ['pago-empleado','pago-forma'].forEach(id=>document.getElementById(id).value='');
-  ['pago-cliente','pago-monto','pago-notas'].forEach(id=>document.getElementById(id).value='');
-  setStatusPagos('success',`✓ Pago de $${monto.toFixed(2)} registrado para ${escHTML(cliente)}.`);
-}
-function eliminarPago(id){ listaPagos=listaPagos.filter(p=>p.id!==id); renderPagos(); actualizarResumenPagos(); }
-function badgeForma(f){ const m={'Efectivo':'efectivo','Transferencia':'transfer','Datáfono':'datafono','Cheque':'cheque','Depósito':'deposito','Contado':'contado','Crédito':'credito'}; return`<span class="badge badge-${m[f]||'contado'}">${escHTML(f)}</span>`; }
-function renderPagos(){
-  const lista=document.getElementById('pagosLista'),empty=document.getElementById('pagosEmptyMsg'),items=document.getElementById('pagosItems');
-  if(listaPagos.length===0){lista.classList.add('empty');empty.style.display='block';}else{lista.classList.remove('empty');empty.style.display='none';}
-  items.innerHTML=listaPagos.map(p=>`<div class="pago-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(p.cliente)}</div><div style="font-size:11px;color:var(--muted)">${escHTML(p.empleado.replace('RUTA ','R.'))} · ${escHTML(p.hora)}</div></div><div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(p.notas||'-')}</div><div style="text-align:center">${badgeForma(p.forma)}</div><span class="pago-monto">$${escHTML(p.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarPago(${parseInt(p.id)})">&times;</button></div>`).join('');
-}
-function actualizarResumenPagos(){
-  const t=listaPagos.reduce((s,p)=>s+p.monto,0);
-  document.getElementById('pago-total-dia').textContent='$'+t.toFixed(2);
-  document.getElementById('pago-count-dia').textContent=`${listaPagos.length} pago${listaPagos.length!==1?'s':''} registrado${listaPagos.length!==1?'s':''}`;
-  if(listaPagos.length>0){document.getElementById('pago-ultimo').textContent='$'+listaPagos[0].monto.toFixed(2);document.getElementById('pago-ultimo-cliente').textContent=listaPagos[0].cliente;}
-  else{document.getElementById('pago-ultimo').textContent='—';document.getElementById('pago-ultimo-cliente').textContent='Sin registros';}
-}
-
-function registrarGasto(){
-  const empleado=document.getElementById('gasto-empleado').value;
-  const fecha=document.getElementById('gasto-fecha').value;
-  const categoria=sanitizarTexto(document.getElementById('gasto-categoria').value,100);
-  const monto=parseMonto(document.getElementById('gasto-monto').value);
-  const desc=sanitizarTexto(document.getElementById('gasto-desc').value,300);
-  const ref=sanitizarTexto(document.getElementById('gasto-ref').value,100);
-  if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleadoGasto)){setStatusGastos('error','Selecciona el responsable.');return;}
-  if(!categoria){setStatusGastos('error','Selecciona la categoría del gasto.');return;}
-  if(!validarMonto(monto)){setStatusGastos('error','Ingresa un monto válido mayor a $0.');return;}
-  if(!desc){setStatusGastos('error','Describe el gasto.');return;}
-  const gasto={id:Date.now(),empleado,fecha,categoria,monto,desc,ref,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
-  listaGastos.unshift(gasto); renderGastos(); actualizarResumenGastos();
-  try{ // [NEW] persistir en localStorage — sobrevive a cerrar/recargar la app
-    const clave=_claveGastosDia(empleado,fecha);
-    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
-    guardados.unshift(gasto);
-    localStorage.setItem(clave,JSON.stringify(guardados));
-  }catch{}
-  const payloadGasto={accion:'registrar_gasto',empleado,fecha,categoria,monto:monto.toFixed(2),desc,ref,csrfToken:SESSION_TOKEN};
-  if(navigator.onLine){
-    // [FIX] mode:'no-cors' — mismo problema que en registrarPago(): sin esto el
-    // gasto nunca llegaba a Google Sheets/Drive.
-    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadGasto)}).catch(()=>{
-      guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
-      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
-    });
-  } else {
-    // [FIX] Antes: sin internet, el gasto se perdía en silencio. Ahora se guarda
-    // igual que los pedidos y se reenvía solo cuando vuelve la conexión.
-    guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
-    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
-  }
-  ['gasto-empleado','gasto-categoria'].forEach(id=>document.getElementById(id).value='');
-  ['gasto-monto','gasto-desc','gasto-ref'].forEach(id=>document.getElementById(id).value='');
-  setStatusGastos('success',`✓ Gasto de $${monto.toFixed(2)} registrado — ${escHTML(desc)}.`);
-}
-function eliminarGasto(id){ listaGastos=listaGastos.filter(g=>g.id!==id); renderGastos(); actualizarResumenGastos(); }
-function categoriaBadge(cat){ const c=escHTML(String(cat).slice(0,20)); return`<span class="badge badge-contado" style="font-size:9px">${c.length>12?c.substring(0,12)+'…':c}</span>`; }
-function renderGastos(){
-  const lista=document.getElementById('gastosLista'),empty=document.getElementById('gastosEmptyMsg'),items=document.getElementById('gastosItems');
-  if(listaGastos.length===0){lista.classList.add('empty');empty.style.display='block';}else{lista.classList.remove('empty');empty.style.display='none';}
-  items.innerHTML=listaGastos.map(g=>`<div class="gasto-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(g.desc)}</div><div style="font-size:11px;color:var(--muted)">${escHTML(g.empleado.replace('RUTA ','R.'))} · ${escHTML(g.hora)}${g.ref?' · '+escHTML(g.ref):''}</div></div><div style="text-align:center">${categoriaBadge(g.categoria)}</div><div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(g.empleado.split(':')[1]?.trim()||g.empleado)}</div><span class="gasto-monto">$${escHTML(g.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarGasto(${parseInt(g.id)})">&times;</button></div>`).join('');
-}
-function actualizarResumenGastos(){
-  const t=listaGastos.reduce((s,g)=>s+g.monto,0);
-  document.getElementById('gasto-total-dia').textContent='$'+t.toFixed(2);
-  document.getElementById('gasto-count-dia').textContent=`${listaGastos.length} gasto${listaGastos.length!==1?'s':''} registrado${listaGastos.length!==1?'s':''}`;
-  if(listaGastos.length>0){document.getElementById('gasto-ultimo').textContent='$'+listaGastos[0].monto.toFixed(2);document.getElementById('gasto-ultimo-desc').textContent=listaGastos[0].desc;}
-  else{document.getElementById('gasto-ultimo').textContent='—';document.getElementById('gasto-ultimo-desc').textContent='Sin registros';}
-}
-
-function _buildPDF(doc,d){
-  const pageW=210,margin=18,col2=100;
-  doc.setFillColor(26,58,92);doc.rect(0,0,pageW,38,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(255,255,255);doc.text('AQUA LUAN',margin,16);
-  doc.setFontSize(8);doc.setTextColor(78,201,160);doc.text('SISTEMA DE PEDIDOS',margin,22);
-  doc.setFontSize(9);doc.setTextColor(200,220,240);doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
-  const fechaStr=d.fecha?new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'-';
-  doc.setFont('helvetica','normal');doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
-  let y=48;
-  doc.setFillColor(240,245,248);doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(10,124,110);doc.text('ASESOR / RUTA',margin+4,y+7);
-  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(26,58,92);doc.text(d.empleado||'-',margin+4,y+15);
-  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(10,124,110);doc.text('FORMA DE PAGO',col2,y+7);
-  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(26,58,92);doc.text(d.formapago||'-',col2,y+15);
-  y+=30;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(10,124,110);
-  doc.text('DATOS DEL CLIENTE',margin,y);doc.setDrawColor(78,201,160);doc.setLineWidth(0.5);doc.line(margin,y+2,pageW-margin,y+2);y+=8;
-  [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text(lbl.toUpperCase(),margin,y);
-    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(26,58,92);
-    const lines=doc.splitTextToSize(val,pageW-margin-col2+20);doc.text(lines,col2,y);y+=Math.max(7,lines.length*5);
-  });
-  y+=4;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(10,124,110);
-  doc.text('PRODUCTOS DEL PEDIDO',margin,y);doc.line(margin,y+2,pageW-margin,y+2);y+=7;
-  doc.setFillColor(26,58,92);doc.rect(margin,y,pageW-margin*2,8,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);
-  doc.text('PRODUCTO',margin+3,y+5.5);doc.text('CANT.',138,y+5.5,{align:'center'});doc.text('PRECIO',158,y+5.5,{align:'right'});doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'});y+=8;
-  d.productos.forEach((p,idx)=>{
-    if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,58,92);
-    doc.text(p.nombre,margin+3,y+5);doc.text(String(p.cantidad),138,y+5,{align:'center'});doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
-    doc.setFont('helvetica','bold');doc.setTextColor(10,124,110);doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'});y+=7;
-    if(p.regalias&&p.regalias.length){
-      doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(10,124,110);
-      p.regalias.forEach(r=>{ doc.text(`+ Regalo: ${r.nombre} x${r.cantidad}`,margin+6,y+4); y+=5; });
-    }
-  });
-  y+=4;doc.setFillColor(26,58,92);doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(200,220,240);doc.text('TOTAL GENERAL',margin+4,y+8);
-  doc.setFontSize(13);doc.setTextColor(78,201,160);doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
-  if(d.gps){
-    y+=18;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(10,124,110);
-    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y);doc.setDrawColor(78,201,160);doc.setLineWidth(0.5);doc.line(margin,y+2,pageW-margin,y+2);y+=9;
-    doc.setFillColor(230,244,242);doc.setDrawColor(78,201,160);doc.setLineWidth(0.4);doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
-    doc.setFillColor(10,124,110);doc.circle(margin+7,y+7,3,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);doc.text('GPS',margin+7,y+7.8,{align:'center'});
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text('COORDENADAS',margin+14,y+6);
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,58,92);doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text('PRECISIÓN',margin+14,y+18);
-    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,58,92);doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
-    const lk=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
-    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(10,124,110);doc.textWithLink(lk,pageW-margin-4,y+13,{url:d.gps.url,align:'right'});y+=26;
-  }
-  y+=16;doc.setDrawColor(180,200,220);doc.setLineWidth(0.4);
-  doc.line(margin,y,margin+60,y);doc.line(pageW-margin-60,y,pageW-margin,y);
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140,160,180);
-  doc.text('Firma del asesor',margin+30,y+5,{align:'center'});doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
-  doc.setFontSize(7);doc.setTextColor(160,180,200);doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
-}
-
-function generarPDFBase64(){ if(!ultimoRegistro)return null; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,ultimoRegistro); return doc.output('datauristring').split(',')[1]; }
-function descargarPDF(){
-  if(!ultimoRegistro)return;
-  const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,ultimoRegistro);
-  const ns=ultimoRegistro.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
-  const fs=(ultimoRegistro.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
-  doc.save(`Pedido_${ns}_${fs}.pdf`);
-}
-
-async function subirPDFaDrive(snap){
-  if(!snap||!navigator.onLine)return;
-  const d=snap;
-  const pw=document.getElementById('driveProgress'),pf=document.getElementById('progressFill'),pt=document.getElementById('progressText'),pp=document.getElementById('progressPct'),pl=document.getElementById('progressLink');
-  pw.classList.add('show');pl.classList.remove('show');pf.style.width='0%';pt.textContent='Generando PDF...';pp.textContent='0%';
-  let pct=0;
-  const t1=setInterval(()=>{pct=Math.min(pct+8,40);pf.style.width=pct+'%';pp.textContent=pct+'%';},120);
-  let pdfBase64; try{pdfBase64=generarPDFBase64();}catch{clearInterval(t1);pw.classList.remove('show');return;}
-  clearInterval(t1);pf.style.width='45%';pp.textContent='45%';pt.textContent='Subiendo a Google Drive...';
-  const t2=setInterval(()=>{pct=Math.min(pct+5,85);pf.style.width=pct+'%';pp.textContent=pct+'%';},200);
-  try{
-    const ns=d.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
-    const fs=(d.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
-    const resp=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'subir_pdf',pdfBase64,nombreArchivo:`Pedido_${ns}_${fs}.pdf`,empleado:d.empleado,nombre:d.nombre,fecha:d.fecha,csrfToken:SESSION_TOKEN})});
-    clearInterval(t2);
-    let json={}; try{json=await resp.json();}catch{json={result:'ok'};}
-    if(json.result==='ok'||resp.ok){
-      pf.style.width='100%';pp.textContent='100%';pt.textContent='✓ PDF subido a Google Drive';
-      if(json.fileUrl){ pl.innerHTML=''; const a=document.createElement('a'); if(/^https:\/\/drive\.google\.com\//.test(json.fileUrl)){a.href=json.fileUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent='📄 Ver PDF en Google Drive';pl.appendChild(a);} pl.classList.add('show'); }
-      setStatus('success','✓ Pedido guardado y PDF subido a Google Drive.');
-    } else throw new Error(json.error||'Error');
-  }catch{clearInterval(t2);pw.classList.remove('show');}
-}
-
-function _construirMsgWA(d){
-  const lineas=d.productos.map(p=>{
-    let l=` - ${encodeURIComponent(p.nombre)}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`;
-    if(p.regalias&&p.regalias.length){ l+=p.regalias.map(r=>`%0A    🎁 Regalo: ${encodeURIComponent(r.nombre)} x${r.cantidad}`).join(''); }
-    return l;
-  }).join('%0A');
-  const gpsLinea=d.gps?`%0A📌 *Ubicación GPS:* ${encodeURIComponent(d.gps.url)}`:'';
-  return`Estimada Secretria, se envia pedido de cliente:%0A%0A`+`👤 *Cliente:* ${encodeURIComponent(d.nombre)}%0A`+`📞 *Telefono:* ${encodeURIComponent(d.telefono||'-')}%0A`+`📍 *Direccion:* ${encodeURIComponent(d.direccion||'-')}%0A`+`📅 *Fecha:* ${encodeURIComponent(d.fecha)}%0A`+`👷 *Asesor:* ${encodeURIComponent(d.empleado)}%0A`+`💳 *Pago:* ${encodeURIComponent(d.formapago||'-')}%0A%0A`+`📦 *Productos:*%0A${lineas}%0A%0A`+`💰 *TOTAL: $${d.total}*%0A`+`📝 *Notas:* ${encodeURIComponent(d.notas||'-')}`+gpsLinea;
-}
-function enviarWhatsapp(){ if(!ultimoRegistro)return; window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${_construirMsgWA(ultimoRegistro)}`,'_blank','noopener,noreferrer'); }
-
-function _claveHistDia(empleado,fecha){
-  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
-  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
-  return 'al_hist_'+e+'_'+f;
-}
-/* [NEW] Mismo patrón que el historial de pedidos, pero para Pagos y Gastos */
-function _clavePagosDia(empleado,fecha){
-  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
-  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
-  return 'al_pagos_'+e+'_'+f;
-}
-function _claveGastosDia(empleado,fecha){
-  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
-  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
-  return 'al_gastos_'+e+'_'+f;
-}
-/* [NEW] Restaura Pagos y Gastos guardados en localStorage al iniciar sesión —
-   mismo mecanismo que _restaurarHistDia(), así sobreviven a cerrar la app. */
-function _restaurarPagosGastosDia(u){
-  try{
-    const hoy=new Date().toISOString().slice(0,10);
-    let pagosR=[], gastosR=[];
-    if(u.esAdmin){
-      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
-        pagosR=pagosR.concat(JSON.parse(localStorage.getItem(_clavePagosDia(r,hoy))||'[]'));
-        gastosR=gastosR.concat(JSON.parse(localStorage.getItem(_claveGastosDia(r,hoy))||'[]'));
-      });
-    } else {
-      pagosR=JSON.parse(localStorage.getItem(_clavePagosDia(u.ruta,hoy))||'[]');
-      gastosR=JSON.parse(localStorage.getItem(_claveGastosDia(u.ruta,hoy))||'[]');
-    }
-    pagosR.sort((a,b)=>(b.id||0)-(a.id||0));
-    gastosR.sort((a,b)=>(b.id||0)-(a.id||0));
-    listaPagos=pagosR; listaGastos=gastosR;
-    renderPagos(); actualizarResumenPagos();
-    renderGastos(); actualizarResumenGastos();
-  }catch(e){}
-}
-function guardarEnHistorial(reg){
-  try{
-    const r={id:Date.now(),nombre:sanitizarTexto(reg.nombre,100),total:reg.total,fecha:reg.fecha,empleado:reg.empleado,formapago:reg.formapago,telefono:sanitizarTexto(reg.telefono,20),direccion:sanitizarTexto(reg.direccion,200),notas:sanitizarTexto(reg.notas,500),productos:reg.productos,gps:null};
-    // sessionStorage (sesión actual)
-    const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
-    hS.unshift(r); if(hS.length>200)hS.pop(); // [FIX v3.1] límite ampliado (antes 20) — ya no se pierden los primeros pedidos
-    sessionStorage.setItem('aqualuan-historial',JSON.stringify(hS));
-    // localStorage (persiste entre logins del mismo día)
-    const clave=_claveHistDia(reg.empleado,reg.fecha);
-    const hL=JSON.parse(localStorage.getItem(clave)||'[]');
-    if(!hL.find(x=>x.id===r.id)){hL.unshift(r);if(hL.length>200)hL.pop();localStorage.setItem(clave,JSON.stringify(hL));} // [FIX v3.1] límite ampliado (antes 20)
-  }catch{}
-}
-
-function cargarHistorial(){
-  let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{}
-  const lista=document.getElementById('historialLista');
-  if(hist.length===0){ lista.innerHTML=`<div class="empty-msg" style="margin-top:0">Aún no hay pedidos guardados en esta sesión.</div>`; return; }
-  lista.innerHTML=hist.map((r,i)=>`<div class="historial-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px"><span class="historial-cliente">👤 ${escHTML(r.nombre)}</span><span class="historial-total">$${escHTML(r.total)}</span></div><div class="historial-meta">📅 ${escHTML(r.fecha||'-')} &nbsp;|&nbsp; 👷 ${escHTML(r.empleado)} &nbsp;|&nbsp; 💳 ${escHTML(r.formapago||'-')}</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px">📦 ${escHTML(String(r.productos.length))} producto${r.productos.length!==1?'s':''}</div><div class="historial-btns"><button class="btn-hist btn-hist-pdf" onclick="descargarPDFDesde(${parseInt(i)})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Descargar PDF</button><button class="btn-hist btn-hist-wa" onclick="enviarWhatsappDesde(${parseInt(i)})"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp secretaria</button></div></div>`).join('');
-}
-function descargarPDFDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; const r=hist[idx]; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,r); const ns=r.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60); const fs=(r.fecha||'sin-fecha').replace(/[^0-9\-]/g,''); doc.save(`Pedido_${ns}_${fs}.pdf`); }
-function enviarWhatsappDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${_construirMsgWA(hist[idx])}`,'_blank','noopener,noreferrer'); } // [FIX] WHATSAPP_ZOILA no existía en esta versión
-function limpiarHistorial(){
-  if(!confirm('¿Limpiar el historial de pedidos de hoy?'))return;
-  try{
-    sessionStorage.removeItem('aqualuan-historial');
-    if(usuarioActual){
-      const hoy=new Date().toISOString().slice(0,10);
-      if(usuarioActual.esAdmin){
-        ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
-      } else {
-        localStorage.removeItem(_claveHistDia(usuarioActual.ruta,hoy));
-      }
-    }
-  }catch{}
-  cargarHistorial();
-}
-
-document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModal(); });
-renderLista();
-
-/* ── [NEW] Panel Admin: generar código para dar de alta un nuevo asesor ──
-   No hay backend de usuarios (AUTH_REGISTRY vive hardcodeado en este HTML),
-   así que este panel solo GENERA el bloque de código listo para pegar.
-   La contraseña nunca sale del navegador: se hashea localmente con la
-   misma función hashSHA256() que usa el login. */
-function abrirModalAsesor(){
-  document.getElementById('na-nombre').value='';
-  document.getElementById('na-numruta').value='';
-  document.getElementById('na-usuario').value='';
-  document.getElementById('na-pass').value='';
-  document.getElementById('na-resultado').style.display='none';
-  document.getElementById('na-codigo').value='';
-  document.getElementById('na-elim-resultado').style.display='none';
-  document.getElementById('na-elim-codigo').value='';
-  poblarSelectEliminarAsesor(); // [NEW]
-  document.getElementById('modalAsesorOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-/* [NEW] Llena el desplegable con los asesores actuales (excluye admin) leyendo AUTH_REGISTRY */
-function poblarSelectEliminarAsesor(){
-  const sel = document.getElementById('na-eliminar-select');
-  sel.innerHTML = '<option value="">-- Selecciona --</option>';
-  Object.keys(AUTH_REGISTRY).forEach(usuario=>{
-    if(usuario==='admin') return;
-    const reg = AUTH_REGISTRY[usuario];
-    const opt = document.createElement('option');
-    opt.value = usuario;
-    opt.textContent = `${reg.nombre} — ${reg.ruta}`;
-    sel.appendChild(opt);
-  });
-}
-/* [NEW] Genera las instrucciones exactas para quitar a un asesor del código */
-function generarInstruccionesEliminar(){
-  const usuario = document.getElementById('na-eliminar-select').value;
-  if(!usuario){ alert('Selecciona un asesor de la lista.'); return; }
-  const reg = AUTH_REGISTRY[usuario];
-  const ruta = reg.ruta;
-  const texto =
-`/* ══ ELIMINAR ASESOR: ${reg.nombre} — ${ruta} ══ */
-
-/* PASO 1 — Dentro de AUTH_REGISTRY, elimina esta línea completa (usuario: '${usuario}'): */
-  '${usuario}': { h: '...', nombre: '${reg.nombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
-
-/* PASO 2 — Elimina '${ruta}' de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto */
-
-/* PASO 3 — Elimina <option value="${ruta}">${ruta}</option> de los 3 <select>
-   (id="empleado", id="pago-empleado", id="gasto-empleado") — tanto en el HTML
-   estático como dentro de la función restaurarSelectsCompletos() en el JS */
-
-/* PASO 4 (opcional, si ya no vas a usar esa ruta nunca más) — Elimina '${ruta}'
-   de las 2 listas usadas para restaurar y limpiar el historial diario del admin */
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */
-
-NOTA: esto solo elimina el ACCESO de login de ${reg.nombre}. Los pedidos/pagos/gastos
-que ya registró siguen intactos en tu Google Sheets — no se borra ningún dato histórico.`;
-
-  document.getElementById('na-elim-codigo').value = texto;
-  document.getElementById('na-elim-resultado').style.display='block';
-}
-function copiarInstruccionesEliminar(){
-  const ta = document.getElementById('na-elim-codigo');
-  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
-  }
-}
-function cerrarModalAsesor(){
-  document.getElementById('modalAsesorOverlay').classList.remove('open');
-  document.body.style.overflow='';
-}
-async function generarCodigoAsesor(){
-  const nombreCompleto = sanitizarTexto(document.getElementById('na-nombre').value,60);
-  const numRuta = document.getElementById('na-numruta').value.trim();
-  const usuario = document.getElementById('na-usuario').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
-  const pass = document.getElementById('na-pass').value;
-
-  if(!nombreCompleto){ alert('Ingresa el nombre completo del asesor.'); return; }
-  if(!/^[0-9]+$/.test(numRuta)){ alert('Ingresa un número de ruta válido (ej. 6).'); return; }
-  if(!usuario){ alert('Ingresa un usuario válido (solo letras y números, sin espacios).'); return; }
-  if(!pass || pass.length<4){ alert('Ingresa una contraseña de al menos 4 caracteres.'); return; }
-  if(AUTH_REGISTRY[usuario]){ alert('Ese usuario ya existe en este dispositivo. Elige otro nombre de usuario.'); return; }
-
-  const primerNombre = nombreCompleto.split(' ')[0];
-  const ruta = `RUTA ${numRuta}: ${primerNombre}`;
-  const hash = await hashSHA256(pass);
-
-  const codigo =
-`/* ══ NUEVO ASESOR: ${escHTML(nombreCompleto)} — ${escHTML(ruta)} ══ */
-
-/* PASO 1 — Dentro de AUTH_REGISTRY, agrega esta línea (antes del }); de cierre): */
-  '${usuario}': { h: '${hash}', nombre: '${primerNombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
-
-/* PASO 2 — Agrega '${ruta}' dentro de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto: */
-  '${ruta}',
-
-/* PASO 3 — Agrega esta opción en los 3 <select> del HTML (id="empleado", id="pago-empleado", id="gasto-empleado"): */
-  <option value="${ruta}">${ruta}</option>
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
-
-  document.getElementById('na-codigo').value = codigo;
-  document.getElementById('na-resultado').style.display='block';
-}
-function copiarCodigoAsesor(){
-  const ta = document.getElementById('na-codigo');
-  if(!ta.value){ alert('Primero genera el código.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 3 pasos, o envíamelo.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
-  }
-}
-document.getElementById('modalAsesorOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalAsesor(); });
-
-/* ── RESUMEN DEL DÍA ── */
-let _resumenDiaData=null;
-function abrirResumenDia(){
-  let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{}
-  const contenedor=document.getElementById('resumenDiaContenido'),sub=document.getElementById('resumenDiaSub'),totalBox=document.getElementById('resumenTotalGeneral'),totalValor=document.getElementById('resumenTotalValor');
-
-  // [NEW] Cuadre de Caja: Ingresos (pagos) vs Egresos (gastos) de esta sesión
-  const totalIngresos=listaPagos.reduce((s,p)=>s+p.monto,0);
-  const totalEgresos=listaGastos.reduce((s,g)=>s+g.monto,0);
-  const netoCaja=totalIngresos-totalEgresos;
-  const hayCaja=listaPagos.length>0||listaGastos.length>0;
-  const cajaHtml=hayCaja?`
-    <div class="resumen-grid" style="margin-bottom:1rem">
-      <div class="resumen-card teal"><span class="resumen-label">🟢 Ingresos (pagos)</span><span class="resumen-value">$${totalIngresos.toFixed(2)}</span><span class="resumen-sub">${listaPagos.length} pago(s)</span></div>
-      <div class="resumen-card red"><span class="resumen-label">🔴 Egresos (gastos)</span><span class="resumen-value">$${totalEgresos.toFixed(2)}</span><span class="resumen-sub">${listaGastos.length} gasto(s)</span></div>
-    </div>
-    <div class="resumen-total-general" style="background:${netoCaja>=0?'var(--navy)':'#7a2020'};margin-top:0;margin-bottom:1.25rem">
-      <span class="resumen-total-general-label">🧮 Total en caja (Ingresos − Egresos)</span>
-      <span class="resumen-total-general-value">$${netoCaja.toFixed(2)}</span>
-    </div>`:'';
-
-  if(!hist.length){ contenedor.innerHTML=cajaHtml+`<div class="empty-msg" style="margin-top:0">No hay pedidos registrados en esta sesión.</div>`; totalBox.style.display='none'; _resumenDiaData={porAsesor:{},totalGeneral:0,formasPagoGlobal:{},hoy:new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),totalPedidos:0,totalIngresos,totalEgresos,netoCaja}; document.getElementById('resumenModalOverlay').classList.add('open'); document.body.style.overflow='hidden'; return; }
-  const hoy=new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  sub.textContent=`📅 ${hoy} — ${hist.length} pedido(s) en esta sesión`;
-  const porAsesor={};
-  hist.forEach(pedido=>{ const asesor=pedido.empleado||'Sin asignar'; if(!porAsesor[asesor])porAsesor[asesor]={clientes:new Set(),pedidos:0,productos:{},formasPago:{},totalDia:0}; const datos=porAsesor[asesor]; datos.clientes.add(pedido.nombre||''); datos.pedidos++; const tot=parseFloat(pedido.total||0); datos.totalDia+=tot; const forma=pedido.formapago||'Sin especificar'; datos.formasPago[forma]=(datos.formasPago[forma]||0)+tot; (pedido.productos||[]).forEach(p=>{ const nom=p.nombre||'Sin nombre'; if(!datos.productos[nom])datos.productos[nom]={cantidad:0,precioUnit:p.precio||0,subtotal:0}; datos.productos[nom].cantidad+=parseFloat(p.cantidad||0); datos.productos[nom].subtotal+=parseFloat(p.subtotal||0); datos.productos[nom].precioUnit=parseFloat(p.precio||datos.productos[nom].precioUnit); }); });
-  let totalGeneral=0; const formasPagoGlobal={};
-  Object.values(porAsesor).forEach(d=>{ totalGeneral+=d.totalDia; Object.entries(d.formasPago).forEach(([f,v])=>{ formasPagoGlobal[f]=(formasPagoGlobal[f]||0)+v; }); });
-  _resumenDiaData={porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos:hist.length,totalIngresos,totalEgresos,netoCaja};
-  const iconoForma={'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓'};
-  let html=cajaHtml;
-  Object.entries(porAsesor).forEach(([asesor,datos])=>{
-    const nc=asesor.includes(':')?asesor.split(':')[1].trim():asesor;
-    const ca=[...datos.clientes].filter(Boolean);
-    const nt=Object.keys(datos.productos).length;
-    const tu=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
-    const po=Object.entries(datos.productos).sort(([,a],[,b])=>b.subtotal-a.subtotal);
-    const fp=po.map(([nom,p])=>`<tr><td>${escHTML(nom)}</td><td>${p.cantidad%1===0?parseInt(p.cantidad):p.cantidad.toFixed(1)}</td><td>$${p.precioUnit.toFixed(2)}</td><td style="font-weight:700;color:var(--teal)">$${p.subtotal.toFixed(2)}</td></tr>`).join('');
-    const tp=Object.entries(datos.formasPago).sort(([,a],[,b])=>b-a).map(([f,v])=>`<span class="forma-pago-tag">${escHTML(iconoForma[f]||'💳')} ${escHTML(f)}<span class="forma-pago-tag-valor">$${v.toFixed(2)}</span></span>`).join('');
-    html+=`<div class="asesor-resumen-block"><div class="asesor-resumen-header"><div class="asesor-resumen-nombre"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>${escHTML(nc)}<span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.06em">${escHTML(asesor.includes('RUTA')?asesor.split(':')[0].trim():'')}</span></div><div class="asesor-resumen-total">$${datos.totalDia.toFixed(2)}</div></div><div class="asesor-meta-row"><div class="asesor-meta-item"><span class="asesor-meta-label">Clientes</span><span class="asesor-meta-value">${ca.length}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Pedidos</span><span class="asesor-meta-value">${datos.pedidos}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Tipos prod.</span><span class="asesor-meta-value">${nt}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Unidades</span><span class="asesor-meta-value">${tu%1===0?parseInt(tu):tu.toFixed(1)}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Total ruta</span><span class="asesor-meta-value" style="color:var(--teal)">$${datos.totalDia.toFixed(2)}</span></div></div><div class="formas-pago-resumen"><span class="formas-pago-label">Formas de pago:</span>${tp}</div><table class="productos-resumen-table"><thead><tr><th>Producto</th><th>Cant.</th><th>Precio U.</th><th>Subtotal</th></tr></thead><tbody>${fp}</tbody></table></div>`;
-  });
-  const tg=Object.entries(formasPagoGlobal).sort(([,a],[,b])=>b-a).map(([f,v])=>`<span class="forma-pago-tag" style="background:var(--teal-light);border-color:var(--teal)">${escHTML(iconoForma[f]||'💳')} ${escHTML(f)}<span class="forma-pago-tag-valor" style="color:var(--teal-dark);font-size:12px">$${v.toFixed(2)}</span></span>`).join('');
-  html+=`<div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:4px"><div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px">💳 Resumen global de formas de pago</div><div style="display:flex;gap:8px;flex-wrap:wrap">${tg}</div></div>`;
-  contenedor.innerHTML=html;
-  totalValor.textContent='$'+totalGeneral.toFixed(2);
-  totalBox.style.display='flex';
-  document.getElementById('resumenModalOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function cerrarResumenModal(){ document.getElementById('resumenModalOverlay').classList.remove('open'); document.body.style.overflow=''; }
-function imprimirResumen(){
-  const contenido=document.getElementById('resumenModal').innerHTML;
-  const v=window.open('','_blank','width=700,height=900');
-  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Resumen del Día — Aqua Luan</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}.resumen-modal-handle,.btn-cerrar-resumen,.btn-imprimir-resumen,.btn-wa-resumen{display:none!important;}.resumen-dia-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;}.resumen-dia-sub{font-size:12px;color:#888;margin-bottom:20px;}.asesor-resumen-block{border:1.5px solid #ddd;border-radius:10px;overflow:hidden;margin-bottom:16px;}.asesor-resumen-header{background:#1a3a5c;padding:10px 14px;display:flex;justify-content:space-between;}.asesor-resumen-nombre{font-size:13px;font-weight:700;color:#fff;display:flex;gap:8px;align-items:center;}.asesor-resumen-total{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#4ec9a0;}.asesor-meta-row{display:flex;gap:16px;padding:10px 14px;background:#e6f4f2;border-bottom:1px solid #ddd;flex-wrap:wrap;}.asesor-meta-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#0a7c6e;display:block;}.asesor-meta-value{font-size:14px;font-weight:700;color:#1a3a5c;}.productos-resumen-table{width:100%;border-collapse:collapse;font-size:12px;}.productos-resumen-table th{background:#f0f5f8;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#666;border-bottom:1px solid #ddd;}.productos-resumen-table th:last-child,.productos-resumen-table th:nth-child(2){text-align:right;}.productos-resumen-table td{padding:8px 12px;border-bottom:1px solid #eee;}.productos-resumen-table td:last-child,.productos-resumen-table td:nth-child(2){text-align:right;}.productos-resumen-table tr:nth-child(even) td{background:#f9f9f9;}.resumen-total-general{background:#1a3a5c;border-radius:10px;padding:14px 18px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;}.resumen-total-general-label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6);}.resumen-total-general-value{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#4ec9a0;}.print-footer{margin-top:20px;text-align:center;font-size:11px;color:#aaa;}.formas-pago-resumen{padding:10px 14px;background:#f0f5f8;border-bottom:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}.forma-pago-tag{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #ddd;border-radius:100px;padding:4px 10px;font-size:11px;font-weight:700;color:#1a3a5c;}.forma-pago-tag-valor{color:#0a7c6e;margin-left:2px;}.formas-pago-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;}</style></head><body>${contenido}<div class="print-footer">www.elhyai.com | Aqua Luan — Sistema de Pedidos</div><script>window.onload=function(){window.print();}<\/script></body></html>`);
-  v.document.close();
-}
-document.getElementById('resumenModalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarResumenModal(); });
-
-function enviarResumenWhatsapp(){
-  if(!_resumenDiaData){alert('Primero genera el resumen del día.');return;}
-  const{porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos,totalIngresos,totalEgresos,netoCaja}=_resumenDiaData;
-  const iF={'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓'};
-  let msg=`📊 *RESUMEN DEL DÍA — AQUA LUAN*%0A📅 ${encodeURIComponent(hoy)}%0A📦 Total pedidos: ${totalPedidos}%0A%0A`;
-  Object.entries(porAsesor).forEach(([asesor,datos])=>{
-    const n=asesor.includes(':')?asesor.split(':')[1].trim():asesor;
-    const cl=[...datos.clientes].filter(Boolean).length;
-    const un=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
-    msg+=`👤 *${encodeURIComponent(n)}*%0A Clientes: ${cl} | Pedidos: ${datos.pedidos} | Unidades: ${parseInt(un)}%0A 💰 Total: *$${datos.totalDia.toFixed(2)}*%0A`;
-    const fr=Object.entries(datos.formasPago).sort(([,a],[,b])=>b-a);
-    if(fr.length){msg+=` 💳 `;msg+=fr.map(([f,v])=>`${iF[f]||'💳'} ${encodeURIComponent(f)}: $${v.toFixed(2)}`).join(' | ');msg+='%0A';}
-    Object.entries(datos.productos).sort(([,a],[,b])=>b.subtotal-a.subtotal).forEach(([nom,p])=>{ const c=p.cantidad%1===0?parseInt(p.cantidad):p.cantidad.toFixed(1); msg+=` • ${encodeURIComponent(nom)}: ${c} u = $${p.subtotal.toFixed(2)}%0A`; });
-    msg+='%0A';
-  });
-  msg+=`💳 *FORMAS DE PAGO TOTAL*%0A`;
-  Object.entries(formasPagoGlobal).sort(([,a],[,b])=>b-a).forEach(([f,v])=>{ msg+=` ${iF[f]||'💳'} ${encodeURIComponent(f)}: *$${v.toFixed(2)}*%0A`; });
-  msg+=`%0A💰 *TOTAL GENERAL DEL DÍA: $${totalGeneral.toFixed(2)}*%0A`;
-  if((totalIngresos||0)>0||(totalEgresos||0)>0){
-    msg+=`%0A🧮 *CUADRE DE CAJA*%0A🟢 Ingresos (pagos): $${(totalIngresos||0).toFixed(2)}%0A🔴 Egresos (gastos): $${(totalEgresos||0).toFixed(2)}%0A💼 *Total en caja: $${(netoCaja||0).toFixed(2)}*%0A`;
-  }
-  msg+=`%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
-  window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${msg}`,'_blank','noopener,noreferrer'); // [FIX] WHATSAPP_ZOILA no existía en esta versión
-}
-
-/* ── [NEW] Panel Admin: gestionar productos (agregar / eliminar) ──
-   Igual que los asesores, aquí no hay backend de catálogo (LISTAS_BLANCAS.productos
-   vive hardcodeado), así que este panel también GENERA el código listo para pegar. */
-function abrirModalProducto(){
-  document.getElementById('np-nombre').value='';
-  document.getElementById('np-resultado').style.display='none';
-  document.getElementById('np-codigo').value='';
-  document.getElementById('np-elim-resultado').style.display='none';
-  document.getElementById('np-elim-codigo').value='';
-  poblarSelectEliminarProducto();
-  document.getElementById('modalProductoOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function cerrarModalProducto(){
-  document.getElementById('modalProductoOverlay').classList.remove('open');
-  document.body.style.overflow='';
-}
-function poblarSelectEliminarProducto(){
-  const sel = document.getElementById('np-eliminar-select');
-  sel.innerHTML = '<option value="">-- Selecciona --</option>';
-  LISTAS_BLANCAS.productos.forEach(nombre=>{
-    const opt = document.createElement('option');
-    opt.value = nombre;
-    opt.textContent = nombre;
-    sel.appendChild(opt);
-  });
-}
-function generarCodigoProducto(){
-  const nombreRaw = document.getElementById('np-nombre').value;
-  const nombre = sanitizarTexto(nombreRaw,60).toUpperCase();
-  if(!nombre){ alert('Ingresa el nombre del producto.'); return; }
-  if(LISTAS_BLANCAS.productos.includes(nombre)){ alert('Ese producto ya existe en la lista.'); return; }
-
-  const codigo =
-`/* ══ NUEVO PRODUCTO: ${escHTML(nombre)} ══ */
-
-/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, agrega este valor (antes del ] de cierre): */
-  '${nombre}',
-
-/* PASO 2 — Agrega esta opción dentro del <select id="sel-producto"> en el HTML: */
-  <option value="${nombre}">${nombre}</option>
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
-
-  document.getElementById('np-codigo').value = codigo;
-  document.getElementById('np-resultado').style.display='block';
-}
-function copiarCodigoProducto(){
-  const ta = document.getElementById('np-codigo');
-  if(!ta.value){ alert('Primero genera el código.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 2 pasos, o envíamelo.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
-  }
-}
-function generarInstruccionesEliminarProducto(){
-  const nombre = document.getElementById('np-eliminar-select').value;
-  if(!nombre){ alert('Selecciona un producto de la lista.'); return; }
-  const texto =
-`/* ══ ELIMINAR PRODUCTO: ${escHTML(nombre)} ══ */
-
-/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, elimina este valor: */
-  '${nombre}',
-
-/* PASO 2 — Elimina <option value="${nombre}">${nombre}</option> del <select id="sel-producto"> en el HTML */
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */
-
-NOTA: esto solo quita el producto del formulario de nuevos pedidos. Los pedidos
-ya registrados con este producto siguen intactos en tu Google Sheets — no se
-borra ningún dato histórico.`;
-
-  document.getElementById('np-elim-codigo').value = texto;
-  document.getElementById('np-elim-resultado').style.display='block';
-}
-function copiarInstruccionesEliminarProducto(){
-  const ta = document.getElementById('np-elim-codigo');
-  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
-  }
-}
-document.getElementById('modalProductoOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalProducto(); });
-</script>
-
 <!-- MODAL RESUMEN DEL DÍA -->
 <div class="resumen-modal-overlay" id="resumenModalOverlay">
   <div class="resumen-modal" id="resumenModal">
@@ -2065,6 +955,1056 @@ document.getElementById('modalProductoOverlay').addEventListener('click',functio
     <button class="btn btn-outline" style="margin-top:10px" onclick="cerrarModalProducto()">Cerrar</button>
   </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script>
+const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
+const WHATSAPP_secretaria = "593989938910";
+const SESSION_TOKEN  = generarTokenSesion();
+
+function generarTokenSesion() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function escHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\//g,'&#x2F;');
+}
+
+const LISTAS_BLANCAS = {
+  empleado: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora'],
+  empleadoGasto: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','Administración'],
+  formapago: ['Contado','Crédito','Transferencia','Cheque'],
+  pagoForma: ['Efectivo','Transferencia','Cheque'],
+  productos: ['BOTELLON 20LT','BOTELLON CON LLAVE','PACA 625ML AZUL','PACA 600ML VERDE','PACA 1000ML','PACA 400ML','GALONES 4LT','POMA 5LTS','ENVASE CON LLAVE','ENVASE AZUL ADICIONAL']
+};
+function esValorSeguro(v,l){ return l.includes(String(v).trim()); }
+function sanitizarTexto(s,m=255){ if(!s)return''; return String(s).trim().slice(0,m); }
+function validarMonto(v){ const n=parseFloat(v); return !isNaN(n)&&n>0&&n<1000000; }
+
+function parseMonto(v){
+  if(v===null||v===undefined) return NaN;
+  let s=String(v).trim().replace(/[^0-9.,]/g,'');
+  if(s.indexOf(',')>-1 && s.indexOf('.')>-1){
+    s=s.replace(/\./g,'').replace(',', '.');
+  } else {
+    s=s.replace(',', '.');
+  }
+  return parseFloat(s);
+}
+function filtrarInputMonto(el){
+  let v=el.value.replace(/[^0-9.,]/g,'');
+  const partes=v.split(/[.,]/);
+  if(partes.length>2){ v=partes[0]+(v.includes(',')? ',':'.')+partes.slice(1).join(''); }
+  el.value=v;
+}
+
+const DB_NAME='aqualuan-db', STORE='pedidos-pendientes', LS_KEY='aqualuan-pendientes-ls';
+let dbInstance=null;
+function abrirDB(){ if(dbInstance)return Promise.resolve(dbInstance); return new Promise((res,rej)=>{ const req=indexedDB.open(DB_NAME,1); req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true}); }; req.onsuccess=e=>{dbInstance=e.target.result;res(dbInstance);}; req.onerror=e=>rej(e.target.error); }); }
+async function guardarLocal(p){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const req=tx.objectStore(STORE).add({payload:p,fecha:new Date().toISOString()}); req.onsuccess=()=>res(req.result); req.onerror=e=>rej(e.target.error); }); }
+async function obtenerPendientes(){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const req=tx.objectStore(STORE).getAll(); req.onsuccess=()=>res(req.result); req.onerror=e=>rej(e.target.error); }); }
+async function eliminarLocal(id){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const req=tx.objectStore(STORE).delete(id); req.onsuccess=()=>res(); req.onerror=e=>rej(e.target.error); }); }
+function guardarEnLocalStorageSync(p){ try{ const e=JSON.parse(localStorage.getItem(LS_KEY)||'[]'); e.push({id:Date.now(),payload:p,fecha:new Date().toISOString()}); localStorage.setItem(LS_KEY,JSON.stringify(e)); }catch(e){} }
+
+let productos=[], dataPendiente=null, ultimoRegistro=null, listaPagos=[], listaGastos=[];
+
+const MAX_INTENTOS_LOCAL=5, VENTANA_LOCAL_MS=15*60*1000, TIMEOUT_FETCH_MS=15000;
+let usuarioActual=null;
+
+async function hashSHA256(texto){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(texto));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function verificarIntentosLocal(){
+  let est; try{est=JSON.parse(sessionStorage.getItem('_al_att')||'{"c":0,"t":0}');}catch{est={c:0,t:0};}
+  const ahora=Date.now();
+  if(ahora-est.t>VENTANA_LOCAL_MS){ sessionStorage.setItem('_al_att',JSON.stringify({c:0,t:ahora})); return{ok:true}; }
+  if(est.c>=MAX_INTENTOS_LOCAL){ const resto=Math.ceil((VENTANA_LOCAL_MS-(ahora-est.t))/60000); return{ok:false,msg:`Demasiados intentos. Espera ${resto} minuto(s).`}; }
+  return{ok:true};
+}
+function incrementarIntentoLocal(){ let est; try{est=JSON.parse(sessionStorage.getItem('_al_att')||'{"c":0,"t":0}');}catch{est={c:0,t:Date.now()};} est.c+=1; if(!est.t)est.t=Date.now(); sessionStorage.setItem('_al_att',JSON.stringify(est)); }
+function resetearIntentosLocal(){ sessionStorage.removeItem('_al_att'); }
+
+const AUTH_REGISTRY = Object.freeze({
+  'admin':     { h: '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055', nombre: 'Admin',     rol: 'ADMIN',    ruta: null,                esAdmin: true  },
+  'jefferson': { h: '4bfc5062667279d31eefd696f24a2f28e5fa203f7c683e4aefa5483947449770', nombre: 'Jefferson', rol: 'OPERADOR', ruta: 'RUTA 1: Jefferson', esAdmin: false },
+  'luis':      { h: '5893cd3c3f2b3903c3214bcabcdfa9aee03a3ec0931a4876204046f244cad892', nombre: 'Luis',      rol: 'OPERADOR', ruta: 'RUTA 2: Luis',      esAdmin: false },
+  'vicente':   { h: 'f66986a120970c2ab68459132797c4c269b609ea16761f56cdafbae04290f630', nombre: 'Vicente',   rol: 'OPERADOR', ruta: 'RUTA 3: Vicente',    esAdmin: false },
+  'wilson':    { h: 'b2ec2618e167952138ce705b6e65a7d138aef40a39fd54333e3bf68fe0b01f99', nombre: 'Wilson',    rol: 'OPERADOR', ruta: 'RUTA 4: Wilson',     esAdmin: false },
+  'lister':    { h: 'df5fece5d1a837bc2d97f79beecae74a2b58f4a5418f07e11a290ea96f14ac06', nombre: 'Lister',    rol: 'OPERADOR', ruta: 'RUTA 5: Lister',     esAdmin: false },
+  'aventas':   { h: 'da871a607c4083419b0cc2f963848835995016fde9a91e6fff50c273694ee70a', nombre: 'Asesora',   rol: 'OPERADOR', ruta: 'RUTA 6: Asesora',   esAdmin: false }
+});
+
+function servidorConfigurado() {
+  return false;
+}
+
+function comparacionSegura(a,b){
+  if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;
+  let diff=0; for(let i=0;i<a.length;i++) diff|=a.charCodeAt(i)^b.charCodeAt(i);
+  return diff===0;
+}
+
+async function authLocalLogin(usuario,passHash){
+  const inicio=Date.now();
+  const registro=AUTH_REGISTRY[usuario]||null;
+  let ok=false;
+  if(registro){ ok=comparacionSegura(passHash,registro.h); }
+  else{ await hashSHA256('__dummy__'); }
+  const elapsed=Date.now()-inicio;
+  if(elapsed<80) await new Promise(r=>setTimeout(r,80-elapsed));
+  if(!ok) return{ok:false};
+  return{ ok:true, token:'LOCAL_'+SESSION_TOKEN.slice(0,16), nombre:registro.nombre, rol:registro.rol, ruta:registro.ruta, esAdmin:registro.esAdmin, expira:Date.now()+8*60*60*1000, modoLocal:true };
+}
+
+async function doLogin(){
+  const chk=verificarIntentosLocal();
+  if(!chk.ok){ document.getElementById('loginError').classList.remove('show'); const b=document.getElementById('loginBloqueo'); b.textContent=chk.msg; b.classList.add('show'); return; }
+  const userRaw=document.getElementById('loginUser').value.trim().toLowerCase();
+  const passRaw=document.getElementById('loginPass').value;
+  const btnLogin=document.getElementById('btnLogin');
+  if(!userRaw||!passRaw){mostrarErrorLogin('Completa usuario y contraseña.');return;}
+  if(userRaw.length>50||passRaw.length>128){mostrarErrorLogin('Datos inválidos.');return;}
+  btnLogin.disabled=true; btnLogin.textContent='Verificando...';
+  try{
+    const passHash=await hashSHA256(passRaw);
+    document.getElementById('loginPass').value='';
+    const resultado=await authLocalLogin(userRaw,passHash);
+    if(resultado.ok&&resultado.token){
+      resetearIntentosLocal();
+      const sesion={ token:resultado.token, nombre:resultado.nombre, rol:resultado.rol||(resultado.esAdmin?'ADMIN':'OPERADOR'), ruta:resultado.ruta||null, esAdmin:resultado.esAdmin||resultado.rol==='ADMIN', expira:resultado.expira||(Date.now()+8*60*60*1000), modoLocal:true };
+      sessionStorage.setItem('_al_sess',JSON.stringify(sesion));
+      usuarioActual=sesion;
+      document.getElementById('loginOverlay').style.display='none';
+      document.getElementById('loginError').classList.remove('show');
+      document.getElementById('loginBloqueo').classList.remove('show');
+      aplicarUsuario(); iniciarMonitorExpiracion();
+    } else { incrementarIntentoLocal(); mostrarErrorLogin('Usuario o contraseña incorrectos.'); }
+  }catch{ mostrarErrorLogin('Error al verificar. Intenta de nuevo.'); }
+  finally{ btnLogin.disabled=false; btnLogin.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ingresar'; }
+}
+
+let _monitorId=null;
+function iniciarMonitorExpiracion(){
+  if(_monitorId)clearInterval(_monitorId);
+  _monitorId=setInterval(()=>{
+    if(!usuarioActual)return;
+    const restante=usuarioActual.expira-Date.now();
+    if(restante<=0){ clearInterval(_monitorId); alert('Tu sesión ha expirado. Por favor inicia sesión de nuevo.'); cerrarSesion(); }
+    else if(restante<=5*60*1000){ const min=Math.ceil(restante/60000); const aviso=document.getElementById('avisoSesion'); if(aviso){aviso.textContent=`⏱ Tu sesión expira en ${min} minuto(s).`;aviso.style.display='block';} }
+  },30000);
+}
+
+async function cerrarSesion(){
+  if(_monitorId)clearInterval(_monitorId);
+  usuarioActual=null; ultimoRegistro=null; productos=[]; listaPagos=[]; listaGastos=[];
+  sessionStorage.removeItem('_al_sess');
+  sessionStorage.removeItem('_al_att');
+  sessionStorage.removeItem('aqualuan-historial');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('btnLogout').style.display='none';
+  document.getElementById('btnGestionAsesores').style.display='none';
+  document.getElementById('btnGestionProductos').style.display='none';
+  document.getElementById('logoSub').textContent='Registro de Pedidos';
+  restaurarSelectsCompletos(); limpiarFormulario();
+}
+
+function mostrarErrorLogin(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.classList.add('show'); }
+
+function restaurarSelectsCompletos(){
+  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
+  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
+  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option><option value="Administración">Administración</option></select>`;
+}
+
+async function _generarHash(clave){ if(!clave){console.warn('Ingresa una clave');return;} const h=await hashSHA256(clave); console.log('%cHash SHA-256:','color:#0a7c6e;font-weight:bold'); console.log('%c'+h,'font-family:monospace;background:#e6f4f2;padding:4px 8px;border-radius:4px'); return h; }
+
+function _restaurarHistDia(u){
+  try{
+    const hoy=new Date().toISOString().slice(0,10);
+    let hR=[];
+    if(u.esAdmin){
+      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
+        hR=hR.concat(JSON.parse(localStorage.getItem(_claveHistDia(r,hoy))||'[]'));
+      });
+      hR.sort((a,b)=>(b.id||0)-(a.id||0));
+      if(hR.length>200)hR=hR.slice(0,200);
+    } else {
+      hR=JSON.parse(localStorage.getItem(_claveHistDia(u.ruta,hoy))||'[]');
+    }
+    if(hR.length>0){
+      const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
+      const ids=new Set(hS.map(r=>r.id));
+      const nuevos=hR.filter(r=>!ids.has(r.id));
+      const combinado=[...hS,...nuevos].sort((a,b)=>(b.id||0)-(a.id||0));
+      sessionStorage.setItem('aqualuan-historial',JSON.stringify(combinado.slice(0,200)));
+    }
+  }catch(e){}
+}
+function aplicarUsuario(){
+  const u=usuarioActual; if(!u)return;
+  document.getElementById('logoSub').textContent=u.esAdmin?'Administrador':`Bienvenido, ${u.nombre}`;
+  document.getElementById('btnLogout').style.display='flex';
+  document.getElementById('btnGestionAsesores').style.display=u.esAdmin?'flex':'none';
+  document.getElementById('btnGestionProductos').style.display=u.esAdmin?'flex':'none';
+  _restaurarHistDia(u);
+  _restaurarPagosGastosDia(u);
+  if(u.esAdmin)return;
+  const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+  const rs=escHTML(u.ruta);
+  const bHtml=(id)=>`<div class="campo-bloqueado">${ico}${rs}</div><input type="hidden" id="${id}" value="${rs}">`;
+  document.getElementById('wrap-empleado').innerHTML=bHtml('empleado');
+  document.getElementById('wrap-pago-empleado').innerHTML=bHtml('pago-empleado');
+  document.getElementById('wrap-gasto-empleado').innerHTML=bHtml('gasto-empleado');
+}
+
+const tabSubs={ventas:'Registro de Pedidos',pagos:'Registro de Pagos',gastos:'Registro de Gastos',historial:'Historial de Pedidos'};
+function cambiarTab(tab){
+  ['ventas','pagos','gastos','historial'].forEach(t=>{ document.getElementById('content-'+t).classList.toggle('active',t===tab); document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active-'+t:''); });
+  document.getElementById('logoSub').textContent=tabSubs[tab];
+  if(tab==='historial')cargarHistorial();
+}
+
+function actualizarBanners(){
+  document.getElementById('offlineBanner').classList.toggle('show',!navigator.onLine);
+  let c=0; try{c=JSON.parse(localStorage.getItem(LS_KEY)||'[]').length;}catch{}
+  obtenerPendientes().then(items=>{ const n=Math.max(items.length,c); document.getElementById('pendingBanner')?.classList.toggle('show',n>0); }).catch(()=>{});
+}
+window.addEventListener('online',()=>{actualizarBanners();sincronizarAuto();if(ultimoRegistro)document.getElementById('btnWhatsapp').classList.add('visible');});
+window.addEventListener('offline',()=>{actualizarBanners();document.getElementById('btnWhatsapp').classList.remove('visible');});
+
+async function sincronizarAuto(){
+  if('serviceWorker'in navigator&&'SyncManager'in window){ const reg=await navigator.serviceWorker.ready; try{await reg.sync.register('sync-pedidos');return;}catch{} }
+  await sincronizarManual(true);
+}
+async function sincronizarManual(silencioso=false){
+  if(!navigator.onLine){if(!silencioso)setStatus('error','Sin conexión.');return;}
+  let itemsLS=[]; try{itemsLS=JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch{}
+  const itemsIDB=await obtenerPendientes().catch(()=>[]);
+  const todos=itemsIDB.length>0?itemsIDB:itemsLS;
+  if(!todos.length){try{localStorage.removeItem(LS_KEY);}catch{}return;}
+  let synced=0,failed=0;
+  for(const item of todos){
+    try{
+      await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({...item.payload,csrfToken:SESSION_TOKEN,token:usuarioActual?.token||''})});
+      if(item.id&&itemsIDB.length>0)await eliminarLocal(item.id).catch(()=>{});
+      synced++;
+    }catch{failed++;}
+  }
+  if(failed===0){try{localStorage.removeItem(LS_KEY);}catch{}}
+  actualizarBanners();
+}
+
+if('serviceWorker'in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
+
+let _fechaActualApp = null;
+
+(function init(){
+  const hoy=new Date();
+  document.getElementById('fechaHoy').textContent=hoy.toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long'});
+  const yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
+  const hoyStr=`${yyyy}-${mm}-${dd}`;
+  _fechaActualApp=hoyStr;
+  document.getElementById('fecha').value=hoyStr;
+  document.getElementById('pago-fecha').value=hoyStr;
+  document.getElementById('gasto-fecha').value=hoyStr;
+  try{localStorage.removeItem('aqualuan-pendientes-ls');}catch{}
+  actualizarBanners();
+  try{
+    const sess=JSON.parse(sessionStorage.getItem('_al_sess')||'null');
+    if(sess&&sess.token&&sess.expira&&Date.now()<sess.expira){
+      usuarioActual=sess;
+      document.getElementById('loginOverlay').style.display='none';
+      aplicarUsuario(); iniciarMonitorExpiracion();
+    } else if(sess){ sessionStorage.removeItem('_al_sess'); sessionStorage.removeItem('_al_att'); sessionStorage.removeItem('aqualuan-historial'); }
+  }catch{}
+  setInterval(_verificarCambioDeDia, 60000);
+})();
+
+function _verificarCambioDeDia(){
+  const hoyStr=new Date().toISOString().slice(0,10);
+  if(hoyStr===_fechaActualApp) return;
+  _fechaActualApp=hoyStr;
+  ['fecha','pago-fecha','gasto-fecha'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=hoyStr; });
+  sessionStorage.removeItem('aqualuan-historial');
+  if(usuarioActual){
+    _restaurarHistDia(usuarioActual);
+    _restaurarPagosGastosDia(usuarioActual);
+  } else {
+    listaPagos=[]; listaGastos=[]; renderPagos(); actualizarResumenPagos(); renderGastos(); actualizarResumenGastos();
+  }
+  const contHist=document.getElementById('content-historial');
+  if(contHist&&contHist.classList.contains('active')) cargarHistorial();
+  const aviso=document.getElementById('avisoSesion');
+  if(aviso){ aviso.textContent=`📅 Nuevo día iniciado — ${hoyStr}`; aviso.style.display='block'; setTimeout(()=>{ if(aviso.textContent.includes('Nuevo día')) aviso.style.display='none'; },6000); }
+}
+
+function calcTotal(){ return productos.reduce((s,p)=>s+p.subtotal,0); }
+function renderLista(){
+  const items=document.getElementById('productosItems'),lista=document.getElementById('productosLista'),emptyMsg=document.getElementById('emptyMsg');
+  if(productos.length===0){lista.classList.add('empty');emptyMsg.style.display='block';}
+  else{lista.classList.remove('empty');emptyMsg.style.display='none';}
+  items.innerHTML=productos.map((p,i)=>{
+    const filaPrincipal=`<div class="lista-item"><span class="item-nombre" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHTML(p.nombre)}">${escHTML(p.nombre)}</span><span class="item-num">${escHTML(String(p.cantidad))}</span><span class="item-precio">$${escHTML(p.precio.toFixed(2))}</span><span class="item-subtotal">$${escHTML(p.subtotal.toFixed(2))}</span><button class="btn-remove" onclick="eliminarProducto(${parseInt(i)})" aria-label="Eliminar">&times;</button></div>`;
+    const filasRegalia=(p.regalias||[]).map((r,ri)=>`<div class="regalia-row"><span class="regalia-icon">🎁</span><span class="regalia-nombre" title="${escHTML(r.nombre)}">${escHTML(r.nombre)}</span><span class="regalia-cant">x${escHTML(String(r.cantidad))}</span><span class="regalia-precio">$0.00</span><button class="btn-remove" onclick="eliminarRegalia(${parseInt(i)},${parseInt(ri)})" aria-label="Quitar regalía">&times;</button></div>`).join('');
+    const formRegalia=`<div class="regalia-form" id="regalia-form-${i}" style="display:none"><select id="regalia-sel-${i}">${_opcionesProductosHTML()}</select><input type="number" id="regalia-cant-${i}" placeholder="Cant." min="1" max="9999" inputmode="numeric"><button type="button" class="btn" onclick="confirmarRegalia(${i})">Agregar</button></div>`;
+    const btnToggle=`<button type="button" class="btn-add-regalia" onclick="toggleRegaliaForm(${i})">➕ Agregar Regalía</button>`;
+    return `<div class="producto-bloque">${filaPrincipal}${filasRegalia}${btnToggle}${formRegalia}</div>`;
+  }).join('');
+  document.getElementById('totalGeneral').textContent='$'+calcTotal().toFixed(2);
+}
+function _opcionesProductosHTML(){
+  return '<option value="">-- Selecciona --</option>' + LISTAS_BLANCAS.productos.map(n=>`<option value="${escHTML(n)}">${escHTML(n)}</option>`).join('');
+}
+function agregarProducto(){
+  const nombre=document.getElementById('sel-producto').value;
+  const cantidad=parseFloat(document.getElementById('sel-cantidad').value);
+  const precio=parseMonto(document.getElementById('sel-precio').value);
+  if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido.');return;}
+  if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad inválida.');return;}
+  if(!Number.isFinite(precio)||precio<0||precio>99999){alert('Precio inválido.');return;}
+  const ex=productos.findIndex(p=>p.nombre===nombre&&p.precio===precio);
+  if(ex>=0){productos[ex].cantidad+=cantidad;productos[ex].subtotal=productos[ex].cantidad*productos[ex].precio;}
+  else{productos.push({nombre,cantidad,precio,subtotal:cantidad*precio,regalias:[]});}
+  document.getElementById('sel-producto').value='';document.getElementById('sel-cantidad').value='';document.getElementById('sel-precio').value='';
+  renderLista();
+}
+function toggleRegaliaForm(i){
+  const form=document.getElementById('regalia-form-'+i);
+  if(!form)return;
+  const abierto=form.style.display!=='none';
+  document.querySelectorAll('.regalia-form').forEach(f=>f.style.display='none');
+  form.style.display=abierto?'none':'flex';
+}
+function confirmarRegalia(i){
+  if(!productos[i])return;
+  const sel=document.getElementById('regalia-sel-'+i);
+  const cantInput=document.getElementById('regalia-cant-'+i);
+  const nombre=sel.value;
+  const cantidad=parseFloat(cantInput.value);
+  if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido para la regalía.');return;}
+  if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad de regalía inválida.');return;}
+  if(!productos[i].regalias)productos[i].regalias=[];
+  productos[i].regalias.push({nombre,cantidad});
+  renderLista();
+}
+function eliminarRegalia(i,ri){
+  if(productos[i]&&productos[i].regalias)productos[i].regalias.splice(ri,1);
+  renderLista();
+}
+function eliminarProducto(i){ if(i>=0&&i<productos.length)productos.splice(i,1); renderLista(); }
+
+function setStatus(t,m){_setStatus('status',t,m);}
+function setStatusPagos(t,m){_setStatus('status-pagos',t,m);}
+function setStatusGastos(t,m){_setStatus('status-gastos',t,m);}
+function _setStatus(id,t,m){ const el=document.getElementById(id); el.className='status '+t; el.textContent=m; }
+
+function resetGpsBadge(){ document.getElementById('gpsBadge').className='gps-badge wait'; document.getElementById('gpsBadgeText').textContent='Obteniendo ubicación GPS...'; document.getElementById('m-gps').textContent='-'; }
+function capturarGPS(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){resolve(null);return;}
+    let resuelto=false;
+    const terminar=(pos)=>{
+      if(resuelto)return; resuelto=true;
+      resolve(pos?{lat:pos.coords.latitude,lng:pos.coords.longitude,acc:Math.round(pos.coords.accuracy)}:null);
+    };
+    navigator.geolocation.getCurrentPosition(
+      pos=>terminar(pos),
+      ()=>{
+        navigator.geolocation.getCurrentPosition(
+          pos=>terminar(pos),
+          ()=>terminar(null),
+          {enableHighAccuracy:true,timeout:8000,maximumAge:0}
+        );
+      },
+      {enableHighAccuracy:false,timeout:4000,maximumAge:20000}
+    );
+    setTimeout(()=>terminar(null),12000);
+  });
+}
+
+async function abrirModal(){
+  const empleado=document.getElementById('empleado').value;
+  const formapago=document.getElementById('formapago').value;
+  const nombre=sanitizarTexto(document.getElementById('nombre').value,100);
+  const telefono=sanitizarTexto(document.getElementById('telefono').value,20);
+  const fecha=document.getElementById('fecha').value;
+  const direccion=sanitizarTexto(document.getElementById('direccion').value,200);
+  const notas=sanitizarTexto(document.getElementById('notas').value,500);
+  if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleado)){setStatus('error','Selecciona un asesor válido.');return;}
+  if(!esValorSeguro(formapago,LISTAS_BLANCAS.formapago)){setStatus('error','Selecciona una forma de pago válida.');return;}
+  if(!nombre){setStatus('error','Ingresa el nombre del cliente.');return;}
+  if(productos.length===0){setStatus('error','Agrega al menos un producto.');return;}
+  const total=calcTotal();
+  dataPendiente={empleado,formapago,nombre,telefono,fecha,direccion,notas,productos:[...productos],total:total.toFixed(2),gps:null};
+  const offline=!navigator.onLine;
+  document.getElementById('modalOfflineNote').classList.toggle('show',offline);
+  document.getElementById('modal-subtitle-text').textContent=offline?'Sin internet — se guardará localmente':'Revisa todos los datos antes de enviar a Google Drive';
+  document.getElementById('m-empleado').textContent=empleado;
+  document.getElementById('m-formapago').textContent=formapago;
+  document.getElementById('m-nombre').textContent=nombre;
+  document.getElementById('m-telefono').textContent=telefono||'-';
+  document.getElementById('m-direccion').textContent=direccion||'-';
+  document.getElementById('m-fecha').textContent=fecha||'-';
+  document.getElementById('m-notas').textContent=notas||'-';
+  document.getElementById('m-total').textContent='$'+total.toFixed(2);
+  document.getElementById('m-productos').innerHTML=productos.map(p=>{
+    let fila=`<tr><td>${escHTML(p.nombre)}</td><td style="text-align:center">${escHTML(String(p.cantidad))}</td><td style="text-align:right">$${escHTML(p.precio.toFixed(2))}</td><td>$${escHTML(p.subtotal.toFixed(2))}</td></tr>`;
+    if(p.regalias&&p.regalias.length){
+      fila+=p.regalias.map(r=>`<tr><td colspan="2" style="font-size:11px;color:var(--teal-dark);font-style:italic">🎁 ${escHTML(r.nombre)} x${escHTML(String(r.cantidad))}</td><td style="font-size:11px;color:var(--teal-dark);font-style:italic;text-align:right">Regalo</td><td style="font-size:11px;color:var(--teal-dark);font-style:italic">$0.00</td></tr>`).join('');
+    }
+    return fila;
+  }).join('');
+  resetGpsBadge();
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  const coords=await capturarGPS();
+  if(coords){
+    const lat=parseFloat(coords.lat.toFixed(6)),lng=parseFloat(coords.lng.toFixed(6));
+    const mapsUrl=`https://www.google.com/maps?q=${lat},${lng}`;
+    dataPendiente.gps={lat,lng,acc:coords.acc,url:mapsUrl};
+    document.getElementById('gpsBadge').className='gps-badge ok';
+    document.getElementById('gpsBadgeText').textContent=`📍 Ubicación capturada — precisión ±${coords.acc}m`;
+    const mGps=document.getElementById('m-gps'); mGps.innerHTML='';
+    const a=document.createElement('a'); a.href=mapsUrl; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent=`${lat}, ${lng}`; mGps.appendChild(a);
+  } else {
+    document.getElementById('gpsBadge').className='gps-badge err';
+    document.getElementById('gpsBadgeText').textContent='⚠ No se pudo obtener la ubicación GPS.';
+    document.getElementById('m-gps').textContent='No disponible';
+  }
+}
+
+function cerrarModal(){ document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; dataPendiente=null; }
+
+async function confirmarEnvio(){
+  if(!dataPendiente)return;
+  const btn=document.getElementById('btnConfirmar');
+  btn.disabled=true; btn.innerHTML='<div class="spinner2"></div> Guardando...';
+  const fechaObj=dataPendiente.fecha?new Date(dataPendiente.fecha+'T00:00:00'):new Date();
+  const dia=fechaObj.getDate(),mes=fechaObj.getMonth()+1;
+  const partesProductos=[];
+  dataPendiente.productos.forEach(p=>{
+    partesProductos.push(`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`);
+    if(p.regalias&&p.regalias.length){
+      p.regalias.forEach(r=>{
+        partesProductos.push(`🎁 REGALO: ${escHTML(r.nombre)} (${r.cantidad} x $0.00 = $0.00)`);
+      });
+    }
+  });
+  const productosTexto=partesProductos.join(' | ');
+  const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:productosTexto,total:dataPendiente.total,latitud:dataPendiente.gps?dataPendiente.gps.lat.toFixed(6):'',longitud:dataPendiente.gps?dataPendiente.gps.lng.toFixed(6):'',gps_link:dataPendiente.gps?dataPendiente.gps.url:'',gps_prec:dataPendiente.gps?`±${dataPendiente.gps.acc}m`:'',csrfToken:SESSION_TOKEN};
+  const estaOnline=navigator.onLine;
+  const onExito=(modoOffline=false)=>{
+    ultimoRegistro={...dataPendiente};
+    guardarEnHistorial(ultimoRegistro);
+    cerrarModal();
+    if(modoOffline)setStatus('warning','📥 Sin internet. Pedido guardado localmente.');
+    else setStatus('success','✓ Pedido guardado correctamente en Google Sheets.');
+    document.getElementById('btnWhatsapp').classList.add('visible');
+    document.getElementById('btnPdf').style.display='flex';
+    limpiarSoloFormulario();
+    if(!modoOffline)subirPDFaDrive(ultimoRegistro);
+  };
+  if(estaOnline){
+    try{ await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); onExito(false); }
+    catch{ guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{}); }
+  } else {
+    guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{});
+    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+  }
+  btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
+  dataPendiente=null;
+}
+
+function limpiarSoloFormulario(){
+  if(!usuarioActual||usuarioActual.esAdmin) document.getElementById('empleado').value='';
+  ['formapago','nombre','telefono','direccion','notas'].forEach(id=>document.getElementById(id).value='');
+  productos=[]; renderLista();
+  const hoy=new Date(),yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('fecha').value=`${yyyy}-${mm}-${dd}`;
+}
+function limpiarFormulario(){
+  limpiarSoloFormulario(); ultimoRegistro=null;
+  document.getElementById('btnGuardar').style.display='flex';
+  document.getElementById('btnWhatsapp').classList.remove('visible');
+  document.getElementById('btnPdf').style.display='none';
+  document.getElementById('driveProgress').classList.remove('show');
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('progressLink').classList.remove('show');
+  document.getElementById('status').className='status';
+  document.getElementById('status').textContent='';
+}
+function nuevoPedido(){ limpiarFormulario(); }
+
+function registrarPago(){
+  const empleado=document.getElementById('pago-empleado').value;
+  const fecha=document.getElementById('pago-fecha').value;
+  const cliente=sanitizarTexto(document.getElementById('pago-cliente').value,100);
+  const monto=parseMonto(document.getElementById('pago-monto').value);
+  const forma=document.getElementById('pago-forma').value;
+  const notas=sanitizarTexto(document.getElementById('pago-notas').value,200);
+  if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleado)){setStatusPagos('error','Selecciona el asesor / ruta.');return;}
+  if(!cliente){setStatusPagos('error','Ingresa el nombre del cliente.');return;}
+  if(!validarMonto(monto)){setStatusPagos('error','Ingresa un monto válido mayor a $0.');return;}
+  if(!esValorSeguro(forma,LISTAS_BLANCAS.pagoForma)){setStatusPagos('error','Selecciona la forma de pago.');return;}
+  const pago={id:Date.now(),empleado,fecha,cliente,monto,forma,notas,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
+  listaPagos.unshift(pago); renderPagos(); actualizarResumenPagos();
+  try{
+    const clave=_clavePagosDia(empleado,fecha);
+    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
+    guardados.unshift(pago);
+    localStorage.setItem(clave,JSON.stringify(guardados));
+  }catch{}
+  const payloadPago={accion:'registrar_pago',empleado,fecha,cliente,monto:monto.toFixed(2),forma,notas,csrfToken:SESSION_TOKEN};
+  if(navigator.onLine){
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadPago)}).catch(()=>{
+      guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
+      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    });
+  } else {
+    guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
+    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+  }
+  ['pago-empleado','pago-forma'].forEach(id=>document.getElementById(id).value='');
+  ['pago-cliente','pago-monto','pago-notas'].forEach(id=>document.getElementById(id).value='');
+  setStatusPagos('success',`✓ Pago de $${monto.toFixed(2)} registrado para ${escHTML(cliente)}.`);
+}
+function eliminarPago(id){ listaPagos=listaPagos.filter(p=>p.id!==id); renderPagos(); actualizarResumenPagos(); }
+function badgeForma(f){ const m={'Efectivo':'efectivo','Transferencia':'transfer','Datáfono':'datafono','Cheque':'cheque','Depósito':'deposito','Contado':'contado','Crédito':'credito'}; return`<span class="badge badge-${m[f]||'contado'}">${escHTML(f)}</span>`; }
+function renderPagos(){
+  const lista=document.getElementById('pagosLista'),empty=document.getElementById('pagosEmptyMsg'),items=document.getElementById('pagosItems');
+  if(listaPagos.length===0){lista.classList.add('empty');empty.style.display='block';}else{lista.classList.remove('empty');empty.style.display='none';}
+  items.innerHTML=listaPagos.map(p=>`<div class="pago-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(p.cliente)}</div><div style="font-size:11px;color:var(--muted)">${escHTML(p.empleado.replace('RUTA ','R.'))} · ${escHTML(p.hora)}</div></div><div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(p.notas||'-')}</div><div style="text-align:center">${badgeForma(p.forma)}</div><span class="pago-monto">$${escHTML(p.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarPago(${parseInt(p.id)})">&times;</button></div>`).join('');
+}
+function actualizarResumenPagos(){
+  const t=listaPagos.reduce((s,p)=>s+p.monto,0);
+  document.getElementById('pago-total-dia').textContent='$'+t.toFixed(2);
+  document.getElementById('pago-count-dia').textContent=`${listaPagos.length} pago${listaPagos.length!==1?'s':''} registrado${listaPagos.length!==1?'s':''}`;
+  if(listaPagos.length>0){document.getElementById('pago-ultimo').textContent='$'+listaPagos[0].monto.toFixed(2);document.getElementById('pago-ultimo-cliente').textContent=listaPagos[0].cliente;}
+  else{document.getElementById('pago-ultimo').textContent='—';document.getElementById('pago-ultimo-cliente').textContent='Sin registros';}
+}
+
+function registrarGasto(){
+  const empleado=document.getElementById('gasto-empleado').value;
+  const fecha=document.getElementById('gasto-fecha').value;
+  const categoria=sanitizarTexto(document.getElementById('gasto-categoria').value,100);
+  const monto=parseMonto(document.getElementById('gasto-monto').value);
+  const desc=sanitizarTexto(document.getElementById('gasto-desc').value,300);
+  const ref=sanitizarTexto(document.getElementById('gasto-ref').value,100);
+  if(!esValorSeguro(empleado,LISTAS_BLANCAS.empleadoGasto)){setStatusGastos('error','Selecciona el responsable.');return;}
+  if(!categoria){setStatusGastos('error','Selecciona la categoría del gasto.');return;}
+  if(!validarMonto(monto)){setStatusGastos('error','Ingresa un monto válido mayor a $0.');return;}
+  if(!desc){setStatusGastos('error','Describe el gasto.');return;}
+  const gasto={id:Date.now(),empleado,fecha,categoria,monto,desc,ref,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
+  listaGastos.unshift(gasto); renderGastos(); actualizarResumenGastos();
+  try{
+    const clave=_claveGastosDia(empleado,fecha);
+    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
+    guardados.unshift(gasto);
+    localStorage.setItem(clave,JSON.stringify(guardados));
+  }catch{}
+  const payloadGasto={accion:'registrar_gasto',empleado,fecha,categoria,monto:monto.toFixed(2),desc,ref,csrfToken:SESSION_TOKEN};
+  if(navigator.onLine){
+    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadGasto)}).catch(()=>{
+      guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
+      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    });
+  } else {
+    guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
+    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+  }
+  ['gasto-empleado','gasto-categoria'].forEach(id=>document.getElementById(id).value='');
+  ['gasto-monto','gasto-desc','gasto-ref'].forEach(id=>document.getElementById(id).value='');
+  setStatusGastos('success',`✓ Gasto de $${monto.toFixed(2)} registrado — ${escHTML(desc)}.`);
+}
+function eliminarGasto(id){ listaGastos=listaGastos.filter(g=>g.id!==id); renderGastos(); actualizarResumenGastos(); }
+function categoriaBadge(cat){ const c=escHTML(String(cat).slice(0,20)); return`<span class="badge badge-contado" style="font-size:9px">${c.length>12?c.substring(0,12)+'…':c}</span>`; }
+function renderGastos(){
+  const lista=document.getElementById('gastosLista'),empty=document.getElementById('gastosEmptyMsg'),items=document.getElementById('gastosItems');
+  if(listaGastos.length===0){lista.classList.add('empty');empty.style.display='block';}else{lista.classList.remove('empty');empty.style.display='none';}
+  items.innerHTML=listaGastos.map(g=>`<div class="gasto-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(g.desc)}</div><div style="font-size:11px;color:var(--muted)">${escHTML(g.empleado.replace('RUTA ','R.'))} · ${escHTML(g.hora)}${g.ref?' · '+escHTML(g.ref):''}</div></div><div style="text-align:center">${categoriaBadge(g.categoria)}</div><div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(g.empleado.split(':')[1]?.trim()||g.empleado)}</div><span class="gasto-monto">$${escHTML(g.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarGasto(${parseInt(g.id)})">&times;</button></div>`).join('');
+}
+function actualizarResumenGastos(){
+  const t=listaGastos.reduce((s,g)=>s+g.monto,0);
+  document.getElementById('gasto-total-dia').textContent='$'+t.toFixed(2);
+  document.getElementById('gasto-count-dia').textContent=`${listaGastos.length} gasto${listaGastos.length!==1?'s':''} registrado${listaGastos.length!==1?'s':''}`;
+  if(listaGastos.length>0){document.getElementById('gasto-ultimo').textContent='$'+listaGastos[0].monto.toFixed(2);document.getElementById('gasto-ultimo-desc').textContent=listaGastos[0].desc;}
+  else{document.getElementById('gasto-ultimo').textContent='—';document.getElementById('gasto-ultimo-desc').textContent='Sin registros';}
+}
+
+function _buildPDF(doc,d){
+  const pageW=210,margin=18,col2=100;
+  doc.setFillColor(26,58,92);doc.rect(0,0,pageW,38,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(255,255,255);doc.text('AQUA LUAN',margin,16);
+  doc.setFontSize(8);doc.setTextColor(78,201,160);doc.text('SISTEMA DE PEDIDOS',margin,22);
+  doc.setFontSize(9);doc.setTextColor(200,220,240);doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
+  const fechaStr=d.fecha?new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'-';
+  doc.setFont('helvetica','normal');doc.text(`Fecha pedido: ${fechaStr}`,pageW-margin,30,{align:'right'});
+  let y=48;
+  doc.setFillColor(240,245,248);doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(10,124,110);doc.text('ASESOR / RUTA',margin+4,y+7);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(26,58,92);doc.text(d.empleado||'-',margin+4,y+15);
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(10,124,110);doc.text('FORMA DE PAGO',col2,y+7);
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(26,58,92);doc.text(d.formapago||'-',col2,y+15);
+  y+=30;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(10,124,110);
+  doc.text('DATOS DEL CLIENTE',margin,y);doc.setDrawColor(78,201,160);doc.setLineWidth(0.5);doc.line(margin,y+2,pageW-margin,y+2);y+=8;
+  [['Cliente',d.nombre||'-'],['Teléfono',d.telefono||'-'],['Dirección',d.direccion||'-'],['Notas',d.notas||'-']].forEach(([lbl,val])=>{
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text(lbl.toUpperCase(),margin,y);
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(26,58,92);
+    const lines=doc.splitTextToSize(val,pageW-margin-col2+20);doc.text(lines,col2,y);y+=Math.max(7,lines.length*5);
+  });
+  y+=4;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(10,124,110);
+  doc.text('PRODUCTOS DEL PEDIDO',margin,y);doc.line(margin,y+2,pageW-margin,y+2);y+=7;
+  doc.setFillColor(26,58,92);doc.rect(margin,y,pageW-margin*2,8,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);
+  doc.text('PRODUCTO',margin+3,y+5.5);doc.text('CANT.',138,y+5.5,{align:'center'});doc.text('PRECIO',158,y+5.5,{align:'right'});doc.text('SUBTOTAL',pageW-margin-2,y+5.5,{align:'right'});y+=8;
+  d.productos.forEach((p,idx)=>{
+    if(idx%2===0){doc.setFillColor(240,245,248);doc.rect(margin,y,pageW-margin*2,7,'F');}
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,58,92);
+    doc.text(p.nombre,margin+3,y+5);doc.text(String(p.cantidad),138,y+5,{align:'center'});doc.text(`$${p.precio.toFixed(2)}`,158,y+5,{align:'right'});
+    doc.setFont('helvetica','bold');doc.setTextColor(10,124,110);doc.text(`$${p.subtotal.toFixed(2)}`,pageW-margin-2,y+5,{align:'right'});y+=7;
+    if(p.regalias&&p.regalias.length){
+      doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(10,124,110);
+      p.regalias.forEach(r=>{ doc.text(`+ Regalo: ${r.nombre} x${r.cantidad}`,margin+6,y+4); y+=5; });
+    }
+  });
+  y+=4;doc.setFillColor(26,58,92);doc.roundedRect(margin,y,pageW-margin*2,12,3,3,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(200,220,240);doc.text('TOTAL GENERAL',margin+4,y+8);
+  doc.setFontSize(13);doc.setTextColor(78,201,160);doc.text(`$${d.total}`,pageW-margin-4,y+8.5,{align:'right'});
+  if(d.gps){
+    y+=18;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(10,124,110);
+    doc.text('UBICACIÓN GPS DEL PEDIDO',margin,y);doc.setDrawColor(78,201,160);doc.setLineWidth(0.5);doc.line(margin,y+2,pageW-margin,y+2);y+=9;
+    doc.setFillColor(230,244,242);doc.setDrawColor(78,201,160);doc.setLineWidth(0.4);doc.roundedRect(margin,y,pageW-margin*2,22,3,3,'FD');
+    doc.setFillColor(10,124,110);doc.circle(margin+7,y+7,3,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);doc.text('GPS',margin+7,y+7.8,{align:'center'});
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text('COORDENADAS',margin+14,y+6);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,58,92);doc.text(`${d.gps.lat.toFixed(6)}, ${d.gps.lng.toFixed(6)}`,margin+14,y+12);
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text('PRECISIÓN',margin+14,y+18);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(26,58,92);doc.text(`±${d.gps.acc} metros`,margin+38,y+18);
+    const lk=`maps.google.com/?q=${d.gps.lat.toFixed(6)},${d.gps.lng.toFixed(6)}`;
+    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,130,160);doc.text('LINK PARA ABRIR EN MAPS',pageW-margin-4,y+6,{align:'right'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(10,124,110);doc.textWithLink(lk,pageW-margin-4,y+13,{url:d.gps.url,align:'right'});y+=26;
+  }
+  y+=16;doc.setDrawColor(180,200,220);doc.setLineWidth(0.4);
+  doc.line(margin,y,margin+60,y);doc.line(pageW-margin-60,y,pageW-margin,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140,160,180);
+  doc.text('Firma del asesor',margin+30,y+5,{align:'center'});doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
+  doc.setFontSize(7);doc.setTextColor(160,180,200);doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
+}
+
+function generarPDFBase64(){ if(!ultimoRegistro)return null; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,ultimoRegistro); return doc.output('datauristring').split(',')[1]; }
+function descargarPDF(){
+  if(!ultimoRegistro)return;
+  const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,ultimoRegistro);
+  const ns=ultimoRegistro.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
+  const fs=(ultimoRegistro.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
+  doc.save(`Pedido_${ns}_${fs}.pdf`);
+}
+
+async function subirPDFaDrive(snap){
+  if(!snap||!navigator.onLine)return;
+  const d=snap;
+  const pw=document.getElementById('driveProgress'),pf=document.getElementById('progressFill'),pt=document.getElementById('progressText'),pp=document.getElementById('progressPct'),pl=document.getElementById('progressLink');
+  pw.classList.add('show');pl.classList.remove('show');pf.style.width='0%';pt.textContent='Generando PDF...';pp.textContent='0%';
+  let pct=0;
+  const t1=setInterval(()=>{pct=Math.min(pct+8,40);pf.style.width=pct+'%';pp.textContent=pct+'%';},120);
+  let pdfBase64; try{pdfBase64=generarPDFBase64();}catch{clearInterval(t1);pw.classList.remove('show');return;}
+  clearInterval(t1);pf.style.width='45%';pp.textContent='45%';pt.textContent='Subiendo a Google Drive...';
+  const t2=setInterval(()=>{pct=Math.min(pct+5,85);pf.style.width=pct+'%';pp.textContent=pct+'%';},200);
+  try{
+    const ns=d.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
+    const fs=(d.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
+    const resp=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'subir_pdf',pdfBase64,nombreArchivo:`Pedido_${ns}_${fs}.pdf`,empleado:d.empleado,nombre:d.nombre,fecha:d.fecha,csrfToken:SESSION_TOKEN})});
+    clearInterval(t2);
+    let json={}; try{json=await resp.json();}catch{json={result:'ok'};}
+    if(json.result==='ok'||resp.ok){
+      pf.style.width='100%';pp.textContent='100%';pt.textContent='✓ PDF subido a Google Drive';
+      if(json.fileUrl){ pl.innerHTML=''; const a=document.createElement('a'); if(/^https:\/\/drive\.google\.com\//.test(json.fileUrl)){a.href=json.fileUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent='📄 Ver PDF en Google Drive';pl.appendChild(a);} pl.classList.add('show'); }
+      setStatus('success','✓ Pedido guardado y PDF subido a Google Drive.');
+    } else throw new Error(json.error||'Error');
+  }catch{clearInterval(t2);pw.classList.remove('show');}
+}
+
+function _construirMsgWA(d){
+  const lineas=d.productos.map(p=>{
+    let l=` - ${encodeURIComponent(p.nombre)}: ${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)}`;
+    if(p.regalias&&p.regalias.length){ l+=p.regalias.map(r=>`%0A    🎁 Regalo: ${encodeURIComponent(r.nombre)} x${r.cantidad}`).join(''); }
+    return l;
+  }).join('%0A');
+  const gpsLinea=d.gps?`%0A📌 *Ubicación GPS:* ${encodeURIComponent(d.gps.url)}`:'';
+  return`Estimada Secretria, se envia pedido de cliente:%0A%0A`+`👤 *Cliente:* ${encodeURIComponent(d.nombre)}%0A`+`📞 *Telefono:* ${encodeURIComponent(d.telefono||'-')}%0A`+`📍 *Direccion:* ${encodeURIComponent(d.direccion||'-')}%0A`+`📅 *Fecha:* ${encodeURIComponent(d.fecha)}%0A`+`👷 *Asesor:* ${encodeURIComponent(d.empleado)}%0A`+`💳 *Pago:* ${encodeURIComponent(d.formapago||'-')}%0A%0A`+`📦 *Productos:*%0A${lineas}%0A%0A`+`💰 *TOTAL: $${d.total}*%0A`+`📝 *Notas:* ${encodeURIComponent(d.notas||'-')}`+gpsLinea;
+}
+function enviarWhatsapp(){ if(!ultimoRegistro)return; window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${_construirMsgWA(ultimoRegistro)}`,'_blank','noopener,noreferrer'); }
+
+function _claveHistDia(empleado,fecha){
+  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
+  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
+  return 'al_hist_'+e+'_'+f;
+}
+function _clavePagosDia(empleado,fecha){
+  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
+  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
+  return 'al_pagos_'+e+'_'+f;
+}
+function _claveGastosDia(empleado,fecha){
+  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
+  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
+  return 'al_gastos_'+e+'_'+f;
+}
+function _restaurarPagosGastosDia(u){
+  try{
+    const hoy=new Date().toISOString().slice(0,10);
+    let pagosR=[], gastosR=[];
+    if(u.esAdmin){
+      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
+        pagosR=pagosR.concat(JSON.parse(localStorage.getItem(_clavePagosDia(r,hoy))||'[]'));
+        gastosR=gastosR.concat(JSON.parse(localStorage.getItem(_claveGastosDia(r,hoy))||'[]'));
+      });
+    } else {
+      pagosR=JSON.parse(localStorage.getItem(_clavePagosDia(u.ruta,hoy))||'[]');
+      gastosR=JSON.parse(localStorage.getItem(_claveGastosDia(u.ruta,hoy))||'[]');
+    }
+    pagosR.sort((a,b)=>(b.id||0)-(a.id||0));
+    gastosR.sort((a,b)=>(b.id||0)-(a.id||0));
+    listaPagos=pagosR; listaGastos=gastosR;
+    renderPagos(); actualizarResumenPagos();
+    renderGastos(); actualizarResumenGastos();
+  }catch(e){}
+}
+function guardarEnHistorial(reg){
+  try{
+    const r={id:Date.now(),nombre:sanitizarTexto(reg.nombre,100),total:reg.total,fecha:reg.fecha,empleado:reg.empleado,formapago:reg.formapago,telefono:sanitizarTexto(reg.telefono,20),direccion:sanitizarTexto(reg.direccion,200),notas:sanitizarTexto(reg.notas,500),productos:reg.productos,gps:null};
+    const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
+    hS.unshift(r); if(hS.length>200)hS.pop();
+    sessionStorage.setItem('aqualuan-historial',JSON.stringify(hS));
+    const clave=_claveHistDia(reg.empleado,reg.fecha);
+    const hL=JSON.parse(localStorage.getItem(clave)||'[]');
+    if(!hL.find(x=>x.id===r.id)){hL.unshift(r);if(hL.length>200)hL.pop();localStorage.setItem(clave,JSON.stringify(hL));}
+  }catch{}
+}
+
+function cargarHistorial(){
+  let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{}
+  const lista=document.getElementById('historialLista');
+  if(hist.length===0){ lista.innerHTML=`<div class="empty-msg" style="margin-top:0">Aún no hay pedidos guardados en esta sesión.</div>`; return; }
+  lista.innerHTML=hist.map((r,i)=>`<div class="historial-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px"><span class="historial-cliente">👤 ${escHTML(r.nombre)}</span><span class="historial-total">$${escHTML(r.total)}</span></div><div class="historial-meta">📅 ${escHTML(r.fecha||'-')} &nbsp;|&nbsp; 👷 ${escHTML(r.empleado)} &nbsp;|&nbsp; 💳 ${escHTML(r.formapago||'-')}</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px">📦 ${escHTML(String(r.productos.length))} producto${r.productos.length!==1?'s':''}</div><div class="historial-btns"><button class="btn-hist btn-hist-pdf" onclick="descargarPDFDesde(${parseInt(i)})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Descargar PDF</button><button class="btn-hist btn-hist-wa" onclick="enviarWhatsappDesde(${parseInt(i)})"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp secretaria</button></div></div>`).join('');
+}
+function descargarPDFDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; const r=hist[idx]; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,r); const ns=r.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60); const fs=(r.fecha||'sin-fecha').replace(/[^0-9\-]/g,''); doc.save(`Pedido_${ns}_${fs}.pdf`); }
+function enviarWhatsappDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${_construirMsgWA(hist[idx])}`,'_blank','noopener,noreferrer'); }
+function limpiarHistorial(){
+  if(!confirm('¿Limpiar el historial de pedidos de hoy?'))return;
+  try{
+    sessionStorage.removeItem('aqualuan-historial');
+    if(usuarioActual){
+      const hoy=new Date().toISOString().slice(0,10);
+      if(usuarioActual.esAdmin){
+        ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
+      } else {
+        localStorage.removeItem(_claveHistDia(usuarioActual.ruta,hoy));
+      }
+    }
+  }catch{}
+  cargarHistorial();
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModal(); });
+renderLista();
+
+function abrirModalAsesor(){
+  document.getElementById('na-nombre').value='';
+  document.getElementById('na-numruta').value='';
+  document.getElementById('na-usuario').value='';
+  document.getElementById('na-pass').value='';
+  document.getElementById('na-resultado').style.display='none';
+  document.getElementById('na-codigo').value='';
+  document.getElementById('na-elim-resultado').style.display='none';
+  document.getElementById('na-elim-codigo').value='';
+  poblarSelectEliminarAsesor();
+  document.getElementById('modalAsesorOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function poblarSelectEliminarAsesor(){
+  const sel = document.getElementById('na-eliminar-select');
+  sel.innerHTML = '<option value="">-- Selecciona --</option>';
+  Object.keys(AUTH_REGISTRY).forEach(usuario=>{
+    if(usuario==='admin') return;
+    const reg = AUTH_REGISTRY[usuario];
+    const opt = document.createElement('option');
+    opt.value = usuario;
+    opt.textContent = `${reg.nombre} — ${reg.ruta}`;
+    sel.appendChild(opt);
+  });
+}
+function generarInstruccionesEliminar(){
+  const usuario = document.getElementById('na-eliminar-select').value;
+  if(!usuario){ alert('Selecciona un asesor de la lista.'); return; }
+  const reg = AUTH_REGISTRY[usuario];
+  const ruta = reg.ruta;
+  const texto =
+`/* ══ ELIMINAR ASESOR: ${reg.nombre} — ${ruta} ══ */
+
+/* PASO 1 — Dentro de AUTH_REGISTRY, elimina esta línea completa (usuario: '${usuario}'): */
+  '${usuario}': { h: '...', nombre: '${reg.nombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
+
+/* PASO 2 — Elimina '${ruta}' de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto */
+
+/* PASO 3 — Elimina <option value="${ruta}">${ruta}</option> de los 3 <select>
+   (id="empleado", id="pago-empleado", id="gasto-empleado") — tanto en el HTML
+   estático como dentro de la función restaurarSelectsCompletos() en el JS */
+
+/* PASO 4 (opcional, si ya no vas a usar esa ruta nunca más) — Elimina '${ruta}'
+   de las 2 listas usadas para restaurar y limpiar el historial diario del admin */
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */
+
+NOTA: esto solo elimina el ACCESO de login de ${reg.nombre}. Los pedidos/pagos/gastos
+que ya registró siguen intactos en tu Google Sheets — no se borra ningún dato histórico.`;
+
+  document.getElementById('na-elim-codigo').value = texto;
+  document.getElementById('na-elim-resultado').style.display='block';
+}
+function copiarInstruccionesEliminar(){
+  const ta = document.getElementById('na-elim-codigo');
+  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+function cerrarModalAsesor(){
+  document.getElementById('modalAsesorOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+async function generarCodigoAsesor(){
+  const nombreCompleto = sanitizarTexto(document.getElementById('na-nombre').value,60);
+  const numRuta = document.getElementById('na-numruta').value.trim();
+  const usuario = document.getElementById('na-usuario').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  const pass = document.getElementById('na-pass').value;
+
+  if(!nombreCompleto){ alert('Ingresa el nombre completo del asesor.'); return; }
+  if(!/^[0-9]+$/.test(numRuta)){ alert('Ingresa un número de ruta válido (ej. 6).'); return; }
+  if(!usuario){ alert('Ingresa un usuario válido (solo letras y números, sin espacios).'); return; }
+  if(!pass || pass.length<4){ alert('Ingresa una contraseña de al menos 4 caracteres.'); return; }
+  if(AUTH_REGISTRY[usuario]){ alert('Ese usuario ya existe en este dispositivo. Elige otro nombre de usuario.'); return; }
+
+  const primerNombre = nombreCompleto.split(' ')[0];
+  const ruta = `RUTA ${numRuta}: ${primerNombre}`;
+  const hash = await hashSHA256(pass);
+
+  const codigo =
+`/* ══ NUEVO ASESOR: ${escHTML(nombreCompleto)} — ${escHTML(ruta)} ══ */
+
+/* PASO 1 — Dentro de AUTH_REGISTRY, agrega esta línea (antes del }); de cierre): */
+  '${usuario}': { h: '${hash}', nombre: '${primerNombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
+
+/* PASO 2 — Agrega '${ruta}' dentro de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto: */
+  '${ruta}',
+
+/* PASO 3 — Agrega esta opción en los 3 <select> del HTML (id="empleado", id="pago-empleado", id="gasto-empleado"): */
+  <option value="${ruta}">${ruta}</option>
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
+
+  document.getElementById('na-codigo').value = codigo;
+  document.getElementById('na-resultado').style.display='block';
+}
+function copiarCodigoAsesor(){
+  const ta = document.getElementById('na-codigo');
+  if(!ta.value){ alert('Primero genera el código.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 3 pasos, o envíamelo.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+document.getElementById('modalAsesorOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalAsesor(); });
+
+let _resumenDiaData=null;
+function abrirResumenDia(){
+  let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{}
+  const contenedor=document.getElementById('resumenDiaContenido'),sub=document.getElementById('resumenDiaSub'),totalBox=document.getElementById('resumenTotalGeneral'),totalValor=document.getElementById('resumenTotalValor');
+
+  const totalIngresos=listaPagos.reduce((s,p)=>s+p.monto,0);
+  const totalEgresos=listaGastos.reduce((s,g)=>s+g.monto,0);
+  const netoCaja=totalIngresos-totalEgresos;
+  const hayCaja=listaPagos.length>0||listaGastos.length>0;
+  const cajaHtml=hayCaja?`
+    <div class="resumen-grid" style="margin-bottom:1rem">
+      <div class="resumen-card teal"><span class="resumen-label">🟢 Ingresos (pagos)</span><span class="resumen-value">$${totalIngresos.toFixed(2)}</span><span class="resumen-sub">${listaPagos.length} pago(s)</span></div>
+      <div class="resumen-card red"><span class="resumen-label">🔴 Egresos (gastos)</span><span class="resumen-value">$${totalEgresos.toFixed(2)}</span><span class="resumen-sub">${listaGastos.length} gasto(s)</span></div>
+    </div>
+    <div class="resumen-total-general" style="background:${netoCaja>=0?'var(--navy)':'#7a2020'};margin-top:0;margin-bottom:1.25rem">
+      <span class="resumen-total-general-label">🧮 Total en caja (Ingresos − Egresos)</span>
+      <span class="resumen-total-general-value">$${netoCaja.toFixed(2)}</span>
+    </div>`:'';
+
+  if(!hist.length){ contenedor.innerHTML=cajaHtml+`<div class="empty-msg" style="margin-top:0">No hay pedidos registrados en esta sesión.</div>`; totalBox.style.display='none'; _resumenDiaData={porAsesor:{},totalGeneral:0,formasPagoGlobal:{},hoy:new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),totalPedidos:0,totalIngresos,totalEgresos,netoCaja}; document.getElementById('resumenModalOverlay').classList.add('open'); document.body.style.overflow='hidden'; return; }
+  const hoy=new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  sub.textContent=`📅 ${hoy} — ${hist.length} pedido(s) en esta sesión`;
+  const porAsesor={};
+  hist.forEach(pedido=>{ const asesor=pedido.empleado||'Sin asignar'; if(!porAsesor[asesor])porAsesor[asesor]={clientes:new Set(),pedidos:0,productos:{},formasPago:{},totalDia:0}; const datos=porAsesor[asesor]; datos.clientes.add(pedido.nombre||''); datos.pedidos++; const tot=parseFloat(pedido.total||0); datos.totalDia+=tot; const forma=pedido.formapago||'Sin especificar'; datos.formasPago[forma]=(datos.formasPago[forma]||0)+tot; (pedido.productos||[]).forEach(p=>{ const nom=p.nombre||'Sin nombre'; if(!datos.productos[nom])datos.productos[nom]={cantidad:0,precioUnit:p.precio||0,subtotal:0}; datos.productos[nom].cantidad+=parseFloat(p.cantidad||0); datos.productos[nom].subtotal+=parseFloat(p.subtotal||0); datos.productos[nom].precioUnit=parseFloat(p.precio||datos.productos[nom].precioUnit); }); });
+  let totalGeneral=0; const formasPagoGlobal={};
+  Object.values(porAsesor).forEach(d=>{ totalGeneral+=d.totalDia; Object.entries(d.formasPago).forEach(([f,v])=>{ formasPagoGlobal[f]=(formasPagoGlobal[f]||0)+v; }); });
+  _resumenDiaData={porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos:hist.length,totalIngresos,totalEgresos,netoCaja};
+  const iconoForma={'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓'};
+  let html=cajaHtml;
+  Object.entries(porAsesor).forEach(([asesor,datos])=>{
+    const nc=asesor.includes(':')?asesor.split(':')[1].trim():asesor;
+    const ca=[...datos.clientes].filter(Boolean);
+    const nt=Object.keys(datos.productos).length;
+    const tu=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
+    const po=Object.entries(datos.productos).sort(([,a],[,b])=>b.subtotal-a.subtotal);
+    const fp=po.map(([nom,p])=>`<tr><td>${escHTML(nom)}</td><td>${p.cantidad%1===0?parseInt(p.cantidad):p.cantidad.toFixed(1)}</td><td>$${p.precioUnit.toFixed(2)}</td><td style="font-weight:700;color:var(--teal)">$${p.subtotal.toFixed(2)}</td></tr>`).join('');
+    const tp=Object.entries(datos.formasPago).sort(([,a],[,b])=>b-a).map(([f,v])=>`<span class="forma-pago-tag">${escHTML(iconoForma[f]||'💳')} ${escHTML(f)}<span class="forma-pago-tag-valor">$${v.toFixed(2)}</span></span>`).join('');
+    html+=`<div class="asesor-resumen-block"><div class="asesor-resumen-header"><div class="asesor-resumen-nombre"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>${escHTML(nc)}<span style="font-size:10px;font-weight:500;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.06em">${escHTML(asesor.includes('RUTA')?asesor.split(':')[0].trim():'')}</span></div><div class="asesor-resumen-total">$${datos.totalDia.toFixed(2)}</div></div><div class="asesor-meta-row"><div class="asesor-meta-item"><span class="asesor-meta-label">Clientes</span><span class="asesor-meta-value">${ca.length}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Pedidos</span><span class="asesor-meta-value">${datos.pedidos}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Tipos prod.</span><span class="asesor-meta-value">${nt}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Unidades</span><span class="asesor-meta-value">${tu%1===0?parseInt(tu):tu.toFixed(1)}</span></div><div class="asesor-meta-item"><span class="asesor-meta-label">Total ruta</span><span class="asesor-meta-value" style="color:var(--teal)">$${datos.totalDia.toFixed(2)}</span></div></div><div class="formas-pago-resumen"><span class="formas-pago-label">Formas de pago:</span>${tp}</div><table class="productos-resumen-table"><thead><tr><th>Producto</th><th>Cant.</th><th>Precio U.</th><th>Subtotal</th></tr></thead><tbody>${fp}</tbody></table></div>`;
+  });
+  const tg=Object.entries(formasPagoGlobal).sort(([,a],[,b])=>b-a).map(([f,v])=>`<span class="forma-pago-tag" style="background:var(--teal-light);border-color:var(--teal)">${escHTML(iconoForma[f]||'💳')} ${escHTML(f)}<span class="forma-pago-tag-valor" style="color:var(--teal-dark);font-size:12px">$${v.toFixed(2)}</span></span>`).join('');
+  html+=`<div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:4px"><div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px">💳 Resumen global de formas de pago</div><div style="display:flex;gap:8px;flex-wrap:wrap">${tg}</div></div>`;
+  contenedor.innerHTML=html;
+  totalValor.textContent='$'+totalGeneral.toFixed(2);
+  totalBox.style.display='flex';
+  document.getElementById('resumenModalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function cerrarResumenModal(){ document.getElementById('resumenModalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function imprimirResumen(){
+  const contenido=document.getElementById('resumenModal').innerHTML;
+  const v=window.open('','_blank','width=700,height=900');
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Resumen del Día — Aqua Luan</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}.resumen-modal-handle,.btn-cerrar-resumen,.btn-imprimir-resumen,.btn-wa-resumen{display:none!important;}.resumen-dia-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;}.resumen-dia-sub{font-size:12px;color:#888;margin-bottom:20px;}.asesor-resumen-block{border:1.5px solid #ddd;border-radius:10px;overflow:hidden;margin-bottom:16px;}.asesor-resumen-header{background:#1a3a5c;padding:10px 14px;display:flex;justify-content:space-between;}.asesor-resumen-nombre{font-size:13px;font-weight:700;color:#fff;display:flex;gap:8px;align-items:center;}.asesor-resumen-total{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#4ec9a0;}.asesor-meta-row{display:flex;gap:16px;padding:10px 14px;background:#e6f4f2;border-bottom:1px solid #ddd;flex-wrap:wrap;}.asesor-meta-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#0a7c6e;display:block;}.asesor-meta-value{font-size:14px;font-weight:700;color:#1a3a5c;}.productos-resumen-table{width:100%;border-collapse:collapse;font-size:12px;}.productos-resumen-table th{background:#f0f5f8;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#666;border-bottom:1px solid #ddd;}.productos-resumen-table th:last-child,.productos-resumen-table th:nth-child(2){text-align:right;}.productos-resumen-table td{padding:8px 12px;border-bottom:1px solid #eee;}.productos-resumen-table td:last-child,.productos-resumen-table td:nth-child(2){text-align:right;}.productos-resumen-table tr:nth-child(even) td{background:#f9f9f9;}.resumen-total-general{background:#1a3a5c;border-radius:10px;padding:14px 18px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;}.resumen-total-general-label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6);}.resumen-total-general-value{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#4ec9a0;}.print-footer{margin-top:20px;text-align:center;font-size:11px;color:#aaa;}.formas-pago-resumen{padding:10px 14px;background:#f0f5f8;border-bottom:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}.forma-pago-tag{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #ddd;border-radius:100px;padding:4px 10px;font-size:11px;font-weight:700;color:#1a3a5c;}.forma-pago-tag-valor{color:#0a7c6e;margin-left:2px;}.formas-pago-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;}</style></head><body>${contenido}<div class="print-footer">www.elhyai.com | Aqua Luan — Sistema de Pedidos</div><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  v.document.close();
+}
+document.getElementById('resumenModalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarResumenModal(); });
+
+function enviarResumenWhatsapp(){
+  if(!_resumenDiaData){alert('Primero genera el resumen del día.');return;}
+  const{porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos,totalIngresos,totalEgresos,netoCaja}=_resumenDiaData;
+  const iF={'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓'};
+  let msg=`📊 *RESUMEN DEL DÍA — AQUA LUAN*%0A📅 ${encodeURIComponent(hoy)}%0A📦 Total pedidos: ${totalPedidos}%0A%0A`;
+  Object.entries(porAsesor).forEach(([asesor,datos])=>{
+    const n=asesor.includes(':')?asesor.split(':')[1].trim():asesor;
+    const cl=[...datos.clientes].filter(Boolean).length;
+    const un=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
+    msg+=`👤 *${encodeURIComponent(n)}*%0A Clientes: ${cl} | Pedidos: ${datos.pedidos} | Unidades: ${parseInt(un)}%0A 💰 Total: *$${datos.totalDia.toFixed(2)}*%0A`;
+    const fr=Object.entries(datos.formasPago).sort(([,a],[,b])=>b-a);
+    if(fr.length){msg+=` 💳 `;msg+=fr.map(([f,v])=>`${iF[f]||'💳'} ${encodeURIComponent(f)}: $${v.toFixed(2)}`).join(' | ');msg+='%0A';}
+    Object.entries(datos.productos).sort(([,a],[,b])=>b.subtotal-a.subtotal).forEach(([nom,p])=>{ const c=p.cantidad%1===0?parseInt(p.cantidad):p.cantidad.toFixed(1); msg+=` • ${encodeURIComponent(nom)}: ${c} u = $${p.subtotal.toFixed(2)}%0A`; });
+    msg+='%0A';
+  });
+  msg+=`💳 *FORMAS DE PAGO TOTAL*%0A`;
+  Object.entries(formasPagoGlobal).sort(([,a],[,b])=>b-a).forEach(([f,v])=>{ msg+=` ${iF[f]||'💳'} ${encodeURIComponent(f)}: *$${v.toFixed(2)}*%0A`; });
+  msg+=`%0A💰 *TOTAL GENERAL DEL DÍA: $${totalGeneral.toFixed(2)}*%0A`;
+  if((totalIngresos||0)>0||(totalEgresos||0)>0){
+    msg+=`%0A🧮 *CUADRE DE CAJA*%0A🟢 Ingresos (pagos): $${(totalIngresos||0).toFixed(2)}%0A🔴 Egresos (gastos): $${(totalEgresos||0).toFixed(2)}%0A💼 *Total en caja: $${(netoCaja||0).toFixed(2)}*%0A`;
+  }
+  msg+=`%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
+  window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${msg}`,'_blank','noopener,noreferrer');
+}
+
+function abrirModalProducto(){
+  document.getElementById('np-nombre').value='';
+  document.getElementById('np-resultado').style.display='none';
+  document.getElementById('np-codigo').value='';
+  document.getElementById('np-elim-resultado').style.display='none';
+  document.getElementById('np-elim-codigo').value='';
+  poblarSelectEliminarProducto();
+  document.getElementById('modalProductoOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function cerrarModalProducto(){
+  document.getElementById('modalProductoOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function poblarSelectEliminarProducto(){
+  const sel = document.getElementById('np-eliminar-select');
+  sel.innerHTML = '<option value="">-- Selecciona --</option>';
+  LISTAS_BLANCAS.productos.forEach(nombre=>{
+    const opt = document.createElement('option');
+    opt.value = nombre;
+    opt.textContent = nombre;
+    sel.appendChild(opt);
+  });
+}
+function generarCodigoProducto(){
+  const nombreRaw = document.getElementById('np-nombre').value;
+  const nombre = sanitizarTexto(nombreRaw,60).toUpperCase();
+  if(!nombre){ alert('Ingresa el nombre del producto.'); return; }
+  if(LISTAS_BLANCAS.productos.includes(nombre)){ alert('Ese producto ya existe en la lista.'); return; }
+
+  const codigo =
+`/* ══ NUEVO PRODUCTO: ${escHTML(nombre)} ══ */
+
+/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, agrega este valor (antes del ] de cierre): */
+  '${nombre}',
+
+/* PASO 2 — Agrega esta opción dentro del <select id="sel-producto"> en el HTML: */
+  <option value="${nombre}">${nombre}</option>
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
+
+  document.getElementById('np-codigo').value = codigo;
+  document.getElementById('np-resultado').style.display='block';
+}
+function copiarCodigoProducto(){
+  const ta = document.getElementById('np-codigo');
+  if(!ta.value){ alert('Primero genera el código.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 2 pasos, o envíamelo.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+function generarInstruccionesEliminarProducto(){
+  const nombre = document.getElementById('np-eliminar-select').value;
+  if(!nombre){ alert('Selecciona un producto de la lista.'); return; }
+  const texto =
+`/* ══ ELIMINAR PRODUCTO: ${escHTML(nombre)} ══ */
+
+/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, elimina este valor: */
+  '${nombre}',
+
+/* PASO 2 — Elimina <option value="${nombre}">${nombre}</option> del <select id="sel-producto"> en el HTML */
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */
+
+NOTA: esto solo quita el producto del formulario de nuevos pedidos. Los pedidos
+ya registrados con este producto siguen intactos en tu Google Sheets — no se
+borra ningún dato histórico.`;
+
+  document.getElementById('np-elim-codigo').value = texto;
+  document.getElementById('np-elim-resultado').style.display='block';
+}
+function copiarInstruccionesEliminarProducto(){
+  const ta = document.getElementById('np-elim-codigo');
+  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+document.getElementById('modalProductoOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalProducto(); });
+</script>
 
 </body>
 </html>
