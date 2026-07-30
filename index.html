@@ -1174,7 +1174,33 @@ function setStatusGastos(t,m){_setStatus('status-gastos',t,m);}
 function _setStatus(id,t,m){ const el=document.getElementById(id); el.className='status '+t; el.textContent=m; }
 
 function resetGpsBadge(){ document.getElementById('gpsBadge').className='gps-badge wait'; document.getElementById('gpsBadgeText').textContent='Obteniendo ubicación GPS...'; document.getElementById('m-gps').textContent='-'; }
-function capturarGPS(){ return new Promise(resolve=>{ if(!navigator.geolocation){resolve(null);return;} navigator.geolocation.getCurrentPosition(pos=>resolve({lat:pos.coords.latitude,lng:pos.coords.longitude,acc:Math.round(pos.coords.accuracy)}),()=>resolve(null),{enableHighAccuracy:true,timeout:10000,maximumAge:0}); }); }
+function capturarGPS(){
+  return new Promise(resolve=>{
+    if(!navigator.geolocation){resolve(null);return;}
+    let resuelto=false;
+    const terminar=(pos)=>{
+      if(resuelto)return; resuelto=true;
+      resolve(pos?{lat:pos.coords.latitude,lng:pos.coords.longitude,acc:Math.round(pos.coords.accuracy)}:null);
+    };
+    // [FIX] Paso 1 — intento rápido: acepta una ubicación reciente ya en caché del
+    // celular (hasta 20s de antigüedad) en vez de forzar un GPS nuevo desde cero.
+    navigator.geolocation.getCurrentPosition(
+      pos=>terminar(pos),
+      ()=>{
+        // [FIX] Paso 2 — si no hay nada en caché o falla, recién ahí se pide
+        // una ubicación de alta precisión (antes esto era el ÚNICO intento).
+        navigator.geolocation.getCurrentPosition(
+          pos=>terminar(pos),
+          ()=>terminar(null),
+          {enableHighAccuracy:true,timeout:8000,maximumAge:0}
+        );
+      },
+      {enableHighAccuracy:false,timeout:4000,maximumAge:20000}
+    );
+    // [FIX] Tope absoluto: nunca deja al asesor esperando más de 12s en total.
+    setTimeout(()=>terminar(null),12000);
+  });
+}
 
 async function abrirModal(){
   const empleado=document.getElementById('empleado').value;
