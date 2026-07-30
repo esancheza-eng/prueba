@@ -561,6 +561,10 @@ body { padding: 1rem 0.75rem 3rem; }
       </div>
     </div>
     <div class="date-badge" id="fechaHoy"></div>
+    <button class="btn-logout" id="btnGestionAsesores" onclick="abrirModalAsesor()" style="display:none;margin-right:8px">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2 14c0-3 2.5-5 5-5s5 2 5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13 4v4M11 6h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Asesor
+    </button>
     <button class="btn-logout" id="btnLogout" onclick="cerrarSesion()" style="display:none">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Salir
@@ -601,6 +605,7 @@ body { padding: 1rem 0.75rem 3rem; }
               <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
               <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
               <option value="RUTA 5: Lister">RUTA 5: Lister</option>
+              <option value="RUTA 6: Asesora">RUTA 6: Asesora</option>
             </select>
           </div>
         </div>
@@ -725,7 +730,7 @@ body { padding: 1rem 0.75rem 3rem; }
     <div class="card">
       <div class="section-title blue">Registrar pago recibido</div>
       <div class="grid-2">
-        <div class="field"><label>Asesor / Ruta</label><div id="wrap-pago-empleado"><select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select></div></div>
+        <div class="field"><label>Asesor / Ruta</label><div id="wrap-pago-empleado"><select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select></div></div>
         <div class="field"><label for="pago-fecha">Fecha</label><input type="date" id="pago-fecha" class="focus-blue"></div>
       </div>
       <div class="field"><label for="pago-cliente">Cliente</label><input type="text" id="pago-cliente" placeholder="Nombre del cliente" autocomplete="off" class="focus-blue" maxlength="100"></div>
@@ -755,7 +760,7 @@ body { padding: 1rem 0.75rem 3rem; }
     <div class="card">
       <div class="section-title red">Registrar gasto</div>
       <div class="grid-2">
-        <div class="field"><label>Responsable</label><div id="wrap-gasto-empleado"><select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="Administración">Administración</option></select></div></div>
+        <div class="field"><label>Responsable</label><div id="wrap-gasto-empleado"><select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option><option value="Administración">Administración</option></select></div></div>
         <div class="field"><label for="gasto-fecha">Fecha</label><input type="date" id="gasto-fecha" class="focus-red"></div>
       </div>
       <datalist id="gasto-categorias-list"><option value="Combustible"><option value="Almuerzos"><option value="Ascensor"><option value="Triciclo"><option value="Otro"></datalist>
@@ -815,8 +820,8 @@ function escHTML(str) {
 }
 
 const LISTAS_BLANCAS = {
-  empleado: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister'],
-  empleadoGasto: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','Administración'],
+  empleado: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora'],
+  empleadoGasto: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','Administración'],
   formapago: ['Contado','Crédito','Transferencia','Cheque'],
   pagoForma: ['Efectivo','Transferencia','Cheque'],
   productos: ['BOTELLON 20LT','BOTELLON CON LLAVE','PACA 625ML AZUL','PACA 600ML VERDE','PACA 1000ML','PACA 400ML','GALONES 4LT','POMA 5LTS','ENVASE CON LLAVE','ENVASE AZUL ADICIONAL']
@@ -881,7 +886,8 @@ const AUTH_REGISTRY = Object.freeze({
   'luis':      { h: '5893cd3c3f2b3903c3214bcabcdfa9aee03a3ec0931a4876204046f244cad892', nombre: 'Luis',      rol: 'OPERADOR', ruta: 'RUTA 2: Luis',      esAdmin: false },
   'vicente':   { h: 'f66986a120970c2ab68459132797c4c269b609ea16761f56cdafbae04290f630', nombre: 'Vicente',   rol: 'OPERADOR', ruta: 'RUTA 3: Vicente',    esAdmin: false },
   'wilson':    { h: 'b2ec2618e167952138ce705b6e65a7d138aef40a39fd54333e3bf68fe0b01f99', nombre: 'Wilson',    rol: 'OPERADOR', ruta: 'RUTA 4: Wilson',     esAdmin: false },
-  'lister':    { h: 'df5fece5d1a837bc2d97f79beecae74a2b58f4a5418f07e11a290ea96f14ac06', nombre: 'Lister',    rol: 'OPERADOR', ruta: 'RUTA 5: Lister',     esAdmin: false }
+  'lister':    { h: 'df5fece5d1a837bc2d97f79beecae74a2b58f4a5418f07e11a290ea96f14ac06', nombre: 'Lister',    rol: 'OPERADOR', ruta: 'RUTA 5: Lister',     esAdmin: false },
+  'aventas':   { h: 'da871a607c4083419b0cc2f963848835995016fde9a91e6fff50c273694ee70a', nombre: 'Asesora',   rol: 'OPERADOR', ruta: 'RUTA 6: Asesora',   esAdmin: false } // [NEW]
 });
 
 /* ════════════════════════════════════════════════════════════
@@ -960,6 +966,7 @@ async function cerrarSesion(){
   document.getElementById('loginPass').value='';
   document.getElementById('loginOverlay').style.display='flex';
   document.getElementById('btnLogout').style.display='none';
+  document.getElementById('btnGestionAsesores').style.display='none'; // [NEW]
   document.getElementById('logoSub').textContent='Registro de Pedidos';
   restaurarSelectsCompletos(); limpiarFormulario();
 }
@@ -967,9 +974,9 @@ async function cerrarSesion(){
 function mostrarErrorLogin(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.classList.add('show'); }
 
 function restaurarSelectsCompletos(){
-  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select>`;
-  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option></select>`;
-  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="Administración">Administración</option></select>`;
+  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
+  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
+  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option><option value="Administración">Administración</option></select>`;
 }
 
 async function _generarHash(clave){ if(!clave){console.warn('Ingresa una clave');return;} const h=await hashSHA256(clave); console.log('%cHash SHA-256:','color:#0a7c6e;font-weight:bold'); console.log('%c'+h,'font-family:monospace;background:#e6f4f2;padding:4px 8px;border-radius:4px'); return h; }
@@ -979,7 +986,7 @@ function _restaurarHistDia(u){
     const hoy=new Date().toISOString().slice(0,10);
     let hR=[];
     if(u.esAdmin){
-      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','admin'].forEach(r=>{
+      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
         hR=hR.concat(JSON.parse(localStorage.getItem(_claveHistDia(r,hoy))||'[]'));
       });
       hR.sort((a,b)=>(b.id||0)-(a.id||0));
@@ -1000,6 +1007,7 @@ function aplicarUsuario(){
   const u=usuarioActual; if(!u)return;
   document.getElementById('logoSub').textContent=u.esAdmin?'Administrador':`Bienvenido, ${u.nombre}`;
   document.getElementById('btnLogout').style.display='flex';
+  document.getElementById('btnGestionAsesores').style.display=u.esAdmin?'flex':'none'; // [NEW] solo admin ve "Agregar Asesor"
   _restaurarHistDia(u);
   if(u.esAdmin)return;
   const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
@@ -1396,7 +1404,7 @@ function limpiarHistorial(){
     if(usuarioActual){
       const hoy=new Date().toISOString().slice(0,10);
       if(usuarioActual.esAdmin){
-        ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
+        ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
       } else {
         localStorage.removeItem(_claveHistDia(usuarioActual.ruta,hoy));
       }
@@ -1407,6 +1415,129 @@ function limpiarHistorial(){
 
 document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModal(); });
 renderLista();
+
+/* ── [NEW] Panel Admin: generar código para dar de alta un nuevo asesor ──
+   No hay backend de usuarios (AUTH_REGISTRY vive hardcodeado en este HTML),
+   así que este panel solo GENERA el bloque de código listo para pegar.
+   La contraseña nunca sale del navegador: se hashea localmente con la
+   misma función hashSHA256() que usa el login. */
+function abrirModalAsesor(){
+  document.getElementById('na-nombre').value='';
+  document.getElementById('na-numruta').value='';
+  document.getElementById('na-usuario').value='';
+  document.getElementById('na-pass').value='';
+  document.getElementById('na-resultado').style.display='none';
+  document.getElementById('na-codigo').value='';
+  document.getElementById('na-elim-resultado').style.display='none';
+  document.getElementById('na-elim-codigo').value='';
+  poblarSelectEliminarAsesor(); // [NEW]
+  document.getElementById('modalAsesorOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+/* [NEW] Llena el desplegable con los asesores actuales (excluye admin) leyendo AUTH_REGISTRY */
+function poblarSelectEliminarAsesor(){
+  const sel = document.getElementById('na-eliminar-select');
+  sel.innerHTML = '<option value="">-- Selecciona --</option>';
+  Object.keys(AUTH_REGISTRY).forEach(usuario=>{
+    if(usuario==='admin') return;
+    const reg = AUTH_REGISTRY[usuario];
+    const opt = document.createElement('option');
+    opt.value = usuario;
+    opt.textContent = `${reg.nombre} — ${reg.ruta}`;
+    sel.appendChild(opt);
+  });
+}
+/* [NEW] Genera las instrucciones exactas para quitar a un asesor del código */
+function generarInstruccionesEliminar(){
+  const usuario = document.getElementById('na-eliminar-select').value;
+  if(!usuario){ alert('Selecciona un asesor de la lista.'); return; }
+  const reg = AUTH_REGISTRY[usuario];
+  const ruta = reg.ruta;
+  const texto =
+`/* ══ ELIMINAR ASESOR: ${reg.nombre} — ${ruta} ══ */
+
+/* PASO 1 — Dentro de AUTH_REGISTRY, elimina esta línea completa (usuario: '${usuario}'): */
+  '${usuario}': { h: '...', nombre: '${reg.nombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
+
+/* PASO 2 — Elimina '${ruta}' de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto */
+
+/* PASO 3 — Elimina <option value="${ruta}">${ruta}</option> de los 3 <select>
+   (id="empleado", id="pago-empleado", id="gasto-empleado") — tanto en el HTML
+   estático como dentro de la función restaurarSelectsCompletos() en el JS */
+
+/* PASO 4 (opcional, si ya no vas a usar esa ruta nunca más) — Elimina '${ruta}'
+   de las 2 listas usadas para restaurar y limpiar el historial diario del admin */
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */
+
+NOTA: esto solo elimina el ACCESO de login de ${reg.nombre}. Los pedidos/pagos/gastos
+que ya registró siguen intactos en tu Google Sheets — no se borra ningún dato histórico.`;
+
+  document.getElementById('na-elim-codigo').value = texto;
+  document.getElementById('na-elim-resultado').style.display='block';
+}
+function copiarInstruccionesEliminar(){
+  const ta = document.getElementById('na-elim-codigo');
+  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+function cerrarModalAsesor(){
+  document.getElementById('modalAsesorOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+async function generarCodigoAsesor(){
+  const nombreCompleto = sanitizarTexto(document.getElementById('na-nombre').value,60);
+  const numRuta = document.getElementById('na-numruta').value.trim();
+  const usuario = document.getElementById('na-usuario').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  const pass = document.getElementById('na-pass').value;
+
+  if(!nombreCompleto){ alert('Ingresa el nombre completo del asesor.'); return; }
+  if(!/^[0-9]+$/.test(numRuta)){ alert('Ingresa un número de ruta válido (ej. 6).'); return; }
+  if(!usuario){ alert('Ingresa un usuario válido (solo letras y números, sin espacios).'); return; }
+  if(!pass || pass.length<4){ alert('Ingresa una contraseña de al menos 4 caracteres.'); return; }
+  if(AUTH_REGISTRY[usuario]){ alert('Ese usuario ya existe en este dispositivo. Elige otro nombre de usuario.'); return; }
+
+  const primerNombre = nombreCompleto.split(' ')[0];
+  const ruta = `RUTA ${numRuta}: ${primerNombre}`;
+  const hash = await hashSHA256(pass);
+
+  const codigo =
+`/* ══ NUEVO ASESOR: ${escHTML(nombreCompleto)} — ${escHTML(ruta)} ══ */
+
+/* PASO 1 — Dentro de AUTH_REGISTRY, agrega esta línea (antes del }); de cierre): */
+  '${usuario}': { h: '${hash}', nombre: '${primerNombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
+
+/* PASO 2 — Agrega '${ruta}' dentro de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto: */
+  '${ruta}',
+
+/* PASO 3 — Agrega esta opción en los 3 <select> del HTML (id="empleado", id="pago-empleado", id="gasto-empleado"): */
+  <option value="${ruta}">${ruta}</option>
+
+/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
+
+  document.getElementById('na-codigo').value = codigo;
+  document.getElementById('na-resultado').style.display='block';
+}
+function copiarCodigoAsesor(){
+  const ta = document.getElementById('na-codigo');
+  if(!ta.value){ alert('Primero genera el código.'); return; }
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length);
+  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 3 pasos, o envíamelo.');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
+  } else {
+    try{ document.execCommand('copy'); hecho(); }catch{}
+  }
+}
+document.getElementById('modalAsesorOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalAsesor(); });
 
 /* ── RESUMEN DEL DÍA ── */
 let _resumenDiaData=null;
@@ -1492,6 +1623,68 @@ function enviarResumenWhatsapp(){
       Imprimir / Guardar PDF
     </button>
     <button class="btn-cerrar-resumen" onclick="cerrarResumenModal()">Cerrar</button>
+  </div>
+</div>
+
+<!-- MODAL AGREGAR ASESOR (solo admin) -->
+<div class="modal-overlay" id="modalAsesorOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalAsesorTituloId">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalAsesorTituloId">➕ Agregar Asesor</div>
+    <div class="modal-subtitle">Genera el código del nuevo asesor. Cópialo y pégalo en <strong>index.html</strong> (o envíamelo para actualizarlo).</div>
+    <div class="field">
+      <label for="na-nombre">Nombre completo</label>
+      <input type="text" id="na-nombre" placeholder="Ej. Roberto Pérez" autocomplete="off" maxlength="60">
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="na-numruta">N° de Ruta</label>
+        <input type="number" id="na-numruta" placeholder="6" min="1" max="99" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label for="na-usuario">Usuario (login)</label>
+        <input type="text" id="na-usuario" placeholder="roberto" autocomplete="off" maxlength="30">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:1rem">
+      <label for="na-pass">Contraseña</label>
+      <input type="password" id="na-pass" placeholder="Contraseña del asesor" autocomplete="new-password" maxlength="128">
+    </div>
+    <button class="btn" onclick="generarCodigoAsesor()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Generar código
+    </button>
+    <div id="na-resultado" style="display:none;margin-top:14px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Código generado — copia todo y sigue los 3 pasos</label>
+      <textarea id="na-codigo" readonly style="width:100%;min-height:220px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
+      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarCodigoAsesor()">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Copiar código
+      </button>
+    </div>
+
+    <hr class="divider" style="margin:1.5rem 0">
+    <div class="section-title red">Eliminar asesor existente</div>
+    <div class="field">
+      <label for="na-eliminar-select">Selecciona el asesor a eliminar</label>
+      <select id="na-eliminar-select">
+        <option value="">-- Selecciona --</option>
+      </select>
+    </div>
+    <button class="btn red" onclick="generarInstruccionesEliminar()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2.5A1.5 1.5 0 0 1 7.5 1h1A1.5 1.5 0 0 1 10 2.5V4M12.5 4l-.6 9a1.5 1.5 0 0 1-1.5 1.4H5.6a1.5 1.5 0 0 1-1.5-1.4L3.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Generar instrucciones de eliminación
+    </button>
+    <div id="na-elim-resultado" style="display:none;margin-top:14px">
+      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Instrucciones — copia todo y sigue los pasos</label>
+      <textarea id="na-elim-codigo" readonly style="width:100%;min-height:200px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
+      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarInstruccionesEliminar()">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Copiar instrucciones
+      </button>
+    </div>
+
+    <button class="btn btn-outline" style="margin-top:10px" onclick="cerrarModalAsesor()">Cerrar</button>
   </div>
 </div>
 
