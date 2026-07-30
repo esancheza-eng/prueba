@@ -425,9 +425,9 @@ display: inline-block;
   background: transparent; border: none; border-radius: 8px;
   padding: 12px 14px; text-align: left; cursor: pointer;
   font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
-  color: rgba(255,255,255,0.55); transition: background 0.2s, color 0.2s;
+  color: #ffffff; transition: background 0.2s, color 0.2s;
 }
-.dash-nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+.dash-nav-item:hover { background: rgba(255,255,255,0.1); color: #ffffff; }
 .dash-nav-item.active { background: var(--teal); color: #fff; }
 .dash-content { flex: 1; min-width: 0; }
 .dash-section { display: none; }
@@ -732,6 +732,12 @@ display: inline-block;
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM7.5 12h2c.83 0 1.5.67 1.5 1.5S10.33 15 9.5 15H8v2H7v-5zm1 2h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v1zM12 12h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-5zm1 4h1v-3h-1v3zM16 12h2v1h-1v1h1v1h-1v2h-1v-5z"/></svg>
                 Exportar a PDF
               </button>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap">Total mín. $</span>
+                <select id="clienteTotalMinInput" onchange="mostrarDetalleCliente()" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:7px 10px;outline:none;cursor:pointer">
+                  <option value="0">Todos los montos</option>
+                </select>
+              </div>
               <div id="clienteMultiWrap" style="position:relative;min-width:240px">
                 <button type="button" class="btn-filter" style="background:var(--surface2);color:var(--navy);border:1.5px solid var(--border);width:100%;justify-content:space-between;display:flex;align-items:center;gap:8px" onclick="toggleClienteDropdown()">
                   <span id="clienteMultiLabel">-- Selecciona clientes --</span>
@@ -1672,7 +1678,20 @@ function poblarClienteSelect(datos) {
   clientesSeleccionados = clientesSeleccionados.filter(c => clientesDisponibles.includes(c)); // descarta selección que ya no aplica al filtro
   renderListaClientesCheck(document.getElementById('clienteBuscarInput') ? document.getElementById('clienteBuscarInput').value : '');
   actualizarLabelClientes();
+  poblarFiltroTotalCliente(datos); // [NEW]
   mostrarDetalleCliente();
+}
+/* [NEW] Llena el desplegable "Total mín." con los montos reales que existen en los pedidos actuales */
+function poblarFiltroTotalCliente(datos) {
+  const sel = document.getElementById('clienteTotalMinInput');
+  if (!sel) return;
+  const valorActual = sel.value;
+  const montos = [...new Set(
+    datos.map(r => parseFloat(r['TOTAL PEDIDO ($)'])).filter(v => v > 0)
+  )].sort((a,b) => a - b);
+  sel.innerHTML = '<option value="0">Todos los montos</option>' +
+    montos.map(v => `<option value="${v}">$${v.toFixed(2)}</option>`).join('');
+  if ([...sel.options].some(o => o.value === valorActual)) sel.value = valorActual;
 }
 function renderListaClientesCheck(filtro='') {
   const cont = document.getElementById('clienteCheckList');
@@ -1737,10 +1756,12 @@ function mostrarDetalleCliente() {
     if (r['FORMA DE PAGO']) porCliente[cliente].formaPago = r['FORMA DE PAGO'];
   });
   let totalGeneral = 0;
+  const totalMinFiltro = parseFloat(document.getElementById('clienteTotalMinInput')?.value) || 0; // [NEW] filtro por total
   const bloques = clientesSeleccionados.filter(c => porCliente[c]).map(cliente => {
     const c = porCliente[cliente];
     const totalesPedido = c.items.map(r => parseFloat(r['TOTAL PEDIDO ($)']||0)).filter(v => v > 0);
     const totalCliente = totalesPedido.length ? totalesPedido.reduce((s,v) => s+v, 0) : c.items.reduce((s,r) => s+(parseFloat(r['SUBTOTAL']||0)), 0);
+    if (totalCliente < totalMinFiltro) return ''; // [NEW] descarta clientes por debajo del total mínimo
     totalGeneral += totalCliente;
     const cantidadTotal = c.items.reduce((s,r) => s+(parseFloat(r['CANTIDAD'])||0), 0); // [NEW]
     const porForma = {}; // [NEW] desglose de formas de pago del cliente
@@ -1771,7 +1792,8 @@ function mostrarDetalleCliente() {
           <tbody>${filas}</tbody>
         </table>
       </div>`;
-  }).join('');
+  }).filter(Boolean).join('');
+  if (!bloques) { cont.innerHTML = `<div class="empty-state"><div class="icon">💰</div>Ningún cliente seleccionado supera $${totalMinFiltro.toFixed(2)}</div>`; return; }
   const totalBloque = clientesSeleccionados.length > 1
     ? `<div class="cierre-total-general" style="margin-top:4px"><div class="cierre-total-label">Total de los ${clientesSeleccionados.length} clientes seleccionados</div><div class="cierre-total-value">$${totalGeneral.toFixed(2)}</div></div>`
     : '';
