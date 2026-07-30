@@ -409,6 +409,34 @@ display: inline-block;
 }
 .btn-gps-small:hover { background: var(--teal); color: #fff; }
 .highlight-row { background: var(--teal-light) !important; }
+/* [NEW] Panel administrativo — menú lateral por secciones */
+.dash-shell { display: flex; gap: 16px; align-items: flex-start; }
+.dash-nav {
+  width: 210px; min-width: 210px;
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: 10px;
+  display: flex; flex-direction: column; gap: 4px;
+  position: sticky; top: 84px;
+  box-shadow: var(--shadow);
+}
+.dash-nav-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: transparent; border: none; border-radius: 8px;
+  padding: 12px 14px; text-align: left; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,0.55); transition: background 0.2s, color 0.2s;
+}
+.dash-nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+.dash-nav-item.active { background: var(--teal); color: #fff; }
+.dash-content { flex: 1; min-width: 0; }
+.dash-section { display: none; }
+.dash-section.active { display: block; animation: fadeUp 0.35s ease both; }
+@media (max-width: 900px) {
+  .dash-shell { flex-direction: column; }
+  .dash-nav { width: 100%; min-width: unset; flex-direction: row; overflow-x: auto; position: relative; top: 0; }
+  .dash-nav-item { white-space: nowrap; }
+}
 .btn-cierre-dia {
   display: flex; align-items: center; gap: 6px;
   background: rgba(78,201,160,0.15); border: 1px solid rgba(78,201,160,0.35);
@@ -656,12 +684,23 @@ display: inline-block;
           <button class="btn-filter" style="background:var(--muted)" onclick="limpiarFiltro()">Todo</button>
           <span class="last-update" id="lastUpdate">—</span>
         </div>
+        <div class="dash-shell">
+          <nav class="dash-nav">
+            <button class="dash-nav-item active" data-section="resumen" onclick="switchSeccionDash('resumen')">📊 Resumen General</button>
+            <button class="dash-nav-item" data-section="pedidos" onclick="switchSeccionDash('pedidos')">📋 Detalle de Pedidos</button>
+            <button class="dash-nav-item" data-section="cliente" onclick="switchSeccionDash('cliente')">🔍 Consultar por Cliente</button>
+            <button class="dash-nav-item" data-section="caja" onclick="switchSeccionDash('caja')">💳 Cuadre de Caja</button>
+          </nav>
+          <div class="dash-content">
+        <div class="dash-section active" id="seccion-resumen">
         <div class="kpi-grid" id="kpiGrid"><div class="loading"><div class="spinner"></div><span>Cargando...</span></div></div>
         <div class="charts-grid" id="chartsGrid" style="display:none">
           <div class="chart-card"><div class="chart-title">Ventas por Ruta / Asesor</div><div class="chart-wrap"><canvas id="chartRutas"></canvas></div></div>
           <div class="chart-card"><div class="chart-title">Productos más vendidos</div><div class="chart-wrap"><canvas id="chartProductos"></canvas></div></div>
           <div class="chart-card full"><div class="chart-title">Ventas por hora del día</div><div class="chart-wrap"><canvas id="chartHoras"></canvas></div></div>
         </div>
+        </div>
+        <div class="dash-section" id="seccion-pedidos">
         <div class="table-card" id="tableCard" style="display:none">
           <div class="table-header">
             <div class="table-title">📋 Detalle de pedidos</div>
@@ -677,6 +716,14 @@ display: inline-block;
             </table>
           </div>
         </div>
+        <div class="table-card" id="resumenClientesCard" style="display:none">
+          <div class="table-header">
+            <div class="table-title">👥 Resumen por Cliente</div>
+          </div>
+          <div id="resumenClientesContenido" style="padding:1rem 1.25rem"></div>
+        </div>
+        </div>
+        <div class="dash-section" id="seccion-cliente">
         <div class="table-card" id="clienteCard" style="display:none">
           <div class="table-header">
             <div class="table-title">🔍 Consultar por Cliente</div>
@@ -685,18 +732,30 @@ display: inline-block;
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM7.5 12h2c.83 0 1.5.67 1.5 1.5S10.33 15 9.5 15H8v2H7v-5zm1 2h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v1zM12 12h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-5zm1 4h1v-3h-1v3zM16 12h2v1h-1v1h1v1h-1v2h-1v-5z"/></svg>
                 Exportar a PDF
               </button>
-              <select id="clienteSelect" onchange="mostrarDetalleCliente()" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:7px 12px;outline:none;cursor:pointer;min-width:220px">
-                <option value="">-- Selecciona un cliente --</option>
-              </select>
+              <div id="clienteMultiWrap" style="position:relative;min-width:240px">
+                <button type="button" class="btn-filter" style="background:var(--surface2);color:var(--navy);border:1.5px solid var(--border);width:100%;justify-content:space-between;display:flex;align-items:center;gap:8px" onclick="toggleClienteDropdown()">
+                  <span id="clienteMultiLabel">-- Selecciona clientes --</span>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style="flex-shrink:0"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div id="clienteDropdownPanel" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:60;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);width:280px;max-height:340px;flex-direction:column">
+                  <div style="padding:10px 10px 6px">
+                    <input type="text" id="clienteBuscarInput" placeholder="🔍 Buscar cliente..." oninput="filtrarListaClientes()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+                  </div>
+                  <div id="clienteCheckList" style="overflow-y:auto;max-height:210px;padding:2px 10px 8px"></div>
+                  <div style="padding:8px 10px;border-top:1px solid var(--border);display:flex;gap:8px">
+                    <button type="button" class="btn-filter" style="flex:1;background:var(--muted)" onclick="limpiarSeleccionClientes()">Limpiar</button>
+                    <button type="button" class="btn-filter" style="flex:1" onclick="cerrarClienteDropdown()">Listo</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Cantidad</th><th>Descripción</th><th>Valor Unitario</th><th>Valor Total</th></tr></thead>
-              <tbody id="tablaCliente"><tr><td colspan="4"><div class="empty-state"><div class="icon">👤</div>Selecciona un cliente para ver el detalle</div></td></tr></tbody>
-            </table>
+          <div id="clienteDetalleContenido" style="padding:1rem 1.25rem">
+            <div class="empty-state"><div class="icon">👤</div>Selecciona uno o más clientes para ver el detalle</div>
           </div>
         </div>
+        </div>
+        <div class="dash-section" id="seccion-caja">
         <!-- [NEW] Detalle de Pagos y Gastos -->
         <div class="table-card" id="pagosGastosCard" style="display:none">
           <div class="table-header">
@@ -729,6 +788,9 @@ display: inline-block;
               <thead><tr><th>Descripción</th><th>Responsable</th><th>Fecha</th><th style="text-align:right">Monto</th></tr></thead>
               <tbody id="tablaGastosDetalle"></tbody>
             </table>
+          </div>
+        </div>
+        </div>
           </div>
         </div>
         <div class="notas-table-card" id="notasCard" style="display:none">
@@ -836,6 +898,11 @@ let pedidosDetalleActuales = [];
 /* ════════════════════════════════════════
    TABS
 ════════════════════════════════════════ */
+/* [NEW] Menú lateral del panel administrativo — cambia entre secciones sin mezclarlas */
+function switchSeccionDash(sec){
+  document.querySelectorAll('.dash-section').forEach(el => el.classList.toggle('active', el.id === 'seccion-'+sec));
+  document.querySelectorAll('.dash-nav-item').forEach(el => el.classList.toggle('active', el.dataset.section === sec));
+}
 function switchTab(tab) {
   document.getElementById('viewDashboard').classList.toggle('active', tab === 'dashboard');
   document.getElementById('viewRutas').classList.toggle('active', tab === 'rutas');
@@ -986,6 +1053,7 @@ function renderDashboard() {
   renderCharts(pedidos, pedidosConTotal);
   pedidosDetalleActuales = pedidos;
   renderTabla(pedidos);
+  renderResumenPorCliente(pedidos); // [NEW]
   poblarClienteSelect(pedidos);
   renderPagosGastosDetalle(pagos, gastos); // [NEW]
   document.getElementById('chartsGrid').style.display = 'grid';
@@ -1140,6 +1208,57 @@ function renderTabla(pedidos) {
       <td>${gps}</td>
     </tr>`;
   }).join('');
+}
+
+/* [NEW] Resumen por Cliente — agrupa el detalle de pedidos por cliente,
+   con Producto / Cant. / Subtotal / Total / Pago debajo de cada uno. */
+function renderResumenPorCliente(pedidos) {
+  const card = document.getElementById('resumenClientesCard');
+  const cont = document.getElementById('resumenClientesContenido');
+  if (!pedidos.length) { card.style.display = 'none'; cont.innerHTML=''; return; }
+  const porCliente = {};
+  pedidos.forEach(r => {
+    const cliente = r['CLIENTE'] || 'Sin nombre';
+    if (!porCliente[cliente]) porCliente[cliente] = { items: [], formaPago: '' };
+    porCliente[cliente].items.push(r);
+    if (r['FORMA DE PAGO']) porCliente[cliente].formaPago = r['FORMA DE PAGO'];
+  });
+  const clientesOrdenados = Object.entries(porCliente).sort(([a],[b]) => a.localeCompare(b));
+  const html = clientesOrdenados.map(([cliente, c]) => {
+    const totalesPedido = c.items.map(r => parseFloat(r['TOTAL PEDIDO ($)']||0)).filter(v => v > 0);
+    const totalCliente = totalesPedido.length ? totalesPedido.reduce((s,v) => s+v, 0) : c.items.reduce((s,r) => s+(parseFloat(r['SUBTOTAL']||0)), 0);
+    const cantidadTotal = c.items.reduce((s,r) => s+(parseFloat(r['CANTIDAD'])||0), 0); // [NEW]
+    const porForma = {}; // [NEW] desglose de formas de pago del cliente
+    c.items.forEach(r => { const f = r['FORMA DE PAGO'] || 'Sin especificar'; porForma[f] = (porForma[f]||0) + (parseFloat(r['SUBTOTAL'])||0); });
+    const tagsPagoCliente = Object.entries(porForma).sort(([,a],[,b]) => b-a).map(([f,v]) => `<span class="badge badge-teal" style="margin-right:4px">${f}: $${v.toFixed(2)}</span>`).join('');
+    const filas = c.items.map(r => `
+      <tr>
+        <td>${r['PRODUCTO']||'-'}</td>
+        <td style="text-align:center">${r['CANTIDAD']||'-'}</td>
+        <td style="text-align:right">$${parseFloat(r['SUBTOTAL']||0).toFixed(2)}</td>
+        <td style="text-align:right">${r['TOTAL PEDIDO ($)']?'$'+parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2):'—'}</td>
+        <td style="text-align:left"><span class="badge badge-teal">${r['FORMA DE PAGO']||'-'}</span></td>
+      </tr>`).join('');
+    return `
+      <div class="cierre-cliente-block" style="margin:0 0 12px">
+        <div class="cierre-cliente-header">
+          <span class="cierre-cliente-nombre">👤 ${cliente}</span>
+          <span class="cierre-cliente-meta">💳 ${c.formaPago||'Sin especificar'}</span>
+          <span class="cierre-cliente-total">$${totalCliente.toFixed(2)}</span>
+        </div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">
+          <div><div style="font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Cantidad total</div><div style="font-weight:800;color:var(--navy);font-size:14px">${cantidadTotal%1===0?parseInt(cantidadTotal):cantidadTotal.toFixed(1)} unidad(es)</div></div>
+          <div><div style="font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Total</div><div style="font-weight:800;color:var(--teal);font-size:14px">$${totalCliente.toFixed(2)}</div></div>
+          <div><div style="font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Formas de pago</div><div style="margin-top:2px">${tagsPagoCliente}</div></div>
+        </div>
+        <table class="cierre-cliente-table">
+          <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Total</th><th>Pago</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>`;
+  }).join('');
+  cont.innerHTML = html;
+  card.style.display = 'block';
 }
 
 /* ════════════════════════════════════════
@@ -1465,29 +1584,48 @@ function flyToMarker(key,lat,lng) {
 }
 
 function exportarClientePDF() {
-  const sel = document.getElementById('clienteSelect').value;
-  if (!sel) { alert('Selecciona un cliente primero.'); return; }
-  const items = pedidosDetalleActuales.filter(r => r['CLIENTE'] === sel);
-  if (!items.length) { alert('No hay pedidos para este cliente en el filtro actual.'); return; }
+  if (!clientesSeleccionados.length) { alert('Selecciona al menos un cliente primero.'); return; }
+  const items = pedidosDetalleActuales.filter(r => clientesSeleccionados.includes(r['CLIENTE']));
+  if (!items.length) { alert('No hay pedidos para estos clientes en el filtro actual.'); return; }
 
   const fecha = document.getElementById('filtroFecha').value || 'Todos los registros';
   const asesorSel = document.getElementById('filtroAsesor') ? document.getElementById('filtroAsesor').value : '';
-  const asesorLabel = asesorSel.split(':')[1]?.trim() || items[0]['ASESOR / RUTA']?.split(':')[1]?.trim() || 'Todos';
+  const asesorLabel = asesorSel.split(':')[1]?.trim() || 'Todos';
 
-  let totalGeneral = 0;
-  const filas = items.map(r => {
-    const valorTotal = parseFloat(r['SUBTOTAL']||0);
-    totalGeneral += valorTotal;
-    return `<tr>
-      <td style="text-align:center">${r['CANTIDAD']||'-'}</td>
-      <td>${r['PRODUCTO']||'-'}</td>
-      <td style="text-align:right">$${parseFloat(r['PRECIO UNIT.']||0).toFixed(2)}</td>
-      <td style="text-align:right;font-weight:700">$${valorTotal.toFixed(2)}</td>
-    </tr>`;
+  const porCliente = {};
+  items.forEach(r => { const c = r['CLIENTE']||'Sin nombre'; if (!porCliente[c]) porCliente[c] = []; porCliente[c].push(r); });
+
+  let totalGeneralTodos = 0;
+  const bloquesHtml = clientesSeleccionados.filter(c => porCliente[c]).map(cliente => {
+    let totalCliente = 0;
+    const filas = porCliente[cliente].map(r => {
+      const valorTotal = parseFloat(r['SUBTOTAL']||0);
+      totalCliente += valorTotal;
+      const totalPedido = r['TOTAL PEDIDO ($)'] ? `$${parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2)}` : '—';
+      return `<tr>
+        <td>${r['PRODUCTO']||'-'}</td>
+        <td style="text-align:center">${r['CANTIDAD']||'-'}</td>
+        <td style="text-align:right">$${valorTotal.toFixed(2)}</td>
+        <td style="text-align:right;font-weight:700">${totalPedido}</td>
+        <td>${r['FORMA DE PAGO']||'-'}</td>
+      </tr>`;
+    }).join('');
+    totalGeneralTodos += totalCliente;
+    return `
+      <div class="cliente-bloque">
+        <div class="cliente-bloque-titulo">👤 ${cliente} <span>$${totalCliente.toFixed(2)}</span></div>
+        <table>
+          <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Total</th><th>Pago</th></tr></thead>
+          <tbody>
+            ${filas}
+            <tr class="total-row"><td colspan="2" style="text-align:right">SUBTOTAL</td><td style="text-align:right">$${totalCliente.toFixed(2)}</td><td colspan="2"></td></tr>
+          </tbody>
+        </table>
+      </div>`;
   }).join('');
 
   const v = window.open('', '_blank', 'width=800,height=900');
-  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Detalle Cliente — ${sel} — Aqua Luan</title>
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Detalle de Clientes — Aqua Luan</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -1495,28 +1633,28 @@ function exportarClientePDF() {
     .print-header{text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1a3a5c;}
     .print-header h1{font-family:'DM Serif Display',serif;font-size:22px;color:#1a3a5c;}
     .print-header p{font-size:12px;color:#888;margin-top:4px;}
+    .cliente-bloque{margin-bottom:22px;page-break-inside:avoid;}
+    .cliente-bloque-titulo{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:800;color:#1a3a5c;background:#f0f5f8;border-radius:8px 8px 0 0;padding:8px 12px;border:1px solid #ddd;border-bottom:none;}
+    .cliente-bloque-titulo span{color:#0a7c6e;font-family:'DM Serif Display',serif;font-size:16px;}
     table{width:100%;border-collapse:collapse;font-size:12px;}
     thead tr{background:#1a3a5c;}
     thead th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;}
-    thead th:nth-child(1),thead th:nth-child(3),thead th:nth-child(4){text-align:right}
-    thead th:nth-child(1){text-align:center}
+    thead th:nth-child(2),thead th:nth-child(3),thead th:nth-child(4){text-align:right}
+    thead th:nth-child(2){text-align:center}
     tbody td{padding:9px 12px;border-bottom:1px solid #eee;}
     tbody tr:nth-child(even){background:#f7fafb;}
     .total-row{background:#e6f4f2;font-weight:800;color:#085f54;}
     .total-row td{padding:12px;border-top:2px solid #0a7c6e;}
+    .total-final{background:#1a3a5c;border-radius:10px;padding:14px 18px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;color:#fff;}
+    .total-final b{font-family:'DM Serif Display',serif;font-size:18px;color:#4ec9a0;}
     @media print{body{padding:12px;} thead{display:table-header-group;}}
   </style></head><body>
   <div class="print-header">
-    <h1>🔍 Detalle de Cliente — Aqua Luan</h1>
-    <p>Cliente: <b>${sel}</b> · Asesor: ${asesorLabel} · Fecha: ${fecha} · Generado: ${new Date().toLocaleString('es-EC')}</p>
+    <h1>🔍 Detalle de Clientes — Aqua Luan</h1>
+    <p>${clientesSeleccionados.length} cliente(s) · Asesor: ${asesorLabel} · Fecha: ${fecha} · Generado: ${new Date().toLocaleString('es-EC')}</p>
   </div>
-  <table>
-    <thead><tr><th>Cantidad</th><th>Descripción</th><th>Valor Unitario</th><th>Valor Total</th></tr></thead>
-    <tbody>
-      ${filas}
-      <tr class="total-row"><td colspan="3" style="text-align:right">TOTAL</td><td style="text-align:right">$${totalGeneral.toFixed(2)}</td></tr>
-    </tbody>
-  </table>
+  ${bloquesHtml}
+  ${clientesSeleccionados.length > 1 ? `<div class="total-final"><span>TOTAL GENERAL (${clientesSeleccionados.length} clientes)</span><b>$${totalGeneralTodos.toFixed(2)}</b></div>` : ''}
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`);
   v.document.close();
@@ -1525,33 +1663,119 @@ function exportarClientePDF() {
 /* ════════════════════════════════════════
    CONSULTAR POR CLIENTE
 ════════════════════════════════════════ */
+/* [NEW] Buscador multi-selección de clientes (checkboxes) */
+let clientesDisponibles = [];
+let clientesSeleccionados = [];
+
 function poblarClienteSelect(datos) {
-  const sel = document.getElementById('clienteSelect');
-  const valorActual = sel.value;
-  const clientes = [...new Set(datos.map(r => r['CLIENTE']).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
-  sel.innerHTML = '<option value="">-- Selecciona un cliente --</option>' + clientes.map(c => `<option value="${c}">${c}</option>`).join('');
-  if (clientes.includes(valorActual)) sel.value = valorActual;
+  clientesDisponibles = [...new Set(datos.map(r => r['CLIENTE']).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
+  clientesSeleccionados = clientesSeleccionados.filter(c => clientesDisponibles.includes(c)); // descarta selección que ya no aplica al filtro
+  renderListaClientesCheck(document.getElementById('clienteBuscarInput') ? document.getElementById('clienteBuscarInput').value : '');
+  actualizarLabelClientes();
   mostrarDetalleCliente();
 }
+function renderListaClientesCheck(filtro='') {
+  const cont = document.getElementById('clienteCheckList');
+  if (!cont) return;
+  const f = (filtro||'').trim().toLowerCase();
+  const lista = f ? clientesDisponibles.filter(c => c.toLowerCase().includes(f)) : clientesDisponibles;
+  if (!lista.length) { cont.innerHTML = '<div style="padding:12px 4px;text-align:center;color:var(--muted);font-size:12px">Sin resultados</div>'; return; }
+  cont.innerHTML = lista.map(c => {
+    const marcado = clientesSeleccionados.includes(c) ? 'checked' : '';
+    return `<label style="display:flex;align-items:center;gap:9px;padding:7px 4px;cursor:pointer;font-size:13px;color:var(--text);border-radius:6px" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'"><input type="checkbox" ${marcado} onchange="toggleClienteSeleccionado(this.dataset.cliente,this.checked)" data-cliente="${escapeAttr(c)}" style="width:16px;height:16px;accent-color:var(--teal);flex-shrink:0"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c}</span></label>`;
+  }).join('');
+}
+function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function filtrarListaClientes() {
+  renderListaClientesCheck(document.getElementById('clienteBuscarInput').value);
+}
+function toggleClienteSeleccionado(nombre, marcado) {
+  if (marcado) { if (!clientesSeleccionados.includes(nombre)) clientesSeleccionados.push(nombre); }
+  else { clientesSeleccionados = clientesSeleccionados.filter(c => c !== nombre); }
+  actualizarLabelClientes();
+  mostrarDetalleCliente();
+}
+function actualizarLabelClientes() {
+  const label = document.getElementById('clienteMultiLabel');
+  if (!label) return;
+  if (!clientesSeleccionados.length) label.textContent = '-- Selecciona clientes --';
+  else if (clientesSeleccionados.length === 1) label.textContent = clientesSeleccionados[0];
+  else label.textContent = `${clientesSeleccionados.length} clientes seleccionados`;
+}
+function limpiarSeleccionClientes() {
+  clientesSeleccionados = [];
+  renderListaClientesCheck(document.getElementById('clienteBuscarInput') ? document.getElementById('clienteBuscarInput').value : '');
+  actualizarLabelClientes();
+  mostrarDetalleCliente();
+}
+function toggleClienteDropdown() {
+  const p = document.getElementById('clienteDropdownPanel');
+  const abrir = p.style.display !== 'flex';
+  p.style.display = abrir ? 'flex' : 'none';
+  if (abrir) { document.getElementById('clienteBuscarInput').value=''; renderListaClientesCheck(); setTimeout(()=>document.getElementById('clienteBuscarInput').focus(),50); }
+}
+function cerrarClienteDropdown() {
+  const p = document.getElementById('clienteDropdownPanel');
+  if (p) p.style.display = 'none';
+}
+document.addEventListener('click', function(e){
+  const wrap = document.getElementById('clienteMultiWrap');
+  if (wrap && !wrap.contains(e.target)) cerrarClienteDropdown();
+});
 
 function mostrarDetalleCliente() {
-  const sel = document.getElementById('clienteSelect').value;
-  const tbody = document.getElementById('tablaCliente');
-  if (!sel) { tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="icon">👤</div>Selecciona un cliente para ver el detalle</div></td></tr>'; return; }
-  const items = pedidosDetalleActuales.filter(r => r['CLIENTE'] === sel);
-  if (!items.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="icon">📭</div>Sin pedidos para este cliente en el filtro actual</div></td></tr>'; return; }
+  const cont = document.getElementById('clienteDetalleContenido');
+  if (!cont) return;
+  if (!clientesSeleccionados.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">👤</div>Selecciona uno o más clientes para ver el detalle</div>'; return; }
+  const items = pedidosDetalleActuales.filter(r => clientesSeleccionados.includes(r['CLIENTE']));
+  if (!items.length) { cont.innerHTML = '<div class="empty-state"><div class="icon">📭</div>Sin pedidos para estos clientes en el filtro actual</div>'; return; }
+  const porCliente = {};
+  items.forEach(r => {
+    const cliente = r['CLIENTE'] || 'Sin nombre';
+    if (!porCliente[cliente]) porCliente[cliente] = { items: [], formaPago: '' };
+    porCliente[cliente].items.push(r);
+    if (r['FORMA DE PAGO']) porCliente[cliente].formaPago = r['FORMA DE PAGO'];
+  });
   let totalGeneral = 0;
-  const filas = items.map(r => {
-    const valorTotal = parseFloat(r['SUBTOTAL']||0);
-    totalGeneral += valorTotal;
-    return `<tr>
-      <td style="text-align:center;font-weight:700">${r['CANTIDAD']||'-'}</td>
-      <td>${r['PRODUCTO']||'-'}</td>
-      <td style="text-align:right">$${parseFloat(r['PRECIO UNIT.']||0).toFixed(2)}</td>
-      <td style="text-align:right;font-weight:700;color:var(--teal)">$${valorTotal.toFixed(2)}</td>
-    </tr>`;
+  const bloques = clientesSeleccionados.filter(c => porCliente[c]).map(cliente => {
+    const c = porCliente[cliente];
+    const totalesPedido = c.items.map(r => parseFloat(r['TOTAL PEDIDO ($)']||0)).filter(v => v > 0);
+    const totalCliente = totalesPedido.length ? totalesPedido.reduce((s,v) => s+v, 0) : c.items.reduce((s,r) => s+(parseFloat(r['SUBTOTAL']||0)), 0);
+    totalGeneral += totalCliente;
+    const cantidadTotal = c.items.reduce((s,r) => s+(parseFloat(r['CANTIDAD'])||0), 0); // [NEW]
+    const porForma = {}; // [NEW] desglose de formas de pago del cliente
+    c.items.forEach(r => { const f = r['FORMA DE PAGO'] || 'Sin especificar'; porForma[f] = (porForma[f]||0) + (parseFloat(r['SUBTOTAL'])||0); });
+    const tagsPagoCliente = Object.entries(porForma).sort(([,a],[,b]) => b-a).map(([f,v]) => `<span class="badge badge-teal" style="margin-right:4px">${f}: $${v.toFixed(2)}</span>`).join('');
+    const filas = c.items.map(r => `
+      <tr>
+        <td>${r['PRODUCTO']||'-'}</td>
+        <td style="text-align:center">${r['CANTIDAD']||'-'}</td>
+        <td style="text-align:right">$${parseFloat(r['SUBTOTAL']||0).toFixed(2)}</td>
+        <td style="text-align:right">${r['TOTAL PEDIDO ($)']?'$'+parseFloat(r['TOTAL PEDIDO ($)']).toFixed(2):'—'}</td>
+        <td><span class="badge badge-teal">${r['FORMA DE PAGO']||'-'}</span></td>
+      </tr>`).join('');
+    return `
+      <div class="cierre-cliente-block" style="margin:0 0 12px">
+        <div class="cierre-cliente-header">
+          <span class="cierre-cliente-nombre">👤 ${cliente}</span>
+          <span class="cierre-cliente-meta">💳 ${c.formaPago||'Sin especificar'}</span>
+          <span class="cierre-cliente-total">$${totalCliente.toFixed(2)}</span>
+        </div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">
+          <div><div style="font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Cantidad total</div><div style="font-weight:800;color:var(--navy);font-size:14px">${cantidadTotal%1===0?parseInt(cantidadTotal):cantidadTotal.toFixed(1)} unidad(es)</div></div>
+          <div><div style="font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Total</div><div style="font-weight:800;color:var(--teal);font-size:14px">$${totalCliente.toFixed(2)}</div></div>
+          <div><div style="font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Formas de pago</div><div style="margin-top:2px">${tagsPagoCliente}</div></div>
+        </div>
+        <table class="cierre-cliente-table">
+          <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Total</th><th>Pago</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>`;
   }).join('');
-  tbody.innerHTML = filas + `<tr style="background:var(--teal-light)"><td colspan="3" style="text-align:right;font-weight:800;color:var(--teal-dark)">TOTAL</td><td style="text-align:right;font-weight:800;color:var(--teal-dark)">$${totalGeneral.toFixed(2)}</td></tr>`;
+  const totalBloque = clientesSeleccionados.length > 1
+    ? `<div class="cierre-total-general" style="margin-top:4px"><div class="cierre-total-label">Total de los ${clientesSeleccionados.length} clientes seleccionados</div><div class="cierre-total-value">$${totalGeneral.toFixed(2)}</div></div>`
+    : '';
+  cont.innerHTML = bloques + totalBloque;
 }
 
 function limpiarFecha(fecha) {
