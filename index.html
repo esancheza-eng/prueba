@@ -1083,8 +1083,8 @@ function agregarProducto(){
   const precio=parseMonto(document.getElementById('sel-precio').value);
   if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido.');return;}
   if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad inválida.');return;}
-  if(!Number.isFinite(precio)||precio<=0||precio>99999){alert('Precio inválido.');return;}
-  const ex=productos.findIndex(p=>p.nombre===nombre);
+  if(!Number.isFinite(precio)||precio<0||precio>99999){alert('Precio inválido.');return;} // [FIX] permite $0.00 (regalías/obsequios a clientes)
+  const ex=productos.findIndex(p=>p.nombre===nombre&&p.precio===precio); // [FIX] solo fusiona si el precio coincide
   if(ex>=0){productos[ex].cantidad+=cantidad;productos[ex].subtotal=productos[ex].cantidad*productos[ex].precio;}
   else{productos.push({nombre,cantidad,precio,subtotal:cantidad*precio});}
   document.getElementById('sel-producto').value='';document.getElementById('sel-cantidad').value='';document.getElementById('sel-precio').value='';
