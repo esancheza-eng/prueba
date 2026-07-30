@@ -703,14 +703,27 @@ display: inline-block;
             <div class="table-title">💳 Cuadre de Caja — Pagos y Gastos</div>
           </div>
           <div style="padding:1rem 1.25rem 0" id="resumenPgGrid"></div>
-          <div style="padding:1rem 1.25rem 4px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue)">💰 Pagos registrados</div>
+          <div style="padding:1rem 1.25rem 8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue)">💰 Pagos registrados</div>
+            <button class="btn-filter" style="background:#1565c0;display:flex;align-items:center;gap:6px" onclick="exportarPagosPDF()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM7.5 12h2c.83 0 1.5.67 1.5 1.5S10.33 15 9.5 15H8v2H7v-5zm1 2h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v1zM12 12h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-5zm1 4h1v-3h-1v3zM16 12h2v1h-1v1h1v1h-1v2h-1v-5z"/></svg>
+              Exportar Pagos a PDF
+            </button>
+          </div>
+          <div style="padding:0 1.25rem 10px" id="resumenFormasPago"></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Cliente</th><th>Asesor / Ruta</th><th>Forma de Pago</th><th>Fecha</th><th style="text-align:right">Monto</th></tr></thead>
               <tbody id="tablaPagosDetalle"></tbody>
             </table>
           </div>
-          <div style="padding:1.25rem 1.25rem 4px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--red)">📉 Gastos registrados</div>
+          <div style="padding:1.25rem 1.25rem 8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--red)">📉 Gastos registrados</div>
+            <button class="btn-filter" style="background:#c0392b;display:flex;align-items:center;gap:6px" onclick="exportarGastosPDF()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM7.5 12h2c.83 0 1.5.67 1.5 1.5S10.33 15 9.5 15H8v2H7v-5zm1 2h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v1zM12 12h2c.55 0 1 .45 1 1v3c0 .55-.45 1-1 1h-2v-5zm1 4h1v-3h-1v3zM16 12h2v1h-1v1h1v1h-1v2h-1v-5z"/></svg>
+              Exportar Gastos a PDF
+            </button>
+          </div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Descripción</th><th>Responsable</th><th>Fecha</th><th style="text-align:right">Monto</th></tr></thead>
@@ -968,6 +981,7 @@ function renderDashboard() {
     <div class="kpi-card orange"><div class="kpi-icon">👥</div><div class="kpi-label">Clientes atendidos</div><div class="kpi-value">${clientesUnicos}</div><div class="kpi-sub">${pedidosUnicos} pedido(s)</div></div>
     <div class="kpi-card navy"><div class="kpi-icon">🏆</div><div class="kpi-label">Asesor top</div><div class="kpi-value" style="font-size:1rem">${asesorTop ? asesorTop[0].split(':')[1]?.trim()||asesorTop[0] : '—'}</div><div class="kpi-sub">${asesorTop ? '$'+asesorTop[1].toFixed(2) : 'Sin datos'}</div></div>
     <div class="kpi-card accent"><div class="kpi-icon">📦</div><div class="kpi-label">Líneas de producto</div><div class="kpi-value">${pedidos.length}</div><div class="kpi-sub">unidades registradas</div></div>
+    <div class="kpi-card navy"><div class="kpi-icon">🧮</div><div class="kpi-label">Total en caja</div><div class="kpi-value" style="color:${(totalPagos-totalGastos)>=0?'#0a7c6e':'#c0392b'}">$${(totalPagos-totalGastos).toFixed(2)}</div><div class="kpi-sub">Ingresos − Egresos</div></div>
   `;
   renderCharts(pedidos, pedidosConTotal);
   pedidosDetalleActuales = pedidos;
@@ -983,10 +997,23 @@ function renderDashboard() {
 /* ════════════════════════════════════════
    [NEW] DETALLE DE PAGOS Y GASTOS
 ════════════════════════════════════════ */
+let pagosDetalleActuales = [], gastosDetalleActuales = []; // [NEW] para exportar a PDF
+
 function renderPagosGastosDetalle(pagos, gastos) {
+  pagosDetalleActuales = pagos; gastosDetalleActuales = gastos; // [NEW]
   const totalPagos  = pagos.reduce((s,r) => s + (parseFloat(r['TOTAL PEDIDO ($)'])||0), 0);
   const totalGastos = gastos.reduce((s,r) => s + Math.abs(parseFloat(r['TOTAL PEDIDO ($)'])||0), 0);
   const neto = totalPagos - totalGastos;
+
+  // [NEW] Desglose por forma de pago (Efectivo / Transferencia / Cheque / etc.)
+  const porForma = {};
+  pagos.forEach(r => { const f = r['FORMA DE PAGO'] || 'Sin especificar'; porForma[f] = (porForma[f]||0) + (parseFloat(r['TOTAL PEDIDO ($)'])||0); });
+  const iconoForma = { 'Efectivo':'💵','Transferencia':'🏦','Cheque':'📝','Contado':'💵','Crédito':'📋' };
+  const tagsForma = Object.entries(porForma).sort(([,a],[,b]) => b-a).map(([f,v]) => `
+    <span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1.5px solid var(--border);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--navy)">${iconoForma[f]||'💳'} ${f}<span style="color:var(--blue);margin-left:2px">$${v.toFixed(2)}</span></span>`).join('');
+  document.getElementById('resumenFormasPago').innerHTML = pagos.length
+    ? `<div style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Desglose por forma de pago</div><div style="display:flex;flex-wrap:wrap;gap:8px">${tagsForma}</div>`
+    : '';
 
   document.getElementById('resumenPgGrid').innerHTML = `
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
@@ -1720,6 +1747,36 @@ function abrirCierreDia() {
       <div class="cierre-total-value">$${totalGeneral.toFixed(2)}</div>
     </div>`;
 
+  // [NEW] Cuadre de Caja del día — Ingresos (pagos) vs Egresos (gastos)
+  const pagosCierre  = datos.filter(r => !r['PRODUCTO'] && r['TOTAL PEDIDO ($)'] > 0 && String(r['TOTAL PEDIDO ($)']).indexOf('-') === -1);
+  const gastosCierre = datos.filter(r => String(r['TOTAL PEDIDO ($)']).indexOf('-') !== -1);
+  const totalIngresosCierre = pagosCierre.reduce((s,r) => s + (parseFloat(r['TOTAL PEDIDO ($)'])||0), 0);
+  const totalEgresosCierre  = gastosCierre.reduce((s,r) => s + Math.abs(parseFloat(r['TOTAL PEDIDO ($)'])||0), 0);
+  const netoCierre = totalIngresosCierre - totalEgresosCierre;
+  html += `
+    <div class="cierre-resumen-pagos-global" style="margin-top:1rem">
+      <div class="cierre-resumen-pagos-title">🧮 Cuadre de Caja del día</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <div style="flex:1;min-width:150px;background:var(--teal-light);border:1.5px solid var(--success-border,#4ec9a0);border-radius:var(--radius);padding:12px 16px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--teal-dark)">🟢 Ingresos (pagos)</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--teal-dark)">$${totalIngresosCierre.toFixed(2)}</div>
+          <div style="font-size:11px;color:var(--muted)">${pagosCierre.length} pago(s)</div>
+        </div>
+        <div style="flex:1;min-width:150px;background:#fdecea;border:1.5px solid #e57373;border-radius:var(--radius);padding:12px 16px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--red)">🔴 Egresos (gastos)</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--red)">$${totalEgresosCierre.toFixed(2)}</div>
+          <div style="font-size:11px;color:var(--muted)">${gastosCierre.length} gasto(s)</div>
+        </div>
+      </div>
+    </div>
+    <div class="cierre-total-general" style="background:${netoCierre>=0?'var(--navy)':'#7a2020'}">
+      <div>
+        <div class="cierre-total-label">🧮 Total en caja (Ingresos − Egresos)</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">Pagos y gastos registrados este día — no incluye ventas a crédito sin cobrar</div>
+      </div>
+      <div class="cierre-total-value">$${netoCierre.toFixed(2)}</div>
+    </div>`;
+
   body.innerHTML = html;
   document.getElementById('cierreOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1776,6 +1833,109 @@ function imprimirCierre() {
   </style></head><body>
   <div class="print-header"><h1>📅 Cierre del Día — Aqua Luan</h1><p>Fecha: ${fecha} · Generado: ${new Date().toLocaleString('es-EC')}</p></div>
   ${cuerpo}
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  v.document.close();
+}
+
+/* [NEW] Exportar Pagos registrados a PDF */
+function exportarPagosPDF() {
+  const datos = pagosDetalleActuales || [];
+  if (!datos.length) { alert('No hay pagos para exportar. Aplica los filtros primero.'); return; }
+  const fecha = document.getElementById('filtroFecha').value || 'Todos los registros';
+  const total = datos.reduce((s,r) => s + (parseFloat(r['TOTAL PEDIDO ($)'])||0), 0);
+  const porForma = {};
+  datos.forEach(r => { const f = r['FORMA DE PAGO'] || 'Sin especificar'; porForma[f] = (porForma[f]||0) + (parseFloat(r['TOTAL PEDIDO ($)'])||0); });
+  const resumenForma = Object.entries(porForma).sort(([,a],[,b]) => b-a).map(([f,v]) => `<span style="display:inline-block;background:#e8f0fd;border-radius:100px;padding:5px 14px;font-size:11px;font-weight:700;color:#0d47a1;margin:2px">${f}: $${v.toFixed(2)}</span>`).join('');
+  const filas = datos.map(r => `<tr>
+    <td>${r['CLIENTE']||'-'}</td>
+    <td>${(r['ASESOR / RUTA']||'').split(':')[1]?.trim()||r['ASESOR / RUTA']||'-'}</td>
+    <td>${r['FORMA DE PAGO']||'-'}</td>
+    <td>${limpiarFecha(r['FECHA'])}</td>
+    <td style="text-align:right">$${(parseFloat(r['TOTAL PEDIDO ($)'])||0).toFixed(2)}</td>
+  </tr>`).join('');
+  const v = window.open('', '_blank', 'width=900,height=900');
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Pagos Registrados — Aqua Luan — ${fecha}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}
+    .print-header{text-align:center;margin-bottom:16px;padding-bottom:16px;border-bottom:2px solid #1a3a5c;}
+    .print-header h1{font-family:'DM Serif Display',serif;font-size:22px;color:#1a3a5c;}
+    .print-header p{font-size:12px;color:#888;margin-top:4px;}
+    .resumen-forma{text-align:center;margin-bottom:20px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    thead tr{background:#1565c0;}
+    thead th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;}
+    thead th:last-child{text-align:right}
+    tbody td{padding:9px 12px;border-bottom:1px solid #eee;}
+    tbody tr:nth-child(even){background:#f7fafb;}
+    .total-row{background:#e8f0fd;font-weight:800;color:#0d47a1;}
+    .total-row td{padding:12px;border-top:2px solid #1565c0;}
+    @media print{body{padding:12px;} thead{display:table-header-group;}}
+  </style></head><body>
+  <div class="print-header">
+    <h1>💰 Pagos Registrados — Aqua Luan</h1>
+    <p>Fecha: ${fecha} · ${datos.length} pago(s) · Generado: ${new Date().toLocaleString('es-EC')}</p>
+  </div>
+  <div class="resumen-forma">${resumenForma}</div>
+  <table>
+    <thead><tr><th>Cliente</th><th>Asesor</th><th>Forma de Pago</th><th>Fecha</th><th>Monto</th></tr></thead>
+    <tbody>
+      ${filas}
+      <tr class="total-row"><td colspan="4" style="text-align:right">TOTAL PAGOS</td><td style="text-align:right">$${total.toFixed(2)}</td></tr>
+    </tbody>
+  </table>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  v.document.close();
+}
+
+/* [NEW] Exportar Gastos registrados a PDF */
+function exportarGastosPDF() {
+  const datos = gastosDetalleActuales || [];
+  if (!datos.length) { alert('No hay gastos para exportar. Aplica los filtros primero.'); return; }
+  const fecha = document.getElementById('filtroFecha').value || 'Todos los registros';
+  const total = datos.reduce((s,r) => s + Math.abs(parseFloat(r['TOTAL PEDIDO ($)'])||0), 0);
+  const filas = datos.map(r => {
+    const desc = r['NOTAS'] || r['CLIENTE'] || r['DIRECCIÓN'] || '-';
+    return `<tr>
+      <td>${desc}</td>
+      <td>${(r['ASESOR / RUTA']||'').split(':')[1]?.trim()||r['ASESOR / RUTA']||'-'}</td>
+      <td>${limpiarFecha(r['FECHA'])}</td>
+      <td style="text-align:right">$${Math.abs(parseFloat(r['TOTAL PEDIDO ($)'])||0).toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+  const v = window.open('', '_blank', 'width=900,height=900');
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Gastos Registrados — Aqua Luan — ${fecha}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}
+    .print-header{text-align:center;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #1a3a5c;}
+    .print-header h1{font-family:'DM Serif Display',serif;font-size:22px;color:#1a3a5c;}
+    .print-header p{font-size:12px;color:#888;margin-top:4px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    thead tr{background:#c0392b;}
+    thead th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#fff;}
+    thead th:last-child{text-align:right}
+    tbody td{padding:9px 12px;border-bottom:1px solid #eee;}
+    tbody tr:nth-child(even){background:#f7fafb;}
+    .total-row{background:#fdecea;font-weight:800;color:#a93226;}
+    .total-row td{padding:12px;border-top:2px solid #c0392b;}
+    @media print{body{padding:12px;} thead{display:table-header-group;}}
+  </style></head><body>
+  <div class="print-header">
+    <h1>📉 Gastos Registrados — Aqua Luan</h1>
+    <p>Fecha: ${fecha} · ${datos.length} gasto(s) · Generado: ${new Date().toLocaleString('es-EC')}</p>
+  </div>
+  <table>
+    <thead><tr><th>Descripción</th><th>Responsable</th><th>Fecha</th><th>Monto</th></tr></thead>
+    <tbody>
+      ${filas}
+      <tr class="total-row"><td colspan="3" style="text-align:right">TOTAL GASTOS</td><td style="text-align:right">$${total.toFixed(2)}</td></tr>
+    </tbody>
+  </table>
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`);
   v.document.close();
