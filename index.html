@@ -1235,11 +1235,19 @@ async function confirmarEnvio(){
   btn.disabled=true; btn.innerHTML='<div class="spinner2"></div> Guardando...';
   const fechaObj=dataPendiente.fecha?new Date(dataPendiente.fecha+'T00:00:00'):new Date();
   const dia=fechaObj.getDate(),mes=fechaObj.getMonth()+1;
-  const productosTexto=dataPendiente.productos.map(p=>{
-    let txt=`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`;
-    if(p.regalias&&p.regalias.length){ txt+=' [Regalo: '+p.regalias.map(r=>`${escHTML(r.nombre)} x${r.cantidad}`).join(', ')+']'; }
-    return txt;
-  }).join(' | ');
+  const partesProductos=[];
+  dataPendiente.productos.forEach(p=>{
+    partesProductos.push(`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`);
+    if(p.regalias&&p.regalias.length){
+      p.regalias.forEach(r=>{
+        // [FIX] Formato idéntico al de un producto normal (misma estructura que ya parsea
+        // el Apps Script), como entrada PROPIA separada por " | " — así el script sí logra
+        // extraer cantidad/precio/subtotal (precio y subtotal en $0.00, no afecta el total).
+        partesProductos.push(`🎁 REGALO: ${escHTML(r.nombre)} (${r.cantidad} x $0.00 = $0.00)`);
+      });
+    }
+  });
+  const productosTexto=partesProductos.join(' | ');
   const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:productosTexto,total:dataPendiente.total,latitud:dataPendiente.gps?dataPendiente.gps.lat.toFixed(6):'',longitud:dataPendiente.gps?dataPendiente.gps.lng.toFixed(6):'',gps_link:dataPendiente.gps?dataPendiente.gps.url:'',gps_prec:dataPendiente.gps?`±${dataPendiente.gps.acc}m`:'',csrfToken:SESSION_TOKEN};
   const estaOnline=navigator.onLine;
   const onExito=(modoOffline=false)=>{
