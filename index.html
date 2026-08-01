@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!--
   ╔══════════════════════════════════════════════════════════════════════╗
-  ║  AQUA LUAN — Sistema de Pedidos v3.0 Enterprise                     ║
-  ║  [FIX] servidorConfigurado() → false                                ║
-  ║        Login usa AUTH_REGISTRY local (SHA-256) siempre              ║
-  ║  [FIX v3.1] Guardar deja btnGuardar visible (nuevo pedido inmediato)║
-  ║  [FIX v3.1] Historial: límite ampliado 20→200 (no pierde primeros)  ║
+  ║  LUAN AQUA — Sistema de Pedidos (Firebase Edition — Fase 1)         ║
+  ║  Login: Firebase Authentication (correo/contraseña)                 ║
+  ║  Usuarios: Firestore, colección "usuarios"                          ║
+  ║  Pedidos/Pagos/Gastos: siguen en Google Sheets por ahora (Fase 2)   ║
   ╚══════════════════════════════════════════════════════════════════════╝
 -->
-<title>Aqua Luan v3.0 — Sistema de Pedidos Empresarial</title>
+<title>Luan Aqua v3.0 — Sistema de Pedidos Empresarial</title>
+<link rel="icon" type="image/png" href="logo-luanaqua.png">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -533,15 +533,9 @@ body { padding: 1rem 0.75rem 3rem; }
 <!-- ══ LOGIN ══ -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
-    <div class="login-logo">
-      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="22" cy="22" r="22" fill="#0a4a5e"/>
-        <path d="M22 8C22 8 12 18 12 25C12 30.5 16.5 35 22 35C27.5 35 32 30.5 32 25C32 18 22 8 22 8Z" fill="#4ec9a0"/>
-        <path d="M22 8C22 8 17 20 19 25C20.2 28.2 22 29 22 29C22 29 24 28 24.5 25C25.5 20 22 8 22 8Z" fill="#a8edd8" opacity="0.6"/>
-        <text x="22" y="28" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="0.5">L</text>
-      </svg>
-      <div>
-        <div class="login-title">AQUA <span>LUAN</span></div>
+    <div class="login-logo" style="flex-direction:column">
+      <img src="logo-luanaqua.png" alt="Luan Aqua" style="height:64px;width:auto;display:block;margin:0 auto 10px">
+      <div style="text-align:center">
         <div class="login-sub">Sistema de Pedidos</div>
       </div>
     </div>
@@ -573,14 +567,8 @@ body { padding: 1rem 0.75rem 3rem; }
 
   <div class="header">
     <div class="logo-wrap">
-      <svg class="logo-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="22" cy="22" r="22" fill="#0a4a5e"/>
-        <path d="M22 8C22 8 12 18 12 25C12 30.5 16.5 35 22 35C27.5 35 32 30.5 32 25C32 18 22 8 22 8Z" fill="#4ec9a0"/>
-        <path d="M22 8C22 8 17 20 19 25C20.2 28.2 22 29 22 29C22 29 24 28 24.5 25C25.5 20 22 8 22 8Z" fill="#a8edd8" opacity="0.6"/>
-        <text x="22" y="28" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="0.5">L</text>
-      </svg>
+      <img class="logo-icon" src="logo-luanaqua.png" alt="Luan Aqua" style="height:40px;width:auto;display:block">
       <div class="logo-text">
-        <div class="logo-name">AQUA <span>LUAN</span></div>
         <div class="logo-sub" id="logoSub">Registro de Pedidos</div>
       </div>
     </div>
@@ -627,13 +615,7 @@ body { padding: 1rem 0.75rem 3rem; }
           <label for="empleado">Ruta / Asesor</label>
           <div id="wrap-empleado">
             <select id="empleado" required>
-              <option value="">-- Selecciona --</option>
-              <option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option>
-              <option value="RUTA 2: Luis">RUTA 2: Luis</option>
-              <option value="RUTA 3: Vicente">RUTA 3: Vicente</option>
-              <option value="RUTA 4: Wilson">RUTA 4: Wilson</option>
-              <option value="RUTA 5: Lister">RUTA 5: Lister</option>
-              <option value="RUTA 6: Asesora">RUTA 6: Asesora</option>
+              <option value="">Cargando...</option>
             </select>
           </div>
         </div>
@@ -681,17 +663,7 @@ body { padding: 1rem 0.75rem 3rem; }
           <label for="sel-producto">Producto</label>
           <div id="wrap-sel-producto">
             <select id="sel-producto">
-              <option value="">-- Selecciona --</option>
-              <option value="BOTELLON 20LT">BOTELLON 20LT</option>
-              <option value="BOTELLON CON LLAVE">BOTELLON CON LLAVE</option>
-              <option value="PACA 625ML AZUL">PACA 625ML AZUL</option>
-              <option value="PACA 600ML VERDE">PACA 600ML VERDE</option>
-              <option value="PACA 1000ML">PACA 1000ML</option>
-              <option value="PACA 400ML">PACA 400ML</option>
-              <option value="GALONES 4LT">GALONES 4LT</option>
-              <option value="POMA 5LTS">POMA 5LTS</option>
-              <option value="ENVASE CON LLAVE">ENVASE CON LLAVE</option>
-              <option value="ENVASE AZUL ADICIONAL">ENVASE AZUL ADICIONAL</option>
+              <option value="">Cargando catálogo...</option>
             </select>
           </div>
         </div>
@@ -760,7 +732,7 @@ body { padding: 1rem 0.75rem 3rem; }
     <div class="card">
       <div class="section-title blue">Registrar pago recibido</div>
       <div class="grid-2">
-        <div class="field"><label>Asesor / Ruta</label><div id="wrap-pago-empleado"><select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select></div></div>
+        <div class="field"><label>Asesor / Ruta</label><div id="wrap-pago-empleado"><select id="pago-empleado" class="focus-blue"><option value="">Cargando...</option></select></div></div>
         <div class="field"><label for="pago-fecha">Fecha</label><input type="date" id="pago-fecha" class="focus-blue"></div>
       </div>
       <div class="field"><label for="pago-cliente">Cliente</label><input type="text" id="pago-cliente" placeholder="Nombre del cliente" autocomplete="off" class="focus-blue" maxlength="100"></div>
@@ -790,7 +762,7 @@ body { padding: 1rem 0.75rem 3rem; }
     <div class="card">
       <div class="section-title red">Registrar gasto</div>
       <div class="grid-2">
-        <div class="field"><label>Responsable</label><div id="wrap-gasto-empleado"><select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option><option value="Administración">Administración</option></select></div></div>
+        <div class="field"><label>Responsable</label><div id="wrap-gasto-empleado"><select id="gasto-empleado" class="focus-red"><option value="">Cargando...</option></select></div></div>
         <div class="field"><label for="gasto-fecha">Fecha</label><input type="date" id="gasto-fecha" class="focus-red"></div>
       </div>
       <datalist id="gasto-categorias-list"><option value="Combustible"><option value="Almuerzos"><option value="Ascensor"><option value="Triciclo"><option value="Otro"></datalist>
@@ -820,7 +792,7 @@ body { padding: 1rem 0.75rem 3rem; }
     </div>
   </div>
 
-  <div class="footer"><a href="https://www.elhyai.com" target="_blank" rel="noopener noreferrer">www.elhyai.com &nbsp;|&nbsp; Aqua Luan</a></div>
+  <div class="footer"><a href="https://www.elhyai.com" target="_blank" rel="noopener noreferrer">www.elhyai.com &nbsp;|&nbsp; Luan Aqua</a></div>
 </div>
 
 <!-- MODAL RESUMEN DEL DÍA -->
@@ -851,7 +823,7 @@ body { padding: 1rem 0.75rem 3rem; }
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalAsesorTituloId">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modalAsesorTituloId">➕ Agregar Asesor</div>
-    <div class="modal-subtitle">Genera el código del nuevo asesor. Cópialo y pégalo en <strong>index.html</strong> (o envíamelo para actualizarlo).</div>
+    <div class="modal-subtitle">Se crea en Firebase al instante — el asesor puede iniciar sesión desde cualquier celular apenas termines.</div>
     <div class="field">
       <label for="na-nombre">Nombre completo</label>
       <input type="text" id="na-nombre" placeholder="Ej. Roberto Pérez" autocomplete="off" maxlength="60">
@@ -868,20 +840,13 @@ body { padding: 1rem 0.75rem 3rem; }
     </div>
     <div class="field" style="margin-bottom:1rem">
       <label for="na-pass">Contraseña</label>
-      <input type="password" id="na-pass" placeholder="Contraseña del asesor" autocomplete="new-password" maxlength="128">
+      <input type="password" id="na-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password" maxlength="128">
     </div>
-    <button class="btn" onclick="generarCodigoAsesor()">
+    <button class="btn" id="na-btn-crear" onclick="crearAsesorReal()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      Generar código
+      Crear asesor
     </button>
-    <div id="na-resultado" style="display:none;margin-top:14px">
-      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Código generado — copia todo y sigue los 3 pasos</label>
-      <textarea id="na-codigo" readonly style="width:100%;min-height:220px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
-      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarCodigoAsesor()">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Copiar código
-      </button>
-    </div>
+    <div id="na-resultado" style="display:none;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--success-bg);border:1px solid var(--success-border);color:var(--success-text);font-size:13px;font-weight:600;line-height:1.5"></div>
 
     <hr class="divider" style="margin:1.5rem 0">
     <div class="section-title red">Eliminar asesor existente</div>
@@ -891,18 +856,10 @@ body { padding: 1rem 0.75rem 3rem; }
         <option value="">-- Selecciona --</option>
       </select>
     </div>
-    <button class="btn red" onclick="generarInstruccionesEliminar()">
+    <button class="btn red" onclick="eliminarAsesorSeleccionado()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2.5A1.5 1.5 0 0 1 7.5 1h1A1.5 1.5 0 0 1 10 2.5V4M12.5 4l-.6 9a1.5 1.5 0 0 1-1.5 1.4H5.6a1.5 1.5 0 0 1-1.5-1.4L3.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Generar instrucciones de eliminación
+      Eliminar acceso
     </button>
-    <div id="na-elim-resultado" style="display:none;margin-top:14px">
-      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Instrucciones — copia todo y sigue los pasos</label>
-      <textarea id="na-elim-codigo" readonly style="width:100%;min-height:200px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
-      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarInstruccionesEliminar()">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Copiar instrucciones
-      </button>
-    </div>
 
     <button class="btn btn-outline" style="margin-top:10px" onclick="cerrarModalAsesor()">Cerrar</button>
   </div>
@@ -913,23 +870,16 @@ body { padding: 1rem 0.75rem 3rem; }
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalProductoTituloId">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modalProductoTituloId">📦 Gestionar Productos</div>
-    <div class="modal-subtitle">Genera el código del catálogo. Cópialo y pégalo en <strong>index.html</strong> (o envíamelo para actualizarlo).</div>
+    <div class="modal-subtitle">Se agrega al catálogo en Firestore al instante — todos los asesores lo ven de inmediato, sin recargar.</div>
     <div class="field" style="margin-bottom:1rem">
       <label for="np-nombre">Nombre del producto nuevo</label>
       <input type="text" id="np-nombre" placeholder="Ej. BOTELLON 10LT" autocomplete="off" maxlength="60">
     </div>
-    <button class="btn" onclick="generarCodigoProducto()">
+    <button class="btn" id="np-btn-crear" onclick="crearProductoReal()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      Generar código
+      Crear producto
     </button>
-    <div id="np-resultado" style="display:none;margin-top:14px">
-      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Código generado — copia todo y sigue los 2 pasos</label>
-      <textarea id="np-codigo" readonly style="width:100%;min-height:180px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
-      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarCodigoProducto()">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Copiar código
-      </button>
-    </div>
+    <div id="np-resultado" style="display:none;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--success-bg);border:1px solid var(--success-border);color:var(--success-text);font-size:13px;font-weight:600;line-height:1.5"></div>
 
     <hr class="divider" style="margin:1.5rem 0">
     <div class="section-title red">Eliminar producto existente</div>
@@ -939,28 +889,63 @@ body { padding: 1rem 0.75rem 3rem; }
         <option value="">-- Selecciona --</option>
       </select>
     </div>
-    <button class="btn red" onclick="generarInstruccionesEliminarProducto()">
+    <button class="btn red" onclick="eliminarProductoSeleccionado()">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2.5A1.5 1.5 0 0 1 7.5 1h1A1.5 1.5 0 0 1 10 2.5V4M12.5 4l-.6 9a1.5 1.5 0 0 1-1.5 1.4H5.6a1.5 1.5 0 0 1-1.5-1.4L3.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Generar instrucciones de eliminación
+      Eliminar producto
     </button>
-    <div id="np-elim-resultado" style="display:none;margin-top:14px">
-      <label style="font-size:12px;font-weight:700;letter-spacing:0.05em;color:var(--navy);text-transform:uppercase">Instrucciones — copia todo y sigue los pasos</label>
-      <textarea id="np-elim-codigo" readonly style="width:100%;min-height:160px;font-family:monospace;font-size:11px;line-height:1.5;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text)"></textarea>
-      <button class="btn" style="margin-top:10px;background:var(--navy)" onclick="copiarInstruccionesEliminarProducto()">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="4" y="4" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 11V2.5A1.5 1.5 0 0 1 4 1h6.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-        Copiar instrucciones
-      </button>
-    </div>
 
     <button class="btn btn-outline" style="margin-top:10px" onclick="cerrarModalProducto()">Cerrar</button>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js" integrity="sha384-tgDxKHbfk8o2rrXLSytbpDGsGk0bdZehHXoeD7LhuGriE89B5ovitrlBu7FX4kj/" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js" integrity="sha384-UaGuhpArNP+gULAiiQrJNwk1AWTIZsfFEygQkDQYIGsTjoBmbSXgWfQeFJJXuFub" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js" integrity="sha384-O2tgK2bVAUCyEX//gu7nH2z8A92RsaKhRAQABpJ7kLaF/4KQYEltHstFCV7nxWpr" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 <script>
 const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbzKcilhv6mJf61EnC1Plows6sPd1DIgirpNoSE5KG751k8LW89l0b8HkTvSot07i9F4/exec";
 const WHATSAPP_secretaria = "593989938910";
 const SESSION_TOKEN  = generarTokenSesion();
+
+/* ══════════════════════════════════════════════════════════════════
+   FIREBASE — Fase 1: Authentication (login) + Firestore (usuarios)
+   Pedidos/Pagos/Gastos siguen en Google Sheets por ahora (Fase 2).
+   ══════════════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBOPI_zviuktXtH68F8NY4mSnbYcF1tE7s",
+  authDomain: "luan-aqua.firebaseapp.com",
+  projectId: "luan-aqua",
+  storageBucket: "luan-aqua.firebasestorage.app",
+  messagingSenderId: "1046111203141",
+  appId: "1:1046111203141:web:017cd2d14f1db77c9c582c",
+  measurementId: "G-L0YP0548Y6"
+};
+firebase.initializeApp(firebaseConfig);
+/* [SECURITY — REVERTIDO en esta app] Se probó Firebase App Check aquí, pero se confirmó
+   que rompe el guardado offline: reCAPTCHA v3 necesita renovar su token contra los
+   servidores de Google cada cierto tiempo, y si el asesor está sin señal en ese momento,
+   la escritura a Firestore se queda esperando ese token y nunca guarda. La capacidad
+   offline es el núcleo del negocio en ruta, así que App Check se deja SOLO en el
+   Dashboard (dashboard.html) — el admin siempre trabaja con internet en oficina. */
+const auth = firebase.auth();
+const db   = firebase.firestore();
+// [NEW] Persistencia offline nativa de Firestore — reemplaza el IndexedDB/cola manual
+// que se usaba con Google Sheets. Firestore guarda los cambios localmente cuando no hay
+// internet y los sincroniza solo apenas vuelve la conexión, sin código adicional.
+db.enablePersistence({synchronizeTabs:true}).catch(err=>{ console.warn('Persistencia offline no disponible:',err.code); });
+const DOMINIO_LOGIN = '@luanaqua.app'; // el "usuario" corto se convierte a este correo interno para Firebase Auth
+
+function _emailDeUsuario(usuario){
+  return usuario.trim().toLowerCase().replace(/[^a-z0-9._-]/g,'') + DOMINIO_LOGIN;
+}
+/* [FIX] Fecha LOCAL (no UTC) — con .toISOString() en Ecuador (UTC-5), después de
+   cierta hora de la tarde ya es "mañana" en UTC, aunque localmente siga siendo hoy.
+   Esto hacía que el pedido se guardara con la fecha local correcta, pero el listener
+   buscara con la fecha UTC (un día adelantada) y nunca lo encontrara. */
+function _fechaLocalHoy(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
 function generarTokenSesion() {
   const arr = new Uint8Array(32);
@@ -976,8 +961,8 @@ function escHTML(str) {
 }
 
 const LISTAS_BLANCAS = {
-  empleado: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora'],
-  empleadoGasto: ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','Administración'],
+  empleado: [], // [NEW] se llena en vivo desde Firestore (usuarios) — ver _iniciarListenerAsesoresRutas()
+  empleadoGasto: [], // [NEW] ídem + 'Administración'
   formapago: ['Contado','Crédito','Transferencia','Cheque'],
   pagoForma: ['Efectivo','Transferencia','Cheque'],
   productos: ['BOTELLON 20LT','BOTELLON CON LLAVE','PACA 625ML AZUL','PACA 600ML VERDE','PACA 1000ML','PACA 400ML','GALONES 4LT','POMA 5LTS','ENVASE CON LLAVE','ENVASE AZUL ADICIONAL']
@@ -1003,151 +988,176 @@ function filtrarInputMonto(el){
   el.value=v;
 }
 
-const DB_NAME='aqualuan-db', STORE='pedidos-pendientes', LS_KEY='aqualuan-pendientes-ls';
-let dbInstance=null;
-function abrirDB(){ if(dbInstance)return Promise.resolve(dbInstance); return new Promise((res,rej)=>{ const req=indexedDB.open(DB_NAME,1); req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true}); }; req.onsuccess=e=>{dbInstance=e.target.result;res(dbInstance);}; req.onerror=e=>rej(e.target.error); }); }
-async function guardarLocal(p){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const req=tx.objectStore(STORE).add({payload:p,fecha:new Date().toISOString()}); req.onsuccess=()=>res(req.result); req.onerror=e=>rej(e.target.error); }); }
-async function obtenerPendientes(){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readonly'); const req=tx.objectStore(STORE).getAll(); req.onsuccess=()=>res(req.result); req.onerror=e=>rej(e.target.error); }); }
-async function eliminarLocal(id){ const db=await abrirDB(); return new Promise((res,rej)=>{ const tx=db.transaction(STORE,'readwrite'); const req=tx.objectStore(STORE).delete(id); req.onsuccess=()=>res(); req.onerror=e=>rej(e.target.error); }); }
-function guardarEnLocalStorageSync(p){ try{ const e=JSON.parse(localStorage.getItem(LS_KEY)||'[]'); e.push({id:Date.now(),payload:p,fecha:new Date().toISOString()}); localStorage.setItem(LS_KEY,JSON.stringify(e)); }catch(e){} }
-
 let productos=[], dataPendiente=null, ultimoRegistro=null, listaPagos=[], listaGastos=[];
 
-const MAX_INTENTOS_LOCAL=5, VENTANA_LOCAL_MS=15*60*1000, TIMEOUT_FETCH_MS=15000;
 let usuarioActual=null;
 
-async function hashSHA256(texto){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(texto));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-function verificarIntentosLocal(){
-  let est; try{est=JSON.parse(sessionStorage.getItem('_al_att')||'{"c":0,"t":0}');}catch{est={c:0,t:0};}
-  const ahora=Date.now();
-  if(ahora-est.t>VENTANA_LOCAL_MS){ sessionStorage.setItem('_al_att',JSON.stringify({c:0,t:ahora})); return{ok:true}; }
-  if(est.c>=MAX_INTENTOS_LOCAL){ const resto=Math.ceil((VENTANA_LOCAL_MS-(ahora-est.t))/60000); return{ok:false,msg:`Demasiados intentos. Espera ${resto} minuto(s).`}; }
-  return{ok:true};
-}
-function incrementarIntentoLocal(){ let est; try{est=JSON.parse(sessionStorage.getItem('_al_att')||'{"c":0,"t":0}');}catch{est={c:0,t:Date.now()};} est.c+=1; if(!est.t)est.t=Date.now(); sessionStorage.setItem('_al_att',JSON.stringify(est)); }
-function resetearIntentosLocal(){ sessionStorage.removeItem('_al_att'); }
-
-const AUTH_REGISTRY = Object.freeze({
-  'admin':     { h: '20d8486ecacf2edf84ee11a10d44f5ba386437d562cd6306242666c0661b8055', nombre: 'Admin',     rol: 'ADMIN',    ruta: null,                esAdmin: true  },
-  'jefferson': { h: '4bfc5062667279d31eefd696f24a2f28e5fa203f7c683e4aefa5483947449770', nombre: 'Jefferson', rol: 'OPERADOR', ruta: 'RUTA 1: Jefferson', esAdmin: false },
-  'luis':      { h: '5893cd3c3f2b3903c3214bcabcdfa9aee03a3ec0931a4876204046f244cad892', nombre: 'Luis',      rol: 'OPERADOR', ruta: 'RUTA 2: Luis',      esAdmin: false },
-  'vicente':   { h: 'f66986a120970c2ab68459132797c4c269b609ea16761f56cdafbae04290f630', nombre: 'Vicente',   rol: 'OPERADOR', ruta: 'RUTA 3: Vicente',    esAdmin: false },
-  'wilson':    { h: 'b2ec2618e167952138ce705b6e65a7d138aef40a39fd54333e3bf68fe0b01f99', nombre: 'Wilson',    rol: 'OPERADOR', ruta: 'RUTA 4: Wilson',     esAdmin: false },
-  'lister':    { h: 'df5fece5d1a837bc2d97f79beecae74a2b58f4a5418f07e11a290ea96f14ac06', nombre: 'Lister',    rol: 'OPERADOR', ruta: 'RUTA 5: Lister',     esAdmin: false },
-  'aventas':   { h: 'da871a607c4083419b0cc2f963848835995016fde9a91e6fff50c273694ee70a', nombre: 'Asesora',   rol: 'OPERADOR', ruta: 'RUTA 6: Asesora',   esAdmin: false }
-});
-
-function servidorConfigurado() {
-  return false;
-}
-
-function comparacionSegura(a,b){
-  if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;
-  let diff=0; for(let i=0;i<a.length;i++) diff|=a.charCodeAt(i)^b.charCodeAt(i);
-  return diff===0;
-}
-
-async function authLocalLogin(usuario,passHash){
-  const inicio=Date.now();
-  const registro=AUTH_REGISTRY[usuario]||null;
-  let ok=false;
-  if(registro){ ok=comparacionSegura(passHash,registro.h); }
-  else{ await hashSHA256('__dummy__'); }
-  const elapsed=Date.now()-inicio;
-  if(elapsed<80) await new Promise(r=>setTimeout(r,80-elapsed));
-  if(!ok) return{ok:false};
-  return{ ok:true, token:'LOCAL_'+SESSION_TOKEN.slice(0,16), nombre:registro.nombre, rol:registro.rol, ruta:registro.ruta, esAdmin:registro.esAdmin, expira:Date.now()+8*60*60*1000, modoLocal:true };
-}
-
 async function doLogin(){
-  const chk=verificarIntentosLocal();
-  if(!chk.ok){ document.getElementById('loginError').classList.remove('show'); const b=document.getElementById('loginBloqueo'); b.textContent=chk.msg; b.classList.add('show'); return; }
-  const userRaw=document.getElementById('loginUser').value.trim().toLowerCase();
+  const userRaw=document.getElementById('loginUser').value.trim();
   const passRaw=document.getElementById('loginPass').value;
   const btnLogin=document.getElementById('btnLogin');
   if(!userRaw||!passRaw){mostrarErrorLogin('Completa usuario y contraseña.');return;}
   if(userRaw.length>50||passRaw.length>128){mostrarErrorLogin('Datos inválidos.');return;}
   btnLogin.disabled=true; btnLogin.textContent='Verificando...';
   try{
-    const passHash=await hashSHA256(passRaw);
+    const email=_emailDeUsuario(userRaw);
+    const cred=await auth.signInWithEmailAndPassword(email,passRaw);
+    const perfilDoc=await db.collection('usuarios').doc(cred.user.uid).get();
+    if(!perfilDoc.exists){
+      await auth.signOut();
+      mostrarErrorLogin('Tu cuenta no tiene un perfil configurado. Contacta al administrador.');
+      return;
+    }
+    const perfil=perfilDoc.data();
     document.getElementById('loginPass').value='';
-    const resultado=await authLocalLogin(userRaw,passHash);
-    if(resultado.ok&&resultado.token){
-      resetearIntentosLocal();
-      const sesion={ token:resultado.token, nombre:resultado.nombre, rol:resultado.rol||(resultado.esAdmin?'ADMIN':'OPERADOR'), ruta:resultado.ruta||null, esAdmin:resultado.esAdmin||resultado.rol==='ADMIN', expira:resultado.expira||(Date.now()+8*60*60*1000), modoLocal:true };
-      sessionStorage.setItem('_al_sess',JSON.stringify(sesion));
-      usuarioActual=sesion;
-      document.getElementById('loginOverlay').style.display='none';
-      document.getElementById('loginError').classList.remove('show');
-      document.getElementById('loginBloqueo').classList.remove('show');
-      aplicarUsuario(); iniciarMonitorExpiracion();
-    } else { incrementarIntentoLocal(); mostrarErrorLogin('Usuario o contraseña incorrectos.'); }
-  }catch{ mostrarErrorLogin('Error al verificar. Intenta de nuevo.'); }
+    usuarioActual={ uid:cred.user.uid, nombre:perfil.nombre, rol:perfil.rol||(perfil.esAdmin?'ADMIN':'OPERADOR'), ruta:perfil.ruta||null, esAdmin:!!perfil.esAdmin };
+    document.getElementById('loginOverlay').style.display='none';
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('loginBloqueo').classList.remove('show');
+    aplicarUsuario();
+  }catch(err){
+    console.error(err);
+    mostrarErrorLogin('Usuario o contraseña incorrectos.');
+  }
   finally{ btnLogin.disabled=false; btnLogin.innerHTML='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 8h7M10 5l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 3H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Ingresar'; }
 }
 
-let _monitorId=null;
-function iniciarMonitorExpiracion(){
-  if(_monitorId)clearInterval(_monitorId);
-  _monitorId=setInterval(()=>{
-    if(!usuarioActual)return;
-    const restante=usuarioActual.expira-Date.now();
-    if(restante<=0){ clearInterval(_monitorId); alert('Tu sesión ha expirado. Por favor inicia sesión de nuevo.'); cerrarSesion(); }
-    else if(restante<=5*60*1000){ const min=Math.ceil(restante/60000); const aviso=document.getElementById('avisoSesion'); if(aviso){aviso.textContent=`⏱ Tu sesión expira en ${min} minuto(s).`;aviso.style.display='block';} }
-  },30000);
-}
-
-async function cerrarSesion(){
-  if(_monitorId)clearInterval(_monitorId);
-  usuarioActual=null; ultimoRegistro=null; productos=[]; listaPagos=[]; listaGastos=[];
-  sessionStorage.removeItem('_al_sess');
-  sessionStorage.removeItem('_al_att');
-  sessionStorage.removeItem('aqualuan-historial');
-  document.getElementById('loginUser').value='';
-  document.getElementById('loginPass').value='';
-  document.getElementById('loginOverlay').style.display='flex';
-  document.getElementById('btnLogout').style.display='none';
-  document.getElementById('btnGestionAsesores').style.display='none';
-  document.getElementById('btnGestionProductos').style.display='none';
-  document.getElementById('logoSub').textContent='Registro de Pedidos';
-  restaurarSelectsCompletos(); limpiarFormulario();
+function cerrarSesion(){
+  auth.signOut(); // el resto de la limpieza ocurre en onAuthStateChanged, más abajo
 }
 
 function mostrarErrorLogin(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.classList.add('show'); }
 
 function restaurarSelectsCompletos(){
-  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
-  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option></select>`;
-  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red"><option value="">-- Selecciona --</option><option value="RUTA 1: Jefferson">RUTA 1: Jefferson</option><option value="RUTA 2: Luis">RUTA 2: Luis</option><option value="RUTA 3: Vicente">RUTA 3: Vicente</option><option value="RUTA 4: Wilson">RUTA 4: Wilson</option><option value="RUTA 5: Lister">RUTA 5: Lister</option><option value="RUTA 6: Asesora">RUTA 6: Asesora</option><option value="Administración">Administración</option></select>`;
+  document.getElementById('wrap-empleado').innerHTML=`<select id="empleado" required><option value="">Cargando...</option></select>`;
+  document.getElementById('wrap-pago-empleado').innerHTML=`<select id="pago-empleado" class="focus-blue"><option value="">Cargando...</option></select>`;
+  document.getElementById('wrap-gasto-empleado').innerHTML=`<select id="gasto-empleado" class="focus-red"><option value="">Cargando...</option></select>`;
 }
 
-async function _generarHash(clave){ if(!clave){console.warn('Ingresa una clave');return;} const h=await hashSHA256(clave); console.log('%cHash SHA-256:','color:#0a7c6e;font-weight:bold'); console.log('%c'+h,'font-family:monospace;background:#e6f4f2;padding:4px 8px;border-radius:4px'); return h; }
+/* [NEW] Firebase Auth avisa automáticamente cuando cambia la sesión —
+   reemplaza la limpieza manual de sessionStorage y la restauración al recargar.
+   Esto es lo que soluciona que "no veo lo que hice en otro celular": la sesión
+   vive en la cuenta de Firebase, no en el localStorage de un dispositivo. */
+auth.onAuthStateChanged(async (user)=>{
+  if(user){
+    try{
+      const perfilDoc=await db.collection('usuarios').doc(user.uid).get();
+      if(!perfilDoc.exists){ await auth.signOut(); return; }
+      const perfil=perfilDoc.data();
+      usuarioActual={ uid:user.uid, nombre:perfil.nombre, rol:perfil.rol||(perfil.esAdmin?'ADMIN':'OPERADOR'), ruta:perfil.ruta||null, esAdmin:!!perfil.esAdmin };
+      document.getElementById('loginOverlay').style.display='none';
+      aplicarUsuario();
+    }catch(e){ console.error(e); }
+  } else {
+    _iniciarListenersDelDia(null); // [NEW] cancela los listeners al cerrar sesión
+    if(_unsubProductos){_unsubProductos();_unsubProductos=null;} // [NEW]
+    if(_unsubAsesoresRutas){_unsubAsesoresRutas();_unsubAsesoresRutas=null;} // [NEW]
+    usuarioActual=null; ultimoRegistro=null; productos=[]; listaPagos=[]; listaGastos=[];
+    sessionStorage.removeItem('aqualuan-historial');
+    document.getElementById('loginUser').value='';
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginOverlay').style.display='flex';
+    document.getElementById('btnLogout').style.display='none';
+    document.getElementById('btnGestionAsesores').style.display='none';
+    document.getElementById('btnGestionProductos').style.display='none';
+    document.getElementById('logoSub').textContent='Registro de Pedidos';
+    restaurarSelectsCompletos(); limpiarFormulario();
+    /* [SECURITY — REVERTIDO] Se intentó limpiar la caché local (IndexedDB) al cerrar sesión,
+       pero la documentación oficial de Firebase confirma que después de terminate() la misma
+       instancia de Firestore ya NO se puede volver a usar sin recargar la página — si alguien
+       cerraba sesión y volvía a iniciar sesión sin refrescar, la app se quedaría sin poder
+       guardar nada. Se prefiere dejar la caché local sin limpiar (riesgo menor y ya conocido)
+       antes que arriesgar que el login se rompa en producción. */
+  }
+});
 
-function _restaurarHistDia(u){
-  try{
-    const hoy=new Date().toISOString().slice(0,10);
-    let hR=[];
-    if(u.esAdmin){
-      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
-        hR=hR.concat(JSON.parse(localStorage.getItem(_claveHistDia(r,hoy))||'[]'));
-      });
-      hR.sort((a,b)=>(b.id||0)-(a.id||0));
-      if(hR.length>200)hR=hR.slice(0,200);
-    } else {
-      hR=JSON.parse(localStorage.getItem(_claveHistDia(u.ruta,hoy))||'[]');
-    }
-    if(hR.length>0){
-      const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
-      const ids=new Set(hS.map(r=>r.id));
-      const nuevos=hR.filter(r=>!ids.has(r.id));
-      const combinado=[...hS,...nuevos].sort((a,b)=>(b.id||0)-(a.id||0));
-      sessionStorage.setItem('aqualuan-historial',JSON.stringify(combinado.slice(0,200)));
-    }
-  }catch(e){}
+/* [NEW] Listeners en tiempo real — reemplazan toda la lógica de localStorage por día.
+   Apenas se guarda algo (en este celular o en cualquier otro con el mismo usuario),
+   Historial/Pagos/Gastos se actualizan solos, sin recargar. */
+let _unsubPedidosHoy=null, _unsubPagosHoy=null, _unsubGastosHoy=null;
+/* [NEW] Catálogo de productos en tiempo real — reemplaza la lista fija de LISTAS_BLANCAS.productos */
+let _unsubProductos=null, _productosDocIds={};
+function _iniciarListenerProductos(){
+  if(_unsubProductos){_unsubProductos();_unsubProductos=null;}
+  _unsubProductos=db.collection('productos').orderBy('nombre').onSnapshot(snap=>{
+    _productosDocIds={};
+    const nombres=[];
+    snap.forEach(d=>{ const data=d.data(); if(data.activo!==false){ nombres.push(data.nombre); _productosDocIds[data.nombre]=d.id; } });
+    LISTAS_BLANCAS.productos=nombres;
+    renderOpcionesProductoSelect();
+    if(document.getElementById('np-eliminar-select'))poblarSelectEliminarProducto(); // [FIX] antes no se refrescaba
+  },err=>console.error('listener productos:',err));
+}
+/* [NEW] Repuebla el <select> de Ventas con el catálogo en vivo, conservando la selección si sigue existiendo */
+function renderOpcionesProductoSelect(){
+  const sel=document.getElementById('sel-producto');
+  if(!sel)return;
+  const valorActual=sel.value;
+  sel.innerHTML='<option value="">-- Selecciona --</option>'+LISTAS_BLANCAS.productos.map(n=>`<option value="${escHTML(n)}">${escHTML(n)}</option>`).join('');
+  if(LISTAS_BLANCAS.productos.includes(valorActual))sel.value=valorActual;
+}
+function _horaDeTimestamp(ts){
+  try{ const ms=ts?.toMillis?ts.toMillis():Date.now(); return new Date(ms).toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'}); }
+  catch{ return ''; }
+}
+function _iniciarListenersDelDia(u){
+  if(_unsubPedidosHoy){_unsubPedidosHoy();_unsubPedidosHoy=null;}
+  if(_unsubPagosHoy){_unsubPagosHoy();_unsubPagosHoy=null;}
+  if(_unsubGastosHoy){_unsubGastosHoy();_unsubGastosHoy=null;}
+  if(!u)return;
+  const hoy=_fechaLocalHoy();
+  let qPedidos=db.collection('pedidos').where('fecha','==',hoy);
+  let qPagos=db.collection('pagos').where('fecha','==',hoy);
+  let qGastos=db.collection('gastos').where('fecha','==',hoy);
+  if(!u.esAdmin){ qPedidos=qPedidos.where('empleado','==',u.ruta); qPagos=qPagos.where('empleado','==',u.ruta); qGastos=qGastos.where('empleado','==',u.ruta); }
+  _unsubPedidosHoy=qPedidos.onSnapshot(snap=>{
+    const hist=snap.docs.map(d=>{ const r=d.data(); return {id:d.id,nombre:r.cliente,total:r.total,fecha:r.fecha,empleado:r.empleado,formapago:r.formapago,telefono:r.telefono,direccion:r.direccion,notas:r.notas,productos:r.productos||[],gps:r.gps||null,_ts:r.creadoEn?.toMillis?.()||0}; }).sort((a,b)=>b._ts-a._ts);
+    sessionStorage.setItem('aqualuan-historial',JSON.stringify(hist));
+    const contHist=document.getElementById('content-historial');
+    if(contHist&&contHist.classList.contains('active'))cargarHistorial();
+    // [FIX] Si el "Resumen del Día" ya está abierto (ej. mientras el admin edita un pedido
+    // desde el Dashboard), lo recalcula en vivo en vez de quedarse con los datos viejos
+    // hasta que el asesor lo cierre y lo vuelva a abrir manualmente.
+    const resumenAbierto=document.getElementById('resumenModalOverlay');
+    if(resumenAbierto&&resumenAbierto.classList.contains('open'))_renderResumenDiaContenido();
+  },err=>console.error('listener pedidos:',err));
+  _unsubPagosHoy=qPagos.onSnapshot(snap=>{
+    listaPagos=snap.docs.map(d=>{ const r=d.data(); return {id:d.id,...r,hora:_horaDeTimestamp(r.creadoEn),_ts:r.creadoEn?.toMillis?.()||0}; }).sort((a,b)=>b._ts-a._ts);
+    renderPagos(); actualizarResumenPagos();
+    const rAbierto=document.getElementById('resumenModalOverlay'); // [FIX] refresco en vivo del Resumen del Día
+    if(rAbierto&&rAbierto.classList.contains('open'))_renderResumenDiaContenido();
+  },err=>console.error('listener pagos:',err));
+  _unsubGastosHoy=qGastos.onSnapshot(snap=>{
+    listaGastos=snap.docs.map(d=>{ const r=d.data(); return {id:d.id,...r,hora:_horaDeTimestamp(r.creadoEn),_ts:r.creadoEn?.toMillis?.()||0}; }).sort((a,b)=>b._ts-a._ts);
+    renderGastos(); actualizarResumenGastos();
+    const rAbierto2=document.getElementById('resumenModalOverlay'); // [FIX] refresco en vivo del Resumen del Día
+    if(rAbierto2&&rAbierto2.classList.contains('open'))_renderResumenDiaContenido();
+  },err=>console.error('listener gastos:',err));
+}
+/* [NEW] Catálogo de rutas/asesores en tiempo real — reemplaza la lista fija de
+   LISTAS_BLANCAS.empleado. Solo el admin necesita elegir manualmente la ruta al
+   llenar un formulario (un asesor normal ya ve su propia ruta bloqueada). */
+let _unsubAsesoresRutas=null;
+function _iniciarListenerAsesoresRutas(){
+  if(_unsubAsesoresRutas){_unsubAsesoresRutas();_unsubAsesoresRutas=null;}
+  if(!usuarioActual||!usuarioActual.esAdmin)return;
+  _unsubAsesoresRutas=db.collection('usuarios').where('esAdmin','==',false).onSnapshot(snap=>{
+    const rutas=snap.docs.map(d=>d.data().ruta).filter(Boolean).sort();
+    LISTAS_BLANCAS.empleado=rutas;
+    LISTAS_BLANCAS.empleadoGasto=[...rutas,'Administración'];
+    renderSelectsRutasAdmin();
+  },err=>console.error('listener rutas:',err));
+}
+/* [NEW] Repuebla los 3 <select> de Ruta/Asesor con las rutas reales, solo si el admin
+   los tiene visibles (si es un asesor con la ruta bloqueada, no hay <select> que tocar) */
+function renderSelectsRutasAdmin(){
+  [['empleado',LISTAS_BLANCAS.empleado],['pago-empleado',LISTAS_BLANCAS.empleado],['gasto-empleado',LISTAS_BLANCAS.empleadoGasto]].forEach(([id,lista])=>{
+    const sel=document.getElementById(id);
+    if(!sel||sel.tagName!=='SELECT')return;
+    const valorActual=sel.value;
+    sel.innerHTML='<option value="">-- Selecciona --</option>'+lista.map(r=>`<option value="${escHTML(r)}">${escHTML(r)}</option>`).join('');
+    if(lista.includes(valorActual))sel.value=valorActual;
+  });
 }
 function aplicarUsuario(){
   const u=usuarioActual; if(!u)return;
@@ -1155,9 +1165,17 @@ function aplicarUsuario(){
   document.getElementById('btnLogout').style.display='flex';
   document.getElementById('btnGestionAsesores').style.display=u.esAdmin?'flex':'none';
   document.getElementById('btnGestionProductos').style.display=u.esAdmin?'flex':'none';
-  _restaurarHistDia(u);
-  _restaurarPagosGastosDia(u);
+  _iniciarListenersDelDia(u);
+  _iniciarListenerProductos(); // [NEW] catálogo de productos en tiempo real
+  _iniciarListenerAsesoresRutas(); // [NEW] rutas/asesores reales para los selects del admin
   if(u.esAdmin)return;
+  // [FIX] Un asesor (no admin) nunca dispara _iniciarListenerAsesoresRutas() (esa función
+  // corta de inmediato si no es admin), así que LISTAS_BLANCAS.empleado/empleadoGasto se
+  // quedaban vacíos para él. El campo se veía bloqueado con su ruta correcta, pero la
+  // validación esValorSeguro(empleado, LISTAS_BLANCAS.empleado) comparaba contra una lista
+  // vacía y SIEMPRE fallaba con "Selecciona un asesor válido.", bloqueando el guardado.
+  if(u.ruta && !LISTAS_BLANCAS.empleado.includes(u.ruta)) LISTAS_BLANCAS.empleado.push(u.ruta);
+  if(u.ruta && !LISTAS_BLANCAS.empleadoGasto.includes(u.ruta)) LISTAS_BLANCAS.empleadoGasto.push(u.ruta);
   const ico=`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
   const rs=escHTML(u.ruta);
   const bHtml=(id)=>`<div class="campo-bloqueado">${ico}${rs}</div><input type="hidden" id="${id}" value="${rs}">`;
@@ -1175,33 +1193,9 @@ function cambiarTab(tab){
 
 function actualizarBanners(){
   document.getElementById('offlineBanner').classList.toggle('show',!navigator.onLine);
-  let c=0; try{c=JSON.parse(localStorage.getItem(LS_KEY)||'[]').length;}catch{}
-  obtenerPendientes().then(items=>{ const n=Math.max(items.length,c); document.getElementById('pendingBanner')?.classList.toggle('show',n>0); }).catch(()=>{});
 }
-window.addEventListener('online',()=>{actualizarBanners();sincronizarAuto();if(ultimoRegistro)document.getElementById('btnWhatsapp').classList.add('visible');});
+window.addEventListener('online',()=>{actualizarBanners();if(ultimoRegistro)document.getElementById('btnWhatsapp').classList.add('visible');});
 window.addEventListener('offline',()=>{actualizarBanners();document.getElementById('btnWhatsapp').classList.remove('visible');});
-
-async function sincronizarAuto(){
-  if('serviceWorker'in navigator&&'SyncManager'in window){ const reg=await navigator.serviceWorker.ready; try{await reg.sync.register('sync-pedidos');return;}catch{} }
-  await sincronizarManual(true);
-}
-async function sincronizarManual(silencioso=false){
-  if(!navigator.onLine){if(!silencioso)setStatus('error','Sin conexión.');return;}
-  let itemsLS=[]; try{itemsLS=JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch{}
-  const itemsIDB=await obtenerPendientes().catch(()=>[]);
-  const todos=itemsIDB.length>0?itemsIDB:itemsLS;
-  if(!todos.length){try{localStorage.removeItem(LS_KEY);}catch{}return;}
-  let synced=0,failed=0;
-  for(const item of todos){
-    try{
-      await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({...item.payload,csrfToken:SESSION_TOKEN,token:usuarioActual?.token||''})});
-      if(item.id&&itemsIDB.length>0)await eliminarLocal(item.id).catch(()=>{});
-      synced++;
-    }catch{failed++;}
-  }
-  if(failed===0){try{localStorage.removeItem(LS_KEY);}catch{}}
-  actualizarBanners();
-}
 
 if('serviceWorker'in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
 
@@ -1210,34 +1204,26 @@ let _fechaActualApp = null;
 (function init(){
   const hoy=new Date();
   document.getElementById('fechaHoy').textContent=hoy.toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long'});
-  const yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,'0'),dd=String(hoy.getDate()).padStart(2,'0');
-  const hoyStr=`${yyyy}-${mm}-${dd}`;
+  const hoyStr=_fechaLocalHoy();
   _fechaActualApp=hoyStr;
   document.getElementById('fecha').value=hoyStr;
   document.getElementById('pago-fecha').value=hoyStr;
   document.getElementById('gasto-fecha').value=hoyStr;
   try{localStorage.removeItem('aqualuan-pendientes-ls');}catch{}
   actualizarBanners();
-  try{
-    const sess=JSON.parse(sessionStorage.getItem('_al_sess')||'null');
-    if(sess&&sess.token&&sess.expira&&Date.now()<sess.expira){
-      usuarioActual=sess;
-      document.getElementById('loginOverlay').style.display='none';
-      aplicarUsuario(); iniciarMonitorExpiracion();
-    } else if(sess){ sessionStorage.removeItem('_al_sess'); sessionStorage.removeItem('_al_att'); sessionStorage.removeItem('aqualuan-historial'); }
-  }catch{}
+  // [NEW] La restauración de sesión ahora la maneja auth.onAuthStateChanged() más arriba —
+  // Firebase Auth persiste la sesión sola, sin necesidad de leer sessionStorage aquí.
   setInterval(_verificarCambioDeDia, 60000);
 })();
 
 function _verificarCambioDeDia(){
-  const hoyStr=new Date().toISOString().slice(0,10);
+  const hoyStr=_fechaLocalHoy();
   if(hoyStr===_fechaActualApp) return;
   _fechaActualApp=hoyStr;
   ['fecha','pago-fecha','gasto-fecha'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=hoyStr; });
   sessionStorage.removeItem('aqualuan-historial');
   if(usuarioActual){
-    _restaurarHistDia(usuarioActual);
-    _restaurarPagosGastosDia(usuarioActual);
+    _iniciarListenersDelDia(usuarioActual); // [FIX] re-suscribe con la fecha del nuevo día
   } else {
     listaPagos=[]; listaGastos=[]; renderPagos(); actualizarResumenPagos(); renderGastos(); actualizarResumenGastos();
   }
@@ -1291,7 +1277,7 @@ function confirmarRegalia(i){
   const nombre=sel.value;
   const cantidad=parseFloat(cantInput.value);
   if(!esValorSeguro(nombre,LISTAS_BLANCAS.productos)){alert('Selecciona un producto válido para la regalía.');return;}
-  if(!Number.isFinite(cantidad)||cantidad<=0||cantidad>9999){alert('Cantidad de regalía inválida.');return;}
+  if(!Number.isFinite(cantidad)||cantidad<0||cantidad>9999){alert('Cantidad de regalía inválida.');return;} /* [FIX] ahora acepta 0 (nota, sin restar nada) — solo se rechaza negativo, vacío o mayor a 9999 */
   if(!productos[i].regalias)productos[i].regalias=[];
   productos[i].regalias.push({nombre,cantidad});
   renderLista();
@@ -1384,41 +1370,91 @@ async function abrirModal(){
 
 function cerrarModal(){ document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; dataPendiente=null; }
 
+/* [NEW] Descuenta stock automáticamente al confirmar una venta — escribe en la misma
+   colección `inventarioMovimientos` que ya lee el Dashboard en tiempo real, así que
+   aparece solo en la pestaña Inventario sin tocar nada de ese panel. Las regalías
+   también restan stock (se entregan físicamente, aunque no se cobren). Si esto falla
+   por cualquier motivo, NUNCA bloquea ni revierte la venta — el pedido ya quedó guardado. */
+function _descontarInventarioAutomatico(doc, pedidoId){
+  try{
+    const lote = db.batch();
+    (doc.productos||[]).forEach(p=>{
+      if(p.cantidad>0){
+        const ref = db.collection('inventarioMovimientos').doc();
+        lote.set(ref, {
+          producto: p.nombre, tipo: 'salida', cantidad: p.cantidad,
+          motivo: `Venta automática — pedido de ${doc.cliente||'cliente'}`,
+          fecha: doc.fecha, usuario: doc.empleado||'', pedidoId, origen: 'venta_automatica',
+          creadoPor: usuarioActual?.uid||null, creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      (p.regalias||[]).forEach(reg=>{
+        if(reg.cantidad>0){
+          const refReg = db.collection('inventarioMovimientos').doc();
+          lote.set(refReg, {
+            producto: reg.nombre, tipo: 'salida', cantidad: reg.cantidad,
+            motivo: `Regalo — pedido de ${doc.cliente||'cliente'}`,
+            fecha: doc.fecha, usuario: doc.empleado||'', pedidoId, origen: 'regalo_automatico',
+            creadoPor: usuarioActual?.uid||null, creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      });
+    });
+    lote.commit().catch(err=>console.warn('No se pudo descontar inventario automático:',err));
+  }catch(err){ console.warn('Error preparando descuento de inventario:',err); }
+}
+
 async function confirmarEnvio(){
   if(!dataPendiente)return;
   const btn=document.getElementById('btnConfirmar');
   btn.disabled=true; btn.innerHTML='<div class="spinner2"></div> Guardando...';
-  const fechaObj=dataPendiente.fecha?new Date(dataPendiente.fecha+'T00:00:00'):new Date();
-  const dia=fechaObj.getDate(),mes=fechaObj.getMonth()+1;
-  const partesProductos=[];
-  dataPendiente.productos.forEach(p=>{
-    partesProductos.push(`${escHTML(p.nombre)} (${p.cantidad} x $${p.precio.toFixed(2)} = $${p.subtotal.toFixed(2)})`);
-    if(p.regalias&&p.regalias.length){
-      p.regalias.forEach(r=>{
-        partesProductos.push(`🎁 REGALO: ${escHTML(r.nombre)} (${r.cantidad} x $0.00 = $0.00)`);
-      });
-    }
-  });
-  const productosTexto=partesProductos.join(' | ');
-  const payload={accion:'registrar_pedido',dia,mes,empleado:dataPendiente.empleado,formapago:dataPendiente.formapago,nombre:dataPendiente.nombre,telefono:dataPendiente.telefono,fecha:dataPendiente.fecha,direccion:dataPendiente.direccion,notas:dataPendiente.notas,productos:productosTexto,total:dataPendiente.total,latitud:dataPendiente.gps?dataPendiente.gps.lat.toFixed(6):'',longitud:dataPendiente.gps?dataPendiente.gps.lng.toFixed(6):'',gps_link:dataPendiente.gps?dataPendiente.gps.url:'',gps_prec:dataPendiente.gps?`±${dataPendiente.gps.acc}m`:'',csrfToken:SESSION_TOKEN};
-  const estaOnline=navigator.onLine;
-  const onExito=(modoOffline=false)=>{
+  const doc={
+    empleado:dataPendiente.empleado, cliente:dataPendiente.nombre, telefono:dataPendiente.telefono||'',
+    direccion:dataPendiente.direccion||'', fecha:dataPendiente.fecha, notas:dataPendiente.notas||'',
+    formapago:dataPendiente.formapago, total:dataPendiente.total,
+    productos:dataPendiente.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,precio:p.precio,subtotal:p.subtotal,regalias:(p.regalias||[]).map(r=>({nombre:r.nombre,cantidad:r.cantidad}))})),
+    gps:dataPendiente.gps?{lat:dataPendiente.gps.lat,lng:dataPendiente.gps.lng,acc:dataPendiente.gps.acc,url:dataPendiente.gps.url}:null,
+    creadoPor:usuarioActual?.uid||null, creadoEn:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  const modoOffline=!navigator.onLine;
+  /* [NEW] Extraído de la versión anterior (Google Sheets): esa versión nunca esperaba
+     una respuesta de red indefinidamente — si ya sabía que no había internet, guardaba
+     localmente al instante (`guardarEnLocalStorageSync` + `onExito(true)`, sin await).
+     Aquí se aplica el mismo principio, pero usando Firestore por debajo: la escritura se
+     dispara ya (Firestore la encola localmente al instante gracias a la persistencia
+     offline), y el resto de este bloque decide cuánto esperar antes de confirmar en
+     pantalla — nunca de forma indefinida, igual que antes. */
+  const escrituraPedido = db.collection('pedidos').add(doc)
+    .then(refPedido => { _descontarInventarioAutomatico(doc, refPedido.id); return refPedido; })
+    .catch(err => { console.warn('Pedido en cola, pendiente de sincronizar:', err); return null; });
+
+  const mostrarExito = () => {
     ultimoRegistro={...dataPendiente};
-    guardarEnHistorial(ultimoRegistro);
+    // [FIX] Ya no hace falta guardarEnHistorial() manual — el listener en tiempo real
+    // de Firestore actualiza el Historial solo, apenas se confirma este pedido.
     cerrarModal();
-    if(modoOffline)setStatus('warning','📥 Sin internet. Pedido guardado localmente.');
-    else setStatus('success','✓ Pedido guardado correctamente en Google Sheets.');
+    setStatus(modoOffline?'warning':'success', modoOffline?'📥 Sin internet. Pedido guardado — se sincroniza solo al volver la señal.':'✓ Pedido guardado correctamente.');
     document.getElementById('btnWhatsapp').classList.add('visible');
     document.getElementById('btnPdf').style.display='flex';
     limpiarSoloFormulario();
-    if(!modoOffline)subirPDFaDrive(ultimoRegistro);
   };
-  if(estaOnline){
-    try{ await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); onExito(false); }
-    catch{ guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{}); }
-  } else {
-    guardarEnLocalStorageSync(payload); onExito(true); actualizarBanners(); guardarLocal(payload).catch(()=>{});
-    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+
+  try{
+    if(modoOffline){
+      // [NEW] Igual que la versión anterior: si YA sabemos que no hay internet, no se
+      // espera nada de red — se confirma al instante.
+      mostrarExito();
+    } else {
+      // [NEW] El navegador dice que hay señal, pero por si acaso está desactualizado
+      // (típico justo al perder la conexión), se pone un tope de 4s en vez de esperar
+      // indefinidamente — pasado ese tiempo, se confirma igual (Firestore ya la encoló
+      // localmente) en vez de dejar al asesor viendo "Guardando..." sin fin.
+      await Promise.race([ escrituraPedido, new Promise(res=>setTimeout(res,4000)) ]);
+      mostrarExito();
+    }
+  }catch(err){
+    console.error(err);
+    setStatus('error','No se pudo guardar el pedido. Revisa tu conexión e inténtalo de nuevo.');
   }
   btn.disabled=false; btn.innerHTML='<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Confirmar y guardar';
   dataPendiente=null;
@@ -1444,7 +1480,7 @@ function limpiarFormulario(){
 }
 function nuevoPedido(){ limpiarFormulario(); }
 
-function registrarPago(){
+async function registrarPago(){
   const empleado=document.getElementById('pago-empleado').value;
   const fecha=document.getElementById('pago-fecha').value;
   const cliente=sanitizarTexto(document.getElementById('pago-cliente').value,100);
@@ -1455,34 +1491,31 @@ function registrarPago(){
   if(!cliente){setStatusPagos('error','Ingresa el nombre del cliente.');return;}
   if(!validarMonto(monto)){setStatusPagos('error','Ingresa un monto válido mayor a $0.');return;}
   if(!esValorSeguro(forma,LISTAS_BLANCAS.pagoForma)){setStatusPagos('error','Selecciona la forma de pago.');return;}
-  const pago={id:Date.now(),empleado,fecha,cliente,monto,forma,notas,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
-  listaPagos.unshift(pago); renderPagos(); actualizarResumenPagos();
   try{
-    const clave=_clavePagosDia(empleado,fecha);
-    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
-    guardados.unshift(pago);
-    localStorage.setItem(clave,JSON.stringify(guardados));
-  }catch{}
-  const payloadPago={accion:'registrar_pago',empleado,fecha,cliente,monto:monto.toFixed(2),forma,notas,csrfToken:SESSION_TOKEN};
-  if(navigator.onLine){
-    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadPago)}).catch(()=>{
-      guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
-      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    // [NEW] Escribe directo a Firestore — el listener en tiempo real actualiza la lista sola,
+    // en este celular y en cualquier otro donde el mismo asesor tenga sesión abierta.
+    await db.collection('pagos').add({
+      empleado, fecha, cliente, monto, forma, notas,
+      creadoPor:usuarioActual?.uid||null, creadoEn:firebase.firestore.FieldValue.serverTimestamp()
     });
-  } else {
-    guardarEnLocalStorageSync(payloadPago); actualizarBanners(); guardarLocal(payloadPago).catch(()=>{});
-    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    ['pago-empleado','pago-forma'].forEach(id=>document.getElementById(id).value='');
+    ['pago-cliente','pago-monto','pago-notas'].forEach(id=>document.getElementById(id).value='');
+    setStatusPagos('success',`✓ Pago de $${monto.toFixed(2)} registrado para ${escHTML(cliente)}.`);
+  }catch(err){
+    console.error(err);
+    setStatusPagos('error', navigator.onLine ? 'No se pudo registrar el pago.' : '📥 Sin internet — se guardó localmente y se sincroniza solo al volver la señal.');
   }
-  ['pago-empleado','pago-forma'].forEach(id=>document.getElementById(id).value='');
-  ['pago-cliente','pago-monto','pago-notas'].forEach(id=>document.getElementById(id).value='');
-  setStatusPagos('success',`✓ Pago de $${monto.toFixed(2)} registrado para ${escHTML(cliente)}.`);
 }
-function eliminarPago(id){ listaPagos=listaPagos.filter(p=>p.id!==id); renderPagos(); actualizarResumenPagos(); }
+async function eliminarPago(id){
+  if(!confirm('¿Eliminar este pago?')) return;
+  try{ await db.collection('pagos').doc(id).delete(); }
+  catch(err){ console.error(err); alert('No se pudo eliminar el pago.'); }
+}
 function badgeForma(f){ const m={'Efectivo':'efectivo','Transferencia':'transfer','Datáfono':'datafono','Cheque':'cheque','Depósito':'deposito','Contado':'contado','Crédito':'credito'}; return`<span class="badge badge-${m[f]||'contado'}">${escHTML(f)}</span>`; }
 function renderPagos(){
   const lista=document.getElementById('pagosLista'),empty=document.getElementById('pagosEmptyMsg'),items=document.getElementById('pagosItems');
   if(listaPagos.length===0){lista.classList.add('empty');empty.style.display='block';}else{lista.classList.remove('empty');empty.style.display='none';}
-  items.innerHTML=listaPagos.map(p=>`<div class="pago-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(p.cliente)}</div><div style="font-size:11px;color:var(--muted)">${escHTML(p.empleado.replace('RUTA ','R.'))} · ${escHTML(p.hora)}</div></div><div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(p.notas||'-')}</div><div style="text-align:center">${badgeForma(p.forma)}</div><span class="pago-monto">$${escHTML(p.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarPago(${parseInt(p.id)})">&times;</button></div>`).join('');
+  items.innerHTML=listaPagos.map(p=>`<div class="pago-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(p.cliente)}</div><div style="font-size:11px;color:var(--muted)">${escHTML((p.empleado||'').replace('RUTA ','R.'))} · ${escHTML(p.hora||'')}</div></div><div style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(p.notas||'-')}</div><div style="text-align:center">${badgeForma(p.forma)}</div><span class="pago-monto">$${escHTML(p.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarPago('${escHTML(p.id)}')">&times;</button></div>`).join('');
 }
 function actualizarResumenPagos(){
   const t=listaPagos.reduce((s,p)=>s+p.monto,0);
@@ -1492,7 +1525,7 @@ function actualizarResumenPagos(){
   else{document.getElementById('pago-ultimo').textContent='—';document.getElementById('pago-ultimo-cliente').textContent='Sin registros';}
 }
 
-function registrarGasto(){
+async function registrarGasto(){
   const empleado=document.getElementById('gasto-empleado').value;
   const fecha=document.getElementById('gasto-fecha').value;
   const categoria=sanitizarTexto(document.getElementById('gasto-categoria').value,100);
@@ -1503,34 +1536,29 @@ function registrarGasto(){
   if(!categoria){setStatusGastos('error','Selecciona la categoría del gasto.');return;}
   if(!validarMonto(monto)){setStatusGastos('error','Ingresa un monto válido mayor a $0.');return;}
   if(!desc){setStatusGastos('error','Describe el gasto.');return;}
-  const gasto={id:Date.now(),empleado,fecha,categoria,monto,desc,ref,hora:new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'})};
-  listaGastos.unshift(gasto); renderGastos(); actualizarResumenGastos();
   try{
-    const clave=_claveGastosDia(empleado,fecha);
-    const guardados=JSON.parse(localStorage.getItem(clave)||'[]');
-    guardados.unshift(gasto);
-    localStorage.setItem(clave,JSON.stringify(guardados));
-  }catch{}
-  const payloadGasto={accion:'registrar_gasto',empleado,fecha,categoria,monto:monto.toFixed(2),desc,ref,csrfToken:SESSION_TOKEN};
-  if(navigator.onLine){
-    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payloadGasto)}).catch(()=>{
-      guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
-      if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    await db.collection('gastos').add({
+      empleado, fecha, categoria, monto, desc, ref,
+      creadoPor:usuarioActual?.uid||null, creadoEn:firebase.firestore.FieldValue.serverTimestamp()
     });
-  } else {
-    guardarEnLocalStorageSync(payloadGasto); actualizarBanners(); guardarLocal(payloadGasto).catch(()=>{});
-    if('serviceWorker'in navigator&&'SyncManager'in window) navigator.serviceWorker.ready.then(reg=>reg.sync.register('sync-pedidos')).catch(()=>{});
+    ['gasto-empleado','gasto-categoria'].forEach(id=>document.getElementById(id).value='');
+    ['gasto-monto','gasto-desc','gasto-ref'].forEach(id=>document.getElementById(id).value='');
+    setStatusGastos('success',`✓ Gasto de $${monto.toFixed(2)} registrado — ${escHTML(desc)}.`);
+  }catch(err){
+    console.error(err);
+    setStatusGastos('error', navigator.onLine ? 'No se pudo registrar el gasto.' : '📥 Sin internet — se guardó localmente y se sincroniza solo al volver la señal.');
   }
-  ['gasto-empleado','gasto-categoria'].forEach(id=>document.getElementById(id).value='');
-  ['gasto-monto','gasto-desc','gasto-ref'].forEach(id=>document.getElementById(id).value='');
-  setStatusGastos('success',`✓ Gasto de $${monto.toFixed(2)} registrado — ${escHTML(desc)}.`);
 }
-function eliminarGasto(id){ listaGastos=listaGastos.filter(g=>g.id!==id); renderGastos(); actualizarResumenGastos(); }
+async function eliminarGasto(id){
+  if(!confirm('¿Eliminar este gasto?')) return;
+  try{ await db.collection('gastos').doc(id).delete(); }
+  catch(err){ console.error(err); alert('No se pudo eliminar el gasto.'); }
+}
 function categoriaBadge(cat){ const c=escHTML(String(cat).slice(0,20)); return`<span class="badge badge-contado" style="font-size:9px">${c.length>12?c.substring(0,12)+'…':c}</span>`; }
 function renderGastos(){
   const lista=document.getElementById('gastosLista'),empty=document.getElementById('gastosEmptyMsg'),items=document.getElementById('gastosItems');
   if(listaGastos.length===0){lista.classList.add('empty');empty.style.display='block';}else{lista.classList.remove('empty');empty.style.display='none';}
-  items.innerHTML=listaGastos.map(g=>`<div class="gasto-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(g.desc)}</div><div style="font-size:11px;color:var(--muted)">${escHTML(g.empleado.replace('RUTA ','R.'))} · ${escHTML(g.hora)}${g.ref?' · '+escHTML(g.ref):''}</div></div><div style="text-align:center">${categoriaBadge(g.categoria)}</div><div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(g.empleado.split(':')[1]?.trim()||g.empleado)}</div><span class="gasto-monto">$${escHTML(g.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarGasto(${parseInt(g.id)})">&times;</button></div>`).join('');
+  items.innerHTML=listaGastos.map(g=>`<div class="gasto-item"><div><div style="font-size:13px;font-weight:600;color:var(--navy)">${escHTML(g.desc)}</div><div style="font-size:11px;color:var(--muted)">${escHTML((g.empleado||'').replace('RUTA ','R.'))} · ${escHTML(g.hora||'')}${g.ref?' · '+escHTML(g.ref):''}</div></div><div style="text-align:center">${categoriaBadge(g.categoria)}</div><div style="font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHTML(g.empleado?.split(':')[1]?.trim()||g.empleado||'')}</div><span class="gasto-monto">$${escHTML(g.monto.toFixed(2))}</span><button class="btn-remove" onclick="eliminarGasto('${escHTML(g.id)}')">&times;</button></div>`).join('');
 }
 function actualizarResumenGastos(){
   const t=listaGastos.reduce((s,g)=>s+g.monto,0);
@@ -1543,7 +1571,7 @@ function actualizarResumenGastos(){
 function _buildPDF(doc,d){
   const pageW=210,margin=18,col2=100;
   doc.setFillColor(26,58,92);doc.rect(0,0,pageW,38,'F');
-  doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(255,255,255);doc.text('AQUA LUAN',margin,16);
+  doc.setFont('helvetica','bold');doc.setFontSize(20);doc.setTextColor(255,255,255);doc.text('LUAN AQUA',margin,16);
   doc.setFontSize(8);doc.setTextColor(78,201,160);doc.text('SISTEMA DE PEDIDOS',margin,22);
   doc.setFontSize(9);doc.setTextColor(200,220,240);doc.text(`Pedido generado: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`,margin,30);
   const fechaStr=d.fecha?new Date(d.fecha+'T00:00:00').toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'-';
@@ -1597,7 +1625,7 @@ function _buildPDF(doc,d){
   doc.line(margin,y,margin+60,y);doc.line(pageW-margin-60,y,pageW-margin,y);
   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140,160,180);
   doc.text('Firma del asesor',margin+30,y+5,{align:'center'});doc.text('Firma del cliente',pageW-margin-30,y+5,{align:'center'});
-  doc.setFontSize(7);doc.setTextColor(160,180,200);doc.text('www.elhyai.com | Aqua Luan — Sistema de Pedidos',pageW/2,287,{align:'center'});
+  doc.setFontSize(7);doc.setTextColor(160,180,200);doc.text('www.elhyai.com | Luan Aqua — Sistema de Pedidos',pageW/2,287,{align:'center'});
 }
 
 function generarPDFBase64(){ if(!ultimoRegistro)return null; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,ultimoRegistro); return doc.output('datauristring').split(',')[1]; }
@@ -1607,30 +1635,6 @@ function descargarPDF(){
   const ns=ultimoRegistro.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
   const fs=(ultimoRegistro.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
   doc.save(`Pedido_${ns}_${fs}.pdf`);
-}
-
-async function subirPDFaDrive(snap){
-  if(!snap||!navigator.onLine)return;
-  const d=snap;
-  const pw=document.getElementById('driveProgress'),pf=document.getElementById('progressFill'),pt=document.getElementById('progressText'),pp=document.getElementById('progressPct'),pl=document.getElementById('progressLink');
-  pw.classList.add('show');pl.classList.remove('show');pf.style.width='0%';pt.textContent='Generando PDF...';pp.textContent='0%';
-  let pct=0;
-  const t1=setInterval(()=>{pct=Math.min(pct+8,40);pf.style.width=pct+'%';pp.textContent=pct+'%';},120);
-  let pdfBase64; try{pdfBase64=generarPDFBase64();}catch{clearInterval(t1);pw.classList.remove('show');return;}
-  clearInterval(t1);pf.style.width='45%';pp.textContent='45%';pt.textContent='Subiendo a Google Drive...';
-  const t2=setInterval(()=>{pct=Math.min(pct+5,85);pf.style.width=pct+'%';pp.textContent=pct+'%';},200);
-  try{
-    const ns=d.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60);
-    const fs=(d.fecha||'sin-fecha').replace(/[^0-9\-]/g,'');
-    const resp=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'subir_pdf',pdfBase64,nombreArchivo:`Pedido_${ns}_${fs}.pdf`,empleado:d.empleado,nombre:d.nombre,fecha:d.fecha,csrfToken:SESSION_TOKEN})});
-    clearInterval(t2);
-    let json={}; try{json=await resp.json();}catch{json={result:'ok'};}
-    if(json.result==='ok'||resp.ok){
-      pf.style.width='100%';pp.textContent='100%';pt.textContent='✓ PDF subido a Google Drive';
-      if(json.fileUrl){ pl.innerHTML=''; const a=document.createElement('a'); if(/^https:\/\/drive\.google\.com\//.test(json.fileUrl)){a.href=json.fileUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent='📄 Ver PDF en Google Drive';pl.appendChild(a);} pl.classList.add('show'); }
-      setStatus('success','✓ Pedido guardado y PDF subido a Google Drive.');
-    } else throw new Error(json.error||'Error');
-  }catch{clearInterval(t2);pw.classList.remove('show');}
 }
 
 function _construirMsgWA(d){
@@ -1643,53 +1647,6 @@ function _construirMsgWA(d){
   return`Estimada Secretria, se envia pedido de cliente:%0A%0A`+`👤 *Cliente:* ${encodeURIComponent(d.nombre)}%0A`+`📞 *Telefono:* ${encodeURIComponent(d.telefono||'-')}%0A`+`📍 *Direccion:* ${encodeURIComponent(d.direccion||'-')}%0A`+`📅 *Fecha:* ${encodeURIComponent(d.fecha)}%0A`+`👷 *Asesor:* ${encodeURIComponent(d.empleado)}%0A`+`💳 *Pago:* ${encodeURIComponent(d.formapago||'-')}%0A%0A`+`📦 *Productos:*%0A${lineas}%0A%0A`+`💰 *TOTAL: $${d.total}*%0A`+`📝 *Notas:* ${encodeURIComponent(d.notas||'-')}`+gpsLinea;
 }
 function enviarWhatsapp(){ if(!ultimoRegistro)return; window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${_construirMsgWA(ultimoRegistro)}`,'_blank','noopener,noreferrer'); }
-
-function _claveHistDia(empleado,fecha){
-  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
-  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
-  return 'al_hist_'+e+'_'+f;
-}
-function _clavePagosDia(empleado,fecha){
-  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
-  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
-  return 'al_pagos_'+e+'_'+f;
-}
-function _claveGastosDia(empleado,fecha){
-  const e=(empleado||'sin-usuario').replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
-  const f=(fecha||new Date().toISOString().slice(0,10)).replace(/[^0-9\-]/g,'');
-  return 'al_gastos_'+e+'_'+f;
-}
-function _restaurarPagosGastosDia(u){
-  try{
-    const hoy=new Date().toISOString().slice(0,10);
-    let pagosR=[], gastosR=[];
-    if(u.esAdmin){
-      ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>{
-        pagosR=pagosR.concat(JSON.parse(localStorage.getItem(_clavePagosDia(r,hoy))||'[]'));
-        gastosR=gastosR.concat(JSON.parse(localStorage.getItem(_claveGastosDia(r,hoy))||'[]'));
-      });
-    } else {
-      pagosR=JSON.parse(localStorage.getItem(_clavePagosDia(u.ruta,hoy))||'[]');
-      gastosR=JSON.parse(localStorage.getItem(_claveGastosDia(u.ruta,hoy))||'[]');
-    }
-    pagosR.sort((a,b)=>(b.id||0)-(a.id||0));
-    gastosR.sort((a,b)=>(b.id||0)-(a.id||0));
-    listaPagos=pagosR; listaGastos=gastosR;
-    renderPagos(); actualizarResumenPagos();
-    renderGastos(); actualizarResumenGastos();
-  }catch(e){}
-}
-function guardarEnHistorial(reg){
-  try{
-    const r={id:Date.now(),nombre:sanitizarTexto(reg.nombre,100),total:reg.total,fecha:reg.fecha,empleado:reg.empleado,formapago:reg.formapago,telefono:sanitizarTexto(reg.telefono,20),direccion:sanitizarTexto(reg.direccion,200),notas:sanitizarTexto(reg.notas,500),productos:reg.productos,gps:null};
-    const hS=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');
-    hS.unshift(r); if(hS.length>200)hS.pop();
-    sessionStorage.setItem('aqualuan-historial',JSON.stringify(hS));
-    const clave=_claveHistDia(reg.empleado,reg.fecha);
-    const hL=JSON.parse(localStorage.getItem(clave)||'[]');
-    if(!hL.find(x=>x.id===r.id)){hL.unshift(r);if(hL.length>200)hL.pop();localStorage.setItem(clave,JSON.stringify(hL));}
-  }catch{}
-}
 
 function cargarHistorial(){
   let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{}
@@ -1750,19 +1707,11 @@ function toggleHistorialDetalle(idx){
 function descargarPDFDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; const r=hist[idx]; const{jsPDF}=window.jspdf; const doc=new jsPDF({unit:'mm',format:'a4'}); _buildPDF(doc,r); const ns=r.nombre.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\-_]/g,'').replace(/\s+/g,'_').slice(0,60); const fs=(r.fecha||'sin-fecha').replace(/[^0-9\-]/g,''); doc.save(`Pedido_${ns}_${fs}.pdf`); }
 function enviarWhatsappDesde(idx){ let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{} if(idx<0||idx>=hist.length)return; window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${_construirMsgWA(hist[idx])}`,'_blank','noopener,noreferrer'); }
 function limpiarHistorial(){
-  if(!confirm('¿Limpiar el historial de pedidos de hoy?'))return;
-  try{
-    sessionStorage.removeItem('aqualuan-historial');
-    if(usuarioActual){
-      const hoy=new Date().toISOString().slice(0,10);
-      if(usuarioActual.esAdmin){
-        ['RUTA 1: Jefferson','RUTA 2: Luis','RUTA 3: Vicente','RUTA 4: Wilson','RUTA 5: Lister','RUTA 6: Asesora','admin'].forEach(r=>localStorage.removeItem(_claveHistDia(r,hoy)));
-      } else {
-        localStorage.removeItem(_claveHistDia(usuarioActual.ruta,hoy));
-      }
-    }
-  }catch{}
-  cargarHistorial();
+  // [FIX] Los pedidos ya no viven en localStorage — viven en Firestore, de verdad y
+  // permanentes. Este botón ya no puede "ocultarlos": el listener en tiempo real los
+  // vuelve a traer al instante. Si de verdad hay que borrar un pedido, se hace desde
+  // el Dashboard del administrador (borrado real del registro).
+  alert('El historial ya no se guarda en este celular — vive de forma permanente en la nube, por eso se ve igual en cualquier dispositivo. Para eliminar un pedido específico, hazlo desde el Dashboard del administrador.');
 }
 
 document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModal(); });
@@ -1774,70 +1723,47 @@ function abrirModalAsesor(){
   document.getElementById('na-usuario').value='';
   document.getElementById('na-pass').value='';
   document.getElementById('na-resultado').style.display='none';
-  document.getElementById('na-codigo').value='';
-  document.getElementById('na-elim-resultado').style.display='none';
-  document.getElementById('na-elim-codigo').value='';
   poblarSelectEliminarAsesor();
   document.getElementById('modalAsesorOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
-function poblarSelectEliminarAsesor(){
+/* [NEW] Lista los asesores reales desde Firestore (ya no desde AUTH_REGISTRY) */
+async function poblarSelectEliminarAsesor(){
   const sel = document.getElementById('na-eliminar-select');
   sel.innerHTML = '<option value="">-- Selecciona --</option>';
-  Object.keys(AUTH_REGISTRY).forEach(usuario=>{
-    if(usuario==='admin') return;
-    const reg = AUTH_REGISTRY[usuario];
-    const opt = document.createElement('option');
-    opt.value = usuario;
-    opt.textContent = `${reg.nombre} — ${reg.ruta}`;
-    sel.appendChild(opt);
-  });
+  try{
+    const snap = await db.collection('usuarios').where('esAdmin','==',false).get();
+    snap.forEach(doc=>{
+      const reg = doc.data();
+      const opt = document.createElement('option');
+      opt.value = doc.id;
+      opt.textContent = `${reg.nombre} — ${reg.ruta}`;
+      sel.appendChild(opt);
+    });
+  }catch(e){ console.error(e); }
 }
-function generarInstruccionesEliminar(){
-  const usuario = document.getElementById('na-eliminar-select').value;
-  if(!usuario){ alert('Selecciona un asesor de la lista.'); return; }
-  const reg = AUTH_REGISTRY[usuario];
-  const ruta = reg.ruta;
-  const texto =
-`/* ══ ELIMINAR ASESOR: ${reg.nombre} — ${ruta} ══ */
-
-/* PASO 1 — Dentro de AUTH_REGISTRY, elimina esta línea completa (usuario: '${usuario}'): */
-  '${usuario}': { h: '...', nombre: '${reg.nombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
-
-/* PASO 2 — Elimina '${ruta}' de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto */
-
-/* PASO 3 — Elimina <option value="${ruta}">${ruta}</option> de los 3 <select>
-   (id="empleado", id="pago-empleado", id="gasto-empleado") — tanto en el HTML
-   estático como dentro de la función restaurarSelectsCompletos() en el JS */
-
-/* PASO 4 (opcional, si ya no vas a usar esa ruta nunca más) — Elimina '${ruta}'
-   de las 2 listas usadas para restaurar y limpiar el historial diario del admin */
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */
-
-NOTA: esto solo elimina el ACCESO de login de ${reg.nombre}. Los pedidos/pagos/gastos
-que ya registró siguen intactos en tu Google Sheets — no se borra ningún dato histórico.`;
-
-  document.getElementById('na-elim-codigo').value = texto;
-  document.getElementById('na-elim-resultado').style.display='block';
-}
-function copiarInstruccionesEliminar(){
-  const ta = document.getElementById('na-elim-codigo');
-  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
-  }
+/* [NEW] Revoca el acceso del asesor (borra su perfil de Firestore) — ya no genera instrucciones */
+async function eliminarAsesorSeleccionado(){
+  const uid = document.getElementById('na-eliminar-select').value;
+  if(!uid){ alert('Selecciona un asesor de la lista.'); return; }
+  if(!confirm('¿Quitar el acceso de este asesor? Sus pedidos/pagos/gastos ya registrados NO se borran.')) return;
+  try{
+    await db.collection('usuarios').doc(uid).delete();
+    alert('✓ Acceso revocado. El asesor ya no podrá iniciar sesión.');
+    poblarSelectEliminarAsesor();
+  }catch(e){ console.error(e); alert('No se pudo eliminar. Revisa la consola del navegador.'); }
 }
 function cerrarModalAsesor(){
   document.getElementById('modalAsesorOverlay').classList.remove('open');
   document.body.style.overflow='';
 }
-async function generarCodigoAsesor(){
+/* [NEW] Instancia secundaria de Firebase — permite crear un usuario nuevo sin
+   cerrar la sesión del admin (crear un usuario normalmente inicia sesión con
+   él automáticamente; con una instancia aparte, eso no afecta al admin). */
+const _secondaryApp = firebase.initializeApp(firebaseConfig, 'secondary');
+const _secondaryAuth = _secondaryApp.auth();
+
+async function crearAsesorReal(){
   const nombreCompleto = sanitizarTexto(document.getElementById('na-nombre').value,60);
   const numRuta = document.getElementById('na-numruta').value.trim();
   const usuario = document.getElementById('na-usuario').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -1846,46 +1772,47 @@ async function generarCodigoAsesor(){
   if(!nombreCompleto){ alert('Ingresa el nombre completo del asesor.'); return; }
   if(!/^[0-9]+$/.test(numRuta)){ alert('Ingresa un número de ruta válido (ej. 6).'); return; }
   if(!usuario){ alert('Ingresa un usuario válido (solo letras y números, sin espacios).'); return; }
-  if(!pass || pass.length<4){ alert('Ingresa una contraseña de al menos 4 caracteres.'); return; }
-  if(AUTH_REGISTRY[usuario]){ alert('Ese usuario ya existe en este dispositivo. Elige otro nombre de usuario.'); return; }
+  if(!pass || pass.length<6){ alert('Firebase exige contraseñas de al menos 6 caracteres.'); return; }
 
   const primerNombre = nombreCompleto.split(' ')[0];
   const ruta = `RUTA ${numRuta}: ${primerNombre}`;
-  const hash = await hashSHA256(pass);
-
-  const codigo =
-`/* ══ NUEVO ASESOR: ${escHTML(nombreCompleto)} — ${escHTML(ruta)} ══ */
-
-/* PASO 1 — Dentro de AUTH_REGISTRY, agrega esta línea (antes del }); de cierre): */
-  '${usuario}': { h: '${hash}', nombre: '${primerNombre}', rol: 'OPERADOR', ruta: '${ruta}', esAdmin: false },
-
-/* PASO 2 — Agrega '${ruta}' dentro de LISTAS_BLANCAS.empleado Y LISTAS_BLANCAS.empleadoGasto: */
-  '${ruta}',
-
-/* PASO 3 — Agrega esta opción en los 3 <select> del HTML (id="empleado", id="pago-empleado", id="gasto-empleado"): */
-  <option value="${ruta}">${ruta}</option>
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
-
-  document.getElementById('na-codigo').value = codigo;
-  document.getElementById('na-resultado').style.display='block';
-}
-function copiarCodigoAsesor(){
-  const ta = document.getElementById('na-codigo');
-  if(!ta.value){ alert('Primero genera el código.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 3 pasos, o envíamelo.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
+  const email = _emailDeUsuario(usuario);
+  const btn = document.getElementById('na-btn-crear');
+  if(btn){ btn.disabled=true; btn.textContent='Creando...'; }
+  try{
+    const cred = await _secondaryAuth.createUserWithEmailAndPassword(email, pass);
+    const uid = cred.user.uid;
+    await _secondaryAuth.signOut(); // limpia la instancia secundaria, no toca la sesión del admin
+    await db.collection('usuarios').doc(uid).set({
+      usuario, nombre:primerNombre, nombreCompleto, ruta, rol:'OPERADOR', esAdmin:false,
+      creadoPor: usuarioActual?.uid||null, creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('na-resultado').innerHTML = `✓ Asesor <b>${escHTML(primerNombre)}</b> creado — usuario: <b>${escHTML(usuario)}</b>, ruta: <b>${escHTML(ruta)}</b>. Ya puede iniciar sesión desde cualquier celular, al instante.`;
+    document.getElementById('na-resultado').style.display='block';
+    document.getElementById('na-nombre').value='';
+    document.getElementById('na-numruta').value='';
+    document.getElementById('na-usuario').value='';
+    document.getElementById('na-pass').value='';
+    poblarSelectEliminarAsesor();
+  }catch(err){
+    console.error(err);
+    let msg='No se pudo crear el asesor.';
+    if(err.code==='auth/email-already-in-use') msg='Ese usuario ya existe.';
+    else if(err.code==='auth/weak-password') msg='La contraseña es muy débil (mínimo 6 caracteres).';
+    alert(msg);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='Crear asesor'; }
   }
 }
 document.getElementById('modalAsesorOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalAsesor(); });
 
 let _resumenDiaData=null;
-function abrirResumenDia(){
+/* [NEW] Antes el Resumen del Día se calculaba una sola vez, al momento de abrirlo — si
+   el admin editaba un pedido desde el Dashboard mientras el modal seguía abierto en el
+   celular del asesor, nunca se enteraba. Separamos el cálculo/render en su propia función
+   para poder llamarla de nuevo cada vez que llega un cambio en tiempo real, sin necesidad
+   de cerrar y reabrir el modal. */
+function _renderResumenDiaContenido(){
   let hist=[]; try{hist=JSON.parse(sessionStorage.getItem('aqualuan-historial')||'[]');}catch{}
   const contenedor=document.getElementById('resumenDiaContenido'),sub=document.getElementById('resumenDiaSub'),totalBox=document.getElementById('resumenTotalGeneral'),totalValor=document.getElementById('resumenTotalValor');
 
@@ -1903,7 +1830,7 @@ function abrirResumenDia(){
       <span class="resumen-total-general-value">$${netoCaja.toFixed(2)}</span>
     </div>`:'';
 
-  if(!hist.length){ contenedor.innerHTML=cajaHtml+`<div class="empty-msg" style="margin-top:0">No hay pedidos registrados en esta sesión.</div>`; totalBox.style.display='none'; _resumenDiaData={porAsesor:{},totalGeneral:0,formasPagoGlobal:{},hoy:new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),totalPedidos:0,totalIngresos,totalEgresos,netoCaja}; document.getElementById('resumenModalOverlay').classList.add('open'); document.body.style.overflow='hidden'; return; }
+  if(!hist.length){ contenedor.innerHTML=cajaHtml+`<div class="empty-msg" style="margin-top:0">No hay pedidos registrados en esta sesión.</div>`; totalBox.style.display='none'; _resumenDiaData={porAsesor:{},totalGeneral:0,formasPagoGlobal:{},hoy:new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),totalPedidos:0,totalIngresos,totalEgresos,netoCaja}; return; }
   const hoy=new Date().toLocaleDateString('es-EC',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   sub.textContent=`📅 ${hoy} — ${hist.length} pedido(s) en esta sesión`;
   const porAsesor={};
@@ -1917,7 +1844,7 @@ function abrirResumenDia(){
     const nc=asesor.includes(':')?asesor.split(':')[1].trim():asesor;
     const ca=[...datos.clientes].filter(Boolean);
     const nt=Object.keys(datos.productos).length;
-    const tu=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
+    const tu=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0) + Object.values(datos.regalias).reduce((s,c)=>s+c,0); /* [FIX] las unidades de regalías ahora también suman al total */
     const po=Object.entries(datos.productos).sort(([,a],[,b])=>b.subtotal-a.subtotal);
     const fp=po.map(([nom,p])=>`<tr><td>${escHTML(nom)}</td><td>${p.cantidad%1===0?parseInt(p.cantidad):p.cantidad.toFixed(1)}</td><td>$${p.precioUnit.toFixed(2)}</td><td style="font-weight:700;color:var(--teal)">$${p.subtotal.toFixed(2)}</td></tr>`).join('');
     const tp=Object.entries(datos.formasPago).sort(([,a],[,b])=>b-a).map(([f,v])=>`<span class="forma-pago-tag">${escHTML(iconoForma[f]||'💳')} ${escHTML(f)}<span class="forma-pago-tag-valor">$${v.toFixed(2)}</span></span>`).join('');
@@ -1930,6 +1857,10 @@ function abrirResumenDia(){
   contenedor.innerHTML=html;
   totalValor.textContent='$'+totalGeneral.toFixed(2);
   totalBox.style.display='flex';
+}
+/* [NEW] Abre el modal y calcula el resumen por primera vez */
+function abrirResumenDia(){
+  _renderResumenDiaContenido();
   document.getElementById('resumenModalOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -1937,7 +1868,7 @@ function cerrarResumenModal(){ document.getElementById('resumenModalOverlay').cl
 function imprimirResumen(){
   const contenido=document.getElementById('resumenModal').innerHTML;
   const v=window.open('','_blank','width=700,height=900');
-  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Resumen del Día — Aqua Luan</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}.resumen-modal-handle,.btn-cerrar-resumen,.btn-imprimir-resumen,.btn-wa-resumen{display:none!important;}.resumen-dia-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;}.resumen-dia-sub{font-size:12px;color:#888;margin-bottom:20px;}.asesor-resumen-block{border:1.5px solid #ddd;border-radius:10px;overflow:hidden;margin-bottom:16px;}.asesor-resumen-header{background:#1a3a5c;padding:10px 14px;display:flex;justify-content:space-between;}.asesor-resumen-nombre{font-size:13px;font-weight:700;color:#fff;display:flex;gap:8px;align-items:center;}.asesor-resumen-total{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#4ec9a0;}.asesor-meta-row{display:flex;gap:16px;padding:10px 14px;background:#e6f4f2;border-bottom:1px solid #ddd;flex-wrap:wrap;}.asesor-meta-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#0a7c6e;display:block;}.asesor-meta-value{font-size:14px;font-weight:700;color:#1a3a5c;}.productos-resumen-table{width:100%;border-collapse:collapse;font-size:12px;}.productos-resumen-table th{background:#f0f5f8;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#666;border-bottom:1px solid #ddd;}.productos-resumen-table th:last-child,.productos-resumen-table th:nth-child(2){text-align:right;}.productos-resumen-table td{padding:8px 12px;border-bottom:1px solid #eee;}.productos-resumen-table td:last-child,.productos-resumen-table td:nth-child(2){text-align:right;}.productos-resumen-table tr:nth-child(even) td{background:#f9f9f9;}.resumen-total-general{background:#1a3a5c;border-radius:10px;padding:14px 18px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;}.resumen-total-general-label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6);}.resumen-total-general-value{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#4ec9a0;}.print-footer{margin-top:20px;text-align:center;font-size:11px;color:#aaa;}.formas-pago-resumen{padding:10px 14px;background:#f0f5f8;border-bottom:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}.forma-pago-tag{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #ddd;border-radius:100px;padding:4px 10px;font-size:11px;font-weight:700;color:#1a3a5c;}.forma-pago-tag-valor{color:#0a7c6e;margin-left:2px;}.formas-pago-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;}</style></head><body>${contenido}<div class="print-footer">www.elhyai.com | Aqua Luan — Sistema de Pedidos</div><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Resumen del Día — Luan Aqua</title><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'DM Sans',sans-serif;color:#1a3a5c;padding:24px;background:#fff;}.resumen-modal-handle,.btn-cerrar-resumen,.btn-imprimir-resumen,.btn-wa-resumen{display:none!important;}.resumen-dia-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px;}.resumen-dia-sub{font-size:12px;color:#888;margin-bottom:20px;}.asesor-resumen-block{border:1.5px solid #ddd;border-radius:10px;overflow:hidden;margin-bottom:16px;}.asesor-resumen-header{background:#1a3a5c;padding:10px 14px;display:flex;justify-content:space-between;}.asesor-resumen-nombre{font-size:13px;font-weight:700;color:#fff;display:flex;gap:8px;align-items:center;}.asesor-resumen-total{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#4ec9a0;}.asesor-meta-row{display:flex;gap:16px;padding:10px 14px;background:#e6f4f2;border-bottom:1px solid #ddd;flex-wrap:wrap;}.asesor-meta-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#0a7c6e;display:block;}.asesor-meta-value{font-size:14px;font-weight:700;color:#1a3a5c;}.productos-resumen-table{width:100%;border-collapse:collapse;font-size:12px;}.productos-resumen-table th{background:#f0f5f8;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#666;border-bottom:1px solid #ddd;}.productos-resumen-table th:last-child,.productos-resumen-table th:nth-child(2){text-align:right;}.productos-resumen-table td{padding:8px 12px;border-bottom:1px solid #eee;}.productos-resumen-table td:last-child,.productos-resumen-table td:nth-child(2){text-align:right;}.productos-resumen-table tr:nth-child(even) td{background:#f9f9f9;}.resumen-total-general{background:#1a3a5c;border-radius:10px;padding:14px 18px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;}.resumen-total-general-label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.6);}.resumen-total-general-value{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#4ec9a0;}.print-footer{margin-top:20px;text-align:center;font-size:11px;color:#aaa;}.formas-pago-resumen{padding:10px 14px;background:#f0f5f8;border-bottom:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}.forma-pago-tag{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #ddd;border-radius:100px;padding:4px 10px;font-size:11px;font-weight:700;color:#1a3a5c;}.forma-pago-tag-valor{color:#0a7c6e;margin-left:2px;}.formas-pago-label{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;}</style></head><body>${contenido}<div class="print-footer">www.elhyai.com | Luan Aqua — Sistema de Pedidos</div><script>window.onload=function(){window.print();}<\/script></body></html>`);
   v.document.close();
 }
 document.getElementById('resumenModalOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarResumenModal(); });
@@ -1946,11 +1877,11 @@ function enviarResumenWhatsapp(){
   if(!_resumenDiaData){alert('Primero genera el resumen del día.');return;}
   const{porAsesor,totalGeneral,formasPagoGlobal,hoy,totalPedidos,totalIngresos,totalEgresos,netoCaja}=_resumenDiaData;
   const iF={'Contado':'💵','Crédito':'📋','Transferencia':'🏦','Cheque':'📝','Sin especificar':'❓'};
-  let msg=`📊 *RESUMEN DEL DÍA — AQUA LUAN*%0A📅 ${encodeURIComponent(hoy)}%0A📦 Total pedidos: ${totalPedidos}%0A%0A`;
+  let msg=`📊 *RESUMEN DEL DÍA — LUAN AQUA*%0A📅 ${encodeURIComponent(hoy)}%0A📦 Total pedidos: ${totalPedidos}%0A%0A`;
   Object.entries(porAsesor).forEach(([asesor,datos])=>{
     const n=asesor.includes(':')?asesor.split(':')[1].trim():asesor;
     const cl=[...datos.clientes].filter(Boolean).length;
-    const un=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0);
+    const un=Object.values(datos.productos).reduce((s,p)=>s+p.cantidad,0) + Object.values(datos.regalias).reduce((s,c)=>s+c,0); /* [FIX] las unidades de regalías ahora también suman al total */
     msg+=`👤 *${encodeURIComponent(n)}*%0A Clientes: ${cl} | Pedidos: ${datos.pedidos} | Unidades: ${parseInt(un)}%0A 💰 Total: *$${datos.totalDia.toFixed(2)}*%0A`;
     const fr=Object.entries(datos.formasPago).sort(([,a],[,b])=>b-a);
     if(fr.length){msg+=` 💳 `;msg+=fr.map(([f,v])=>`${iF[f]||'💳'} ${encodeURIComponent(f)}: $${v.toFixed(2)}`).join(' | ');msg+='%0A';}
@@ -1963,16 +1894,13 @@ function enviarResumenWhatsapp(){
   if((totalIngresos||0)>0||(totalEgresos||0)>0){
     msg+=`%0A🧮 *CUADRE DE CAJA*%0A🟢 Ingresos (pagos): $${(totalIngresos||0).toFixed(2)}%0A🔴 Egresos (gastos): $${(totalEgresos||0).toFixed(2)}%0A💼 *Total en caja: $${(netoCaja||0).toFixed(2)}*%0A`;
   }
-  msg+=`%0A_Enviado desde Aqua Luan — ElhyAi Consultores_`;
+  msg+=`%0A_Enviado desde Luan Aqua — ElhyAi Consultores_`;
   window.open(`https://wa.me/${WHATSAPP_secretaria}?text=${msg}`,'_blank','noopener,noreferrer');
 }
 
 function abrirModalProducto(){
   document.getElementById('np-nombre').value='';
   document.getElementById('np-resultado').style.display='none';
-  document.getElementById('np-codigo').value='';
-  document.getElementById('np-elim-resultado').style.display='none';
-  document.getElementById('np-elim-codigo').value='';
   poblarSelectEliminarProducto();
   document.getElementById('modalProductoOverlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -1981,6 +1909,7 @@ function cerrarModalProducto(){
   document.getElementById('modalProductoOverlay').classList.remove('open');
   document.body.style.overflow='';
 }
+/* [NEW] Ya lee del catálogo en vivo (LISTAS_BLANCAS.productos se actualiza solo vía listener) */
 function poblarSelectEliminarProducto(){
   const sel = document.getElementById('np-eliminar-select');
   sel.innerHTML = '<option value="">-- Selecciona --</option>';
@@ -1991,69 +1920,41 @@ function poblarSelectEliminarProducto(){
     sel.appendChild(opt);
   });
 }
-function generarCodigoProducto(){
+/* [NEW] Crea el producto real en Firestore — aparece al instante para todos los asesores */
+async function crearProductoReal(){
   const nombreRaw = document.getElementById('np-nombre').value;
   const nombre = sanitizarTexto(nombreRaw,60).toUpperCase();
   if(!nombre){ alert('Ingresa el nombre del producto.'); return; }
-  if(LISTAS_BLANCAS.productos.includes(nombre)){ alert('Ese producto ya existe en la lista.'); return; }
-
-  const codigo =
-`/* ══ NUEVO PRODUCTO: ${escHTML(nombre)} ══ */
-
-/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, agrega este valor (antes del ] de cierre): */
-  '${nombre}',
-
-/* PASO 2 — Agrega esta opción dentro del <select id="sel-producto"> en el HTML: */
-  <option value="${nombre}">${nombre}</option>
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */`;
-
-  document.getElementById('np-codigo').value = codigo;
-  document.getElementById('np-resultado').style.display='block';
-}
-function copiarCodigoProducto(){
-  const ta = document.getElementById('np-codigo');
-  if(!ta.value){ alert('Primero genera el código.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Código copiado. Pégalo en index.html siguiendo los 2 pasos, o envíamelo.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
+  if(LISTAS_BLANCAS.productos.includes(nombre)){ alert('Ese producto ya existe en el catálogo.'); return; }
+  const btn = document.getElementById('np-btn-crear');
+  if(btn){ btn.disabled=true; btn.textContent='Creando...'; }
+  try{
+    await db.collection('productos').add({
+      nombre, activo:true,
+      creadoPor: usuarioActual?.uid||null, creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('np-resultado').innerHTML = `✓ Producto <b>${escHTML(nombre)}</b> agregado al catálogo — ya está disponible para todos los asesores, al instante.`;
+    document.getElementById('np-resultado').style.display='block';
+    document.getElementById('np-nombre').value='';
+  }catch(err){
+    console.error(err);
+    alert('No se pudo crear el producto. Revisa tu conexión.');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='Crear producto'; }
   }
 }
-function generarInstruccionesEliminarProducto(){
+/* [NEW] Elimina el producto real de Firestore (usa el mapa nombre→ID que arma el listener) */
+async function eliminarProductoSeleccionado(){
   const nombre = document.getElementById('np-eliminar-select').value;
   if(!nombre){ alert('Selecciona un producto de la lista.'); return; }
-  const texto =
-`/* ══ ELIMINAR PRODUCTO: ${escHTML(nombre)} ══ */
-
-/* PASO 1 — Dentro de LISTAS_BLANCAS.productos, elimina este valor: */
-  '${nombre}',
-
-/* PASO 2 — Elimina <option value="${nombre}">${nombre}</option> del <select id="sel-producto"> en el HTML */
-
-/* Luego sube el archivo actualizado a GitHub (commit a main). */
-
-NOTA: esto solo quita el producto del formulario de nuevos pedidos. Los pedidos
-ya registrados con este producto siguen intactos en tu Google Sheets — no se
-borra ningún dato histórico.`;
-
-  document.getElementById('np-elim-codigo').value = texto;
-  document.getElementById('np-elim-resultado').style.display='block';
-}
-function copiarInstruccionesEliminarProducto(){
-  const ta = document.getElementById('np-elim-codigo');
-  if(!ta.value){ alert('Primero genera las instrucciones.'); return; }
-  ta.select();
-  ta.setSelectionRange(0, ta.value.length);
-  const hecho = () => alert('✓ Instrucciones copiadas. Envíamelas o edita tú mismo index.html siguiendo los pasos.');
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(ta.value).then(hecho).catch(()=>{ try{document.execCommand('copy');hecho();}catch{} });
-  } else {
-    try{ document.execCommand('copy'); hecho(); }catch{}
-  }
+  const docId = _productosDocIds[nombre];
+  if(!docId){ alert('No se pudo encontrar ese producto en el catálogo.'); return; }
+  if(!confirm(`¿Quitar "${nombre}" del catálogo? Los pedidos ya registrados con este producto NO se ven afectados.`)) return;
+  try{
+    await db.collection('productos').doc(docId).delete();
+    alert('✓ Producto quitado del catálogo.');
+    poblarSelectEliminarProducto();
+  }catch(err){ console.error(err); alert('No se pudo eliminar. Revisa la consola del navegador.'); }
 }
 document.getElementById('modalProductoOverlay').addEventListener('click',function(e){ if(e.target===this)cerrarModalProducto(); });
 </script>
